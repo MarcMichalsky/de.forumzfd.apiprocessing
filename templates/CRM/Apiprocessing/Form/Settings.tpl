@@ -7,8 +7,8 @@
     {ts}You can configure the settings that will be used in the API traffic between the public website(s) and CiviCRM here.{/ts}
   </div>
   <div class="crm-section">
-    <div class="label">{$form.error_activity_type.label}</div>
-    <div class="content">{$form.error_activity_type.html}</div>
+    <div class="label">{$form.error_activity_type_id.label}</div>
+    <div class="content">{$form.error_activity_type_id.html}</div>
     <div class="clear"></div>
   </div>
   <div class="crm-section">

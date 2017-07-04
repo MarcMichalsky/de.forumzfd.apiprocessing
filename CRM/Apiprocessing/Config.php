@@ -14,11 +14,13 @@ class CRM_Apiprocessing_Config {
 
   // configuration properties
   private $_employeeRelationshipTypeId = NULL;
+  private $_problemActivityTypeId = NULL;
 
   /**
    * CRM_Mafsepa_Config constructor.
    */
   function __construct() {
+    $this->setActivityTypes();
     try {
       $this->_employeeRelationshipTypeId = civicrm_api3('RelationshipType', 'getvalue', array(
         'name_a_b' => 'Employee of',
@@ -37,6 +39,34 @@ class CRM_Apiprocessing_Config {
    */
   public function getEmployeeRelationshipTypeId() {
     return $this->_employeeRelationshipTypeId;
+  }
+
+  /**
+   * Method to set and if required create the activity types
+   */
+  private function setActivityTypes() {
+    try {
+      $this->_problemActivityTypeId = civicrm_api3('OptionValue', 'getvalue', array(
+        'option_group_id' => 'activity_type',
+        'name' => 'forumzfd_api_problem',
+        'return' => 'value',
+
+      ));
+    }
+    catch (CiviCRM_API3_Exception $ex) {
+      // create activity type if not found
+      $activityType = civicrm_api3('OptionValue', 'create', array(
+        'option_group_id' => 'activity_type',
+        'label' => 'ForumZFD API Problem',
+        'name' => 'forumzfd_api_problem',
+        'description' => 'ForumZFD API Problem in traffic between website(s) and CiviCRM',
+        'is_active' => 1,
+        'is_reserved' => 1,
+      ));
+      foreach ($activityType['values'] as $values) {
+        $this->_problemActivityTypeId = $values['value'];
+      }
+    }
   }
 
   /**

@@ -3,6 +3,65 @@
 require_once 'apiprocessing.civix.php';
 
 /**
+ * Implementation of hook_civicrm_navigationMenu
+ *
+ * @link http://wiki.civicrm.org/confluence/display/CRMDOC/hook_civicrm_navigationMenu
+ */
+function apiprocessing_civicrm_navigationMenu(&$menu) {
+  _apiprocessing_insert_navigation_menu($menu, "Administer", array(
+    'label' => ts('Settings for ForumZFD API Processing'),
+    'name' => 'fzfd_apiprocessing_setttings',
+    'url' => 'civicrm/forumzfd/apiprocessing/form/settings',
+    'permission' => 'administer CiviCRM',
+    'operator' => 'AND',
+    'separator' => 0,
+  ));
+  _apiprocessing_civix_navigationMenu($menu);
+}
+
+/**
+ * Function to insert navigation menu
+ *
+ * @param $menu
+ * @param $path
+ * @param $item
+ * @return bool
+ */
+function _apiprocessing_insert_navigation_menu(&$menu, $path, $item) {
+  // If we are done going down the path, insert menu
+  if (empty($path)) {
+    $menu[] = array(
+      'attributes' => array_merge(array(
+        'label'      => CRM_Utils_Array::value('name', $item),
+        'active'     => 1,
+      ), $item),
+    );
+    return TRUE;
+  }
+  else {
+    // Find an recurse into the next level down
+    $found = FALSE;
+    $path = explode('/', $path);
+    $first = array_shift($path);
+    foreach ($menu as $key => &$entry) {
+      if ($entry['attributes']['name'] == $first) {
+        if (!$entry['child']) {
+          $entry['child'] = array();
+        }
+        $newPath = implode('/', $path);
+        $found = _apiprocessing_insert_navigation_menu($entry['child'], $newPath, $item);
+      }
+    }
+    return $found;
+  }
+}
+
+
+
+
+
+
+/**
  * Implements hook_civicrm_config().
  *
  * @link http://wiki.civicrm.org/confluence/display/CRMDOC/hook_civicrm_config

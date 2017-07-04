@@ -94,7 +94,7 @@ class CRM_Apiprocessing_Form_Settings extends CRM_Core_Form {
    * Overridden parent method to build form
    */
   public function buildQuickForm() {
-    $this->add('select', 'error_activity_type', ts('Activity Type for Errors'), $this->_activityTypesList, TRUE);
+    $this->add('select', 'error_activity_type_id', ts('Activity Type for Errors'), $this->_activityTypesList, TRUE);
     $this->add('select', 'error_activity_assignee_id', ts('Assign Error Activity Types to'), $this->_employeesList, TRUE);
     $this->add('select', 'new_contacts_group_id', ts('Add New Contacts to Group'), $this->_groupList, FALSE);
 
@@ -125,7 +125,7 @@ class CRM_Apiprocessing_Form_Settings extends CRM_Core_Form {
   private function saveSettings($formValues) {
     if (!empty($formValues)) {
       $data = array(
-        'error_activity_type' => $formValues['error_activity_type'],
+        'error_activity_type_id' => $formValues['error_activity_type_id'],
         'error_activity_assignee_id' => $formValues['error_activity_assignee_id'],
       );
       if (!empty($formValues['new_contacts_group_id'])) {

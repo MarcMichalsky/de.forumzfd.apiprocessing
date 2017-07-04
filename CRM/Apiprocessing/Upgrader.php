@@ -22,15 +22,9 @@ class CRM_Apiprocessing_Upgrader extends CRM_Apiprocessing_Upgrader_Base {
    * of your installation depends on accessing an entity that is itself
    * created during the installation (e.g., a setting or a managed entity), do
    * so here to avoid order of operation problems.
-   *
+   */
   public function postInstall() {
-    $customFieldId = civicrm_api3('CustomField', 'getvalue', array(
-      'return' => array("id"),
-      'name' => "customFieldCreatedViaManagedHook",
-    ));
-    civicrm_api3('Setting', 'create', array(
-      'myWeirdFieldSetting' => array('id' => $customFieldId, 'weirdness' => 1),
-    ));
+    CRM_Apiprocessing_Config::singleton();
   }
 
   /**
