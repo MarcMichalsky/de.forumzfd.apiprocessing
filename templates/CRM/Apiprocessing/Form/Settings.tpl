@@ -7,13 +7,23 @@
     {ts}You can configure the settings that will be used in the API traffic between the public website(s) and CiviCRM here.{/ts}
   </div>
   <div class="crm-section">
-    <div class="label">{$form.error_activity_type_id.label}</div>
-    <div class="content">{$form.error_activity_type_id.html}</div>
+    <div class="label">{$form.forumzfd_error_activity_type_id.label}</div>
+    <div class="content">{$form.forumzfd_error_activity_type_id.html}</div>
     <div class="clear"></div>
   </div>
   <div class="crm-section">
-    <div class="label">{$form.error_activity_assignee_id.label}</div>
-    <div class="content">{$form.error_activity_assignee_id.html}</div>
+    <div class="label">{$form.forumzfd_error_activity_assignee_id.label}</div>
+    <div class="content">{$form.forumzfd_error_activity_assignee_id.html}</div>
+    <div class="clear"></div>
+  </div>
+  <div class="crm-section">
+    <div class="label">{$form.akademie_error_activity_type_id.label}</div>
+    <div class="content">{$form.akademie_error_activity_type_id.html}</div>
+    <div class="clear"></div>
+  </div>
+  <div class="crm-section">
+    <div class="label">{$form.akademie_error_activity_assignee_id.label}</div>
+    <div class="content">{$form.akademie_error_activity_assignee_id.html}</div>
     <div class="clear"></div>
   </div>
   <div class="crm-section">

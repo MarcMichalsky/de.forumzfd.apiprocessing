@@ -94,8 +94,10 @@ class CRM_Apiprocessing_Form_Settings extends CRM_Core_Form {
    * Overridden parent method to build form
    */
   public function buildQuickForm() {
-    $this->add('select', 'error_activity_type_id', ts('Activity Type for Errors'), $this->_activityTypesList, TRUE);
-    $this->add('select', 'error_activity_assignee_id', ts('Assign Error Activity Types to'), $this->_employeesList, TRUE);
+    $this->add('select', 'forumzfd_error_activity_type_id', ts('Activity Type for Errors'), $this->_activityTypesList, TRUE);
+    $this->add('select', 'forumzfd_error_activity_assignee_id', ts('Assign Error Activity Types to'), $this->_employeesList, TRUE);
+    $this->add('select', 'akademie_error_activity_type_id', ts('Activity Type for Errors'), $this->_activityTypesList, TRUE);
+    $this->add('select', 'akademie_error_activity_assignee_id', ts('Assign Error Activity Types to'), $this->_employeesList, TRUE);
     $this->add('select', 'new_contacts_group_id', ts('Add New Contacts to Group'), $this->_groupList, FALSE);
 
     // add buttons
@@ -125,8 +127,10 @@ class CRM_Apiprocessing_Form_Settings extends CRM_Core_Form {
   private function saveSettings($formValues) {
     if (!empty($formValues)) {
       $data = array(
-        'error_activity_type_id' => $formValues['error_activity_type_id'],
-        'error_activity_assignee_id' => $formValues['error_activity_assignee_id'],
+        'forumzfd_error_activity_type_id' => $formValues['forumzfd_error_activity_type_id'],
+        'forumzfd_error_activity_assignee_id' => $formValues['forumzfd_error_activity_assignee_id'],
+        'akademie_error_activity_type_id' => $formValues['akademie_error_activity_type_id'],
+        'akademie_error_activity_assignee_id' => $formValues['akademie_error_activity_assignee_id'],
       );
       if (!empty($formValues['new_contacts_group_id'])) {
         $data['new_contacts_group_id'] = $formValues['new_contacts_group_id'];
@@ -155,19 +159,11 @@ class CRM_Apiprocessing_Form_Settings extends CRM_Core_Form {
    */
   public function setDefaultValues() {
     $defaults = array();
-    $container = CRM_Extension_System::singleton()->getFullContainer();
-    $fileName = $container->getPath('de.forumzfd.apiprocessing').'/resources/settings.json';
-    if (!file_exists($fileName)) {
-      CRM_Core_Session::setStatus('Could not read the settings JSON file from resources/'.$fileName,
-        'Error reading Settings', 'Error');
-      return array();
-    } else {
-      $settings = json_decode(file_get_contents($fileName), true);
-    }
-    foreach ($settings as $key => $value) {
+    $settings = new CRM_Apiprocessing_Settings();
+    $apiSettings = $settings->get();
+    foreach ($apiSettings as $key => $value) {
       $defaults[$key] = $value;
     }
     return $defaults;
   }
-
 }
