@@ -63,19 +63,20 @@ class CRM_Apiprocessing_Form_Settings extends CRM_Core_Form {
    * Method to set the list of groups
    */
   private function setGroupList() {
-    $this->_groupList[] = '- select -';
+    $groupList = array();
     try {
       $groups = civicrm_api3('Group', 'get', array(
         'is_active' => 1,
         'options' => array('limit' => 0),
       ));
       foreach ($groups['values'] as $group) {
-        $this->_groupList[$group['id']] = $group['title'];
+        $groupList[$group['id']] = $group['title'];
       }
     }
     catch (CiviCRM_API3_Exception $ex) {
     }
-    asort($this->_groupList);
+    asort($groupList);
+    $this->_groupList = array(0 => '- select - ') + $groupList;
   }
 
   /**
@@ -94,10 +95,10 @@ class CRM_Apiprocessing_Form_Settings extends CRM_Core_Form {
    * Overridden parent method to build form
    */
   public function buildQuickForm() {
-    $this->add('select', 'forumzfd_error_activity_type_id', ts('Activity Type for Errors'), $this->_activityTypesList, TRUE);
-    $this->add('select', 'forumzfd_error_activity_assignee_id', ts('Assign Error Activity Types to'), $this->_employeesList, TRUE);
-    $this->add('select', 'akademie_error_activity_type_id', ts('Activity Type for Errors'), $this->_activityTypesList, TRUE);
-    $this->add('select', 'akademie_error_activity_assignee_id', ts('Assign Error Activity Types to'), $this->_employeesList, TRUE);
+    $this->add('select', 'forumzfd_error_activity_type_id', ts('Activity Type for ForumZFD Errors'), $this->_activityTypesList, TRUE);
+    $this->add('select', 'forumzfd_error_activity_assignee_id', ts('Assign ForumZFD Error Activities to'), $this->_employeesList, TRUE);
+    $this->add('select', 'akademie_error_activity_type_id', ts('Activity Type for Akademie Errors'), $this->_activityTypesList, TRUE);
+    $this->add('select', 'akademie_error_activity_assignee_id', ts('Assign Akademie Error Activities to'), $this->_employeesList, TRUE);
     $this->add('select', 'new_contacts_group_id', ts('Add New Contacts to Group'), $this->_groupList, FALSE);
 
     // add buttons

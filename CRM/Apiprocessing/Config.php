@@ -20,6 +20,7 @@ class CRM_Apiprocessing_Config {
   private $_akademieAssigneeId = NULL;
   private $_scheduledActivityStatusId = NULL;
   private $_defaultLocationTypeId = NULL;
+  private $_defaultCountryId = NULL;
 
   /**
    * CRM_Mafsepa_Config constructor.
@@ -70,6 +71,22 @@ class CRM_Apiprocessing_Config {
       throw new Exception('Could not find a default location type id in '.__METHOD__
         .', contact your system administrator. Error from API LocationType getvalue: '.$ex->getMessage());
     }
+    try {
+      $this->_defaultCountryId = civicrm_api3('Setting', 'getvalue', array(
+        'name' => "defaultContactCountry",
+      ));
+    }
+    catch (CiviCRM_API3_Exception $ex) {
+    }
+  }
+
+  /**
+   * Getter for default country id
+   *
+   * @return null
+   */
+  public function getDefaultCountryId() {
+    return $this->_defaultCountryId;
   }
 
   /**

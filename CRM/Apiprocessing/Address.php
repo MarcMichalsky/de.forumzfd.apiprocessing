@@ -16,6 +16,10 @@ class CRM_Apiprocessing_Address {
         $addressParams[$addressField['name']] = $params[$addressField['name']];
       }
     }
+    // replace country iso_code with id
+    if (isset($params['country_iso_code'])) {
+      $addressParams['country_id'] = CRM_Apiprocessing_Utils::getCountryIdWithIso($params['country_iso_code']);
+    }
     // location type id is required so use default if not set
     if (!isset($addressParams['location_type_id']) || empty($addressParams['location_type_id'])) {
       $addressParams['location_type_id'] = CRM_Apiprocessing_Config::singleton()->getDefaultLocationTypeId();

@@ -43,11 +43,15 @@ class CRM_Apiprocessing_Utils {
   }
 
   /**
-   * uses SMARTY to render a template
+   * Method uses SMARTY to render a template
    *
+   * @param $templatePath
+   * @param $vars
    * @return string
    */
-  public static function renderTemplate($template_path, $vars) {
+  public static function renderTemplate($templatePath, $vars) {
+    CRM_Core_Error::debug_log_message('template is '.$templatePath);
+
     $smarty = CRM_Core_Smarty::singleton();
 
     // first backup original variables, since smarty instance is a singleton
@@ -60,12 +64,15 @@ class CRM_Apiprocessing_Utils {
 
     // then assign new variables
     foreach ($vars as $key => $value) {
+      CRM_Core_Error::debug_log_message('sleutel is '.$key.' met waarde '.$value);
+
       $key = str_replace(' ', '_', $key);
+
       $smarty->assign($key, $value);
     }
 
     // create result
-    $result =  $smarty->fetch($template_path);
+    $result =  $smarty->fetch($templatePath);
 
     // reset smarty variables
     foreach ($backupFrame as $key => $value) {
@@ -74,6 +81,26 @@ class CRM_Apiprocessing_Utils {
     }
 
     return $result;
+  }
+
+  /**
+   * Method to get the country id with iso code. Return default country id of installation if not found or empty
+   *
+   * @param $isoCode
+   * @return array
+   */
+  public static function getCountryIdWithIso($isoCode) {
+    if (!empty($isoCode)) {
+      try {
+        return civicrm_api3('Country', 'getvalue', array(
+          'iso_code' => $isoCode,
+          'return' => 'id',
+        ));
+      }
+      catch (CiviCRM_API3_Exception $ex) {
+      }
+    }
+    return CRM_Apiprocessing_Config::singleton()->getDefaultCountryId();
   }
 
 }
