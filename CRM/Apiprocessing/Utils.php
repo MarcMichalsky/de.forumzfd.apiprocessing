@@ -50,8 +50,6 @@ class CRM_Apiprocessing_Utils {
    * @return string
    */
   public static function renderTemplate($templatePath, $vars) {
-    CRM_Core_Error::debug_log_message('template is '.$templatePath);
-
     $smarty = CRM_Core_Smarty::singleton();
 
     // first backup original variables, since smarty instance is a singleton
@@ -64,8 +62,6 @@ class CRM_Apiprocessing_Utils {
 
     // then assign new variables
     foreach ($vars as $key => $value) {
-      CRM_Core_Error::debug_log_message('sleutel is '.$key.' met waarde '.$value);
-
       $key = str_replace(' ', '_', $key);
 
       $smarty->assign($key, $value);
