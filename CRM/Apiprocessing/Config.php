@@ -26,6 +26,20 @@ class CRM_Apiprocessing_Config {
    * CRM_Mafsepa_Config constructor.
    */
   function __construct() {
+
+    civicrm_api3('FzfdMaterial', 'order', array(
+      'first_name' => 'Bor',
+      'last_name' =>  'De Wolf',
+      'prefix_id' => 1,
+      'email' => 'bor.de.wolf@example.org',
+      'street_address' => 'Karl Marxplatz 234 A',
+      'postal_code' => '22445',
+      'city' => 'Bonn',
+      'country_iso_code' => 'DE',
+      'material_id' => 4,
+      'quantity' => 55,
+    ));
+
     $this->setActivityTypes();
     try {
       $this->_employeeRelationshipTypeId = civicrm_api3('RelationshipType', 'getvalue', array(

@@ -33,25 +33,34 @@ class CRM_Apiprocessing_Form_Settings extends CRM_Core_Form {
    * Method to set the list of ForumZfd employees
    */
   private function setEmployeeList() {
-    // get default organization contact id
+    // get all organizations that might be ForumZFD (duplicates present in database....)
     try {
-      $defaultOrgId = civicrm_api3('Domain', 'getvalue', array(
-        'return' => 'contact_id',
+      $forumZfds = civicrm_api3('Contact', 'get', array(
+        'contact_type' => 'Organization',
+        'organization_name' => 'Forum Ziviler Friedensdienst e.V.',
+        'city' => 'Köln',
+        'email' => 'kontakt@forumzfd.de',
+        'options' => array('limit' => 0,),
+        'return' => array('id',),
       ));
-      // now get all employees
       $config = CRM_Apiprocessing_Config::singleton();
-      $relationships = civicrm_api3('Relationship', 'get', array(
-        'contact_id_b' => $defaultOrgId,
-        'relationship_type_id' => $config->getEmployeeRelationshipTypeId(),
-        'is_active' => 1,
-        'options' => array('limit' => 0),
-      ));
-      foreach ($relationships['values'] as $relationship) {
-        $contactName = civicrm_api3('Contact', 'getvalue', array(
-          'id' => $relationship['contact_id_a'],
-          'return' => 'display_name',
+      // foreach of those, find relationship employee
+      foreach ($forumZfds['values'] as $forumZfd) {
+        $relationships = civicrm_api3('Relationship', 'get', array(
+          'contact_id_b' => $forumZfd['id'],
+          'relationship_type_id' => $config->getEmployeeRelationshipTypeId(),
+          'is_active' => 1,
+          'options' => array('limit' => 0),
         ));
-        $this->_employeesList[$relationship['contact_id_a']] = $contactName;
+        foreach ($relationships['values'] as $relationship) {
+          if (!isset($this->_employeesList[$relationship['contact_id_a']])) {
+            $contactName = civicrm_api3('Contact', 'getvalue', array(
+              'id' => $relationship['contact_id_a'],
+              'return' => 'display_name',
+            ));
+            $this->_employeesList[$relationship['contact_id_a']] = $contactName;
+          }
+        }
       }
     }
     catch (CiviCRM_API3_Exception $ex) {
