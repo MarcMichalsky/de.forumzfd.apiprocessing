@@ -21,26 +21,17 @@ class CRM_Apiprocessing_Config {
   private $_scheduledActivityStatusId = NULL;
   private $_defaultLocationTypeId = NULL;
   private $_defaultCountryId = NULL;
+  private $_sepaFirstPaymentInstrumentId = NULL;
+  private $_sepaOneOffPaymentInstrumentId = NULL;
+  private $_sepaRecurringPaymentInstrumentId = NULL;
 
   /**
    * CRM_Mafsepa_Config constructor.
    */
   function __construct() {
 
-    civicrm_api3('FzfdMaterial', 'order', array(
-      'first_name' => 'Bor',
-      'last_name' =>  'De Wolf',
-      'prefix_id' => 1,
-      'email' => 'bor.de.wolf@example.org',
-      'street_address' => 'Karl Marxplatz 234 A',
-      'postal_code' => '22445',
-      'city' => 'Bonn',
-      'country_iso_code' => 'DE',
-      'material_id' => 4,
-      'quantity' => 55,
-    ));
-
     $this->setActivityTypes();
+    $this->setSepaPaymentInstrumentIds();
     try {
       $this->_employeeRelationshipTypeId = civicrm_api3('RelationshipType', 'getvalue', array(
         'name_a_b' => 'Employee of',
@@ -79,6 +70,33 @@ class CRM_Apiprocessing_Config {
     }
     catch (CiviCRM_API3_Exception $ex) {
     }
+  }
+
+  /**
+   * Getter for sepa one off payment instrument id
+   *
+   * @return null
+   */
+  public function getSepaOneOffPaymentInstrumentId() {
+    return $this->_sepaOneOffPaymentInstrumentId;
+  }
+
+  /**
+   * Getter for sepa recurring payment instrument id
+   *
+   * @return null
+   */
+  public function getSepaRecurringPaymentInstrumentId() {
+    return $this->_sepaRecurringPaymentInstrumentId;
+  }
+
+  /**
+   * Getter for sepa first payment instrument id
+   *
+   * @return null
+   */
+  public function getSepaFirstPaymentInstrumentId() {
+    return $this->_sepaFirstPaymentInstrumentId;
   }
 
   /**
@@ -190,6 +208,35 @@ class CRM_Apiprocessing_Config {
         ));
         $this->$property = $newActivityType['values']['value'];
       }
+    }
+  }
+
+  /**
+   * Method to get the SEPA payment instruments for First and One Off
+   *
+   * @throws Exception when error from api
+   */
+  private function setSepaPaymentInstrumentIds() {
+    try {
+      $this->_sepaFirstPaymentInstrumentId = civicrm_api3('OptionValue', 'getvalue', array(
+        'return' => "value",
+        'option_group_id' => "payment_instrument",
+        'name' => "FRST",
+      ));
+      $this->_sepaOneOffPaymentInstrumentId = civicrm_api3('OptionValue', 'getvalue', array(
+        'return' => "value",
+        'option_group_id' => "payment_instrument",
+        'name' => "OOFF",
+      ));
+      $this->_sepaRecurringPaymentInstrumentId = civicrm_api3('OptionValue', 'getvalue', array(
+        'return' => "value",
+        'option_group_id' => "payment_instrument",
+        'name' => "RCUR",
+      ));
+    }
+    catch (CiviCRM_API3_Exception $ex) {
+      throw new Exception('Could not find one of the required SEPA payment instruments (FIRST and ONE OFF) in '
+        .__METHOD__.', contact your system administrator');
     }
   }
 

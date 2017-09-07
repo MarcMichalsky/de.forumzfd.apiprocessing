@@ -99,4 +99,22 @@ class CRM_Apiprocessing_Utils {
     return CRM_Apiprocessing_Config::singleton()->getDefaultCountryId();
   }
 
+  /**
+   * Method to check if campaign exists
+   *
+   * @param $campaignId
+   * @return bool
+   */
+  public static function campaignExists($campaignId) {
+    try {
+      $count = civicrm_api3('Campaign', 'getcount' , array('id' => $campaignId,));
+      if ($count > 0) {
+        return TRUE;
+      }
+    }
+    catch (CiviCRM_API3_Exception $ex) {
+    }
+    return FALSE;
+  }
+
 }
