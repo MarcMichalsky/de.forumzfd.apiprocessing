@@ -19,12 +19,12 @@ class CRM_Apiprocessing_Contact {
   }
 
   /**
-   * Method to find either the contact id with email if there is a single match or the number of matches found
+   * Method to find either the individual id with email if there is a single match or the number of matches found
    *
    * @param $email
    * @return array|bool
    */
-  public function findContactIdWithEmail($email) {
+  public function findIndividualIdWithEmail($email) {
     $email = filter_var($email, FILTER_SANITIZE_EMAIL);
     if (empty($email) || !filter_var($email, FILTER_VALIDATE_EMAIL)) {
       return FALSE;
@@ -56,97 +56,100 @@ class CRM_Apiprocessing_Contact {
    * @return int|bool
    * @throws Exception when contact not created
    */
-  public function processIncomingContact($params) {
+  public function processIncomingIndividual($params) {
     if (!isset($params['email']) || empty($params['email'])) {
       return FALSE;
     }
-    $find = $this->findContactIdWithEmail($params['email']);
+    $find = $this->findIndividualIdWithEmail($params['email']);
     if (!$find) {
       return FALSE;
     }
     if (isset($find['contact_id'])) {
       return $find['contact_id'];
     } else {
-      $newContactParams = $this->getNewContactParams($params);
+      $newIndividualParams = $this->getNewIndividualParams($params);
       try {
-        $newContact = civicrm_api3('Contact', 'create', $newContactParams);
+        $newIndividual = civicrm_api3('Contact', 'create', $newIndividualParams);
         // create address if applicable
-        $params['contact_id'] = $newContact['id'];
+        $params['contact_id'] = $newIndividual['id'];
         $address = new CRM_Apiprocessing_Address();
         $address->createNewAddress($params);
         // if more than one contact found with email, create error activity
-        CRM_Core_Error::debug('find', $find);
-        exit();
         if (isset($find['count']) && $find['count'] > 1) {
           $errorActivity = new CRM_Apiprocessing_Activity();
-          $errorActivity->createNewErrorActivity('forumzfd','More than one contact found with email', $params);
+          $errorActivity->createNewErrorActivity('forumzfd','More than one individual found with email', $params);
         }
-        return $newContact['id'];
+        return $newIndividual['id'];
       }
       catch (CiviCRM_API3_Exception $ex) {
-        throw new Exception('Could not create a new contact in '.__METHOD__
+        throw new Exception('Could not create a new individual in '.__METHOD__
           .'contact your system administrator. Error message from API Contact create '.$ex->getMessage());
       }
     }
   }
 
   /**
-   * Method to distill contact create params from params array (coming in from website)
+   * Method to distill individual create params from params array (coming in from website)
    *
    * @param $params
    * @return array
    */
-  private function getNewContactParams($params) {
-    $newContactParams = array();
+  private function getNewIndividualParams($params) {
+    $newIndividualParams = array();
     if (isset($params['contact_type']) && !empty($params['contact_type'])) {
-      $newContactParams['contact_type'] = $params['contact_type'];
+      $newIndividualParams['contact_type'] = $params['contact_type'];
     } else {
-      $newContactParams['contact_type'] = $this->_defaultContactType;
+      $newIndividualParams['contact_type'] = $this->_defaultContactType;
     }
     $apiFields = civicrm_api3('Contact', 'getfields', array());
     foreach ($apiFields['values'] as $apiField) {
       // ignore api_key
       if ($apiField['name'] != 'api_key') {
         if (isset($params[$apiField['name']])) {
-          $newContactParams[$apiField['name']] = $params[$apiField['name']];
+          $newIndividualParams[$apiField['name']] = $params[$apiField['name']];
         }
       }
     }
     // address fields are useless *don't ask*
     $addressParams = array('street_address', 'postal_code', 'city',  'country_id');
     foreach ($addressParams as $addressParam) {
-      if (isset($newContactParams[$addressParam])) {
-        unset($newContactParams[$addressParam]);
+      if (isset($newIndividualParams[$addressParam])) {
+        unset($newIndividualParams[$addressParam]);
       }
     }
     // if gender_id not set, generate from prefix
-    if (!isset($newContactParams['gender_id'])) {
-      $genderId = $this->generateGenderFromPrefix($params);
+    if (!isset($newIndividualParams['gender_id'])) {
+      if (isset($params['prefix_id'])) {
+        $genderId = $this->generateGenderFromPrefix($params);
+      } else {
+        $genderId = NULL;
+      }
       if (!empty($genderId)) {
-        $newContactParams['gender_id'] = $genderId;
+        $newIndividualParams['gender_id'] = $genderId;
       }
     }
-    return $newContactParams;
+    return $newIndividualParams;
   }
 
   /**
    * Method to generate gender id based on prefix
    *
-   * @param $params
+   * @param $prefixId
    * @return mixed|null
    */
-  private function generateGenderFromPrefix($params) {
+  public function generateGenderFromPrefix($prefixId) {
     $genderId = NULL;
-    if (isset($params['prefix_id'])) {
-      $prefixGender = array(
-        1 => 2,
-        2 => 1,
-      );
-      if (isset($prefixGender[$params['prefix_id']])) {
-        $genderId = $prefixGender[$params['prefix_id']];
-      }
-      return $genderId;
+    $malePrefix = array(3, 4);
+    $femalePrefix = array(1,2);
+    if (in_array($prefixId, $femalePrefix)) {
+      // female gender id
+      $genderId = 1;
     }
+    if (in_array($prefixId, $malePrefix)) {
+      // male gender id
+      $genderId = 2;
+    }
+    return $genderId;
   }
 
 }

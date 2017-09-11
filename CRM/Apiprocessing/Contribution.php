@@ -33,7 +33,7 @@ class CRM_Apiprocessing_Contribution {
   public function processIncomingData($params) {
     if ($this->validIncomingParams($params) == TRUE) {
       // process donor (find contact id or create if required)
-      $donorContactId = $this->processDonor($params);
+      $donorContactId = $this->processIndividual($params);
       if ($donorContactId) {
         // process organization if required
         if (isset($params['organization_name']) && !empty($params['organization_name'])) {
@@ -53,12 +53,84 @@ class CRM_Apiprocessing_Contribution {
             $this->createSepaFirst($sepaOneOffData);
             break;
           default:
-            $contributionData = $this->createContributionData($params, $donorContactId);
+            $contributionData = $this->createContributionParams($params, $donorContactId);
             $this->createNonSepa($contributionData);
             break;
         }
       }
     }
+  }
+  public function createSepaOneOffParams($params, $donorContactId) {
+
+  }
+  public function createContributionParams($params, $donorContactId) {
+
+  }
+  public function createSepaFirstParams($params, $donorContactId) {
+
+  }
+
+  /**
+   * Method to create or find individual
+   *
+   * @param $params
+   * @return bool|int
+   */
+  public function processIndividual($params) {
+    // return FALSE if no email in params
+    if (!isset($params['email']) || empty($params['email'])) {
+      return FALSE;
+    }
+    $contactParams = array(
+      'email' => $params['email'],
+      );
+    $possibles = array('first_name', 'last_name', 'prefix_id', 'formal_title');
+    foreach ($possibles as $possible) {
+      if (isset($params[$possible]) && !empty($params[$possible])) {
+        $contactParams[$possible] = $params[$possible];
+      }
+    }
+    $contact = new CRM_Apiprocessing_Contact();
+    // if prefix_id is used, generate gender_id
+    if (isset($params['prefix_id']) && !empty($params['prefix_id'])) {
+      $genderId = $contact->generateGenderFromPrefix($params['prefix_id']);
+      if ($genderId) {
+        $contactParams['gender_id'] = $genderId;
+      }
+    }
+    return $contact->processIncomingContact($contactParams);
+  }
+
+  /**
+   * Method to create or find organization
+   *
+   * @param $params
+   * @return bool|int
+   */
+  public function processOrganization($params) {
+    // return FALSE if no organization name in params
+    if (!isset($params['organization_name']) || empty($params['organization_name'])) {
+      return FALSE;
+    }
+    $contactParams = array(
+      'email' => $params['email'],
+    );
+    $possibles = array('first_name', 'last_name', 'prefix_id', 'formal_title');
+    foreach ($possibles as $possible) {
+      if (isset($params[$possible]) && !empty($params[$possible])) {
+        $contactParams[$possible] = $params[$possible];
+      }
+    }
+    $contact = new CRM_Apiprocessing_Contact();
+    // if prefix_id is used, generate gender_id
+    if (isset($params['prefix_id']) && !empty($params['prefix_id'])) {
+      $genderId = $contact->generateGenderFromPrefix($params['prefix_id']);
+      if ($genderId) {
+        $contactParams['gender_id'] = $genderId;
+      }
+    }
+    return $contact->processIncomingContact($contactParams);
+
   }
 
   /**

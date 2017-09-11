@@ -18,10 +18,11 @@ class CRM_Apiprocessing_Activity {
    */
   public function createNewErrorActivity($problemSource = 'forumzfd', $errorMessage, $params) {
     // determine activity type id based on problem source
-    $activityFunctionName = 'get'.$problemSource.'ActivityTypeId';
-    $assigneeFunctionName = 'get'.$problemSource.'AssigneeId';
-    $activityTypeId = CRM_Apiprocessing_Config::singleton()->$activityFunctionName();
-    $assigneeId = CRM_Apiprocessing_Config::singleton()->$assigneeFunctionName();
+    $apiSettings = new CRM_Apiprocessing_Settings();
+    $activitySettingsKey = $problemSource.'_error_activity_type_id';
+    $assigneeSettingsKey = $problemSource.'_error_activity_assignee_id';
+    $activityTypeId = $apiSettings->get($activitySettingsKey);
+    $assigneeId = $apiSettings->get($assigneeSettingsKey);
     $sourceContactId = CRM_Core_Session::singleton()->get('userID');
     $activityParams = array(
       'activity_type_id' => $activityTypeId,
@@ -31,6 +32,8 @@ class CRM_Apiprocessing_Activity {
       'subject' => ts('Error message from API: '.$errorMessage),
       'details' => CRM_Apiprocessing_Utils::renderTemplate('activities/ApiProblem.tpl', $params),
     );
+    CRM_Core_Error::debug('activity params', $activityParams);
+    exit();
     civicrm_api3('Activity', 'create', $activityParams);
   }
 }

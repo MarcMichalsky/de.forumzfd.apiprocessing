@@ -16,7 +16,6 @@ class CRM_Apiprocessing_Config {
   private $_employeeRelationshipTypeId = NULL;
   private $_forumzfdApiProblemActivityTypeId = NULL;
   private $_akademieApiProblemActivityTypeId = NULL;
-  private $_forumzfdAssigneeId = NULL;
   private $_akademieAssigneeId = NULL;
   private $_scheduledActivityStatusId = NULL;
   private $_defaultLocationTypeId = NULL;
@@ -29,8 +28,8 @@ class CRM_Apiprocessing_Config {
    * CRM_Mafsepa_Config constructor.
    */
   function __construct() {
-
     $this->setActivityTypes();
+    $this->setAssigneeIds();
     $this->setSepaPaymentInstrumentIds();
     try {
       $this->_employeeRelationshipTypeId = civicrm_api3('RelationshipType', 'getvalue', array(
@@ -127,24 +126,6 @@ class CRM_Apiprocessing_Config {
   }
 
   /**
-   * Getter for forumzfdAssgineeId
-   *
-   * @return null
-   */
-  public function getForumzfdAssigneeId() {
-    return $this->_forumzfdAssigneeId;
-  }
-
-  /**
-   * Getter for akademieAssgineeId
-   *
-   * @return null
-   */
-  public function getAkademieAssigneeId() {
-    return $this->_akademieAssigneeId;
-  }
-
-  /**
    * Getter for akademieApiProblemActivityTypeId
    *
    * @return null
@@ -238,6 +219,9 @@ class CRM_Apiprocessing_Config {
       throw new Exception('Could not find one of the required SEPA payment instruments (FIRST and ONE OFF) in '
         .__METHOD__.', contact your system administrator');
     }
+  }
+  private function setAssigneeIds() {
+
   }
 
   /**
