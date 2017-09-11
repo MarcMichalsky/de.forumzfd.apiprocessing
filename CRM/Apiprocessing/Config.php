@@ -206,7 +206,8 @@ class CRM_Apiprocessing_Config {
           'is_active' => 1,
           'is_reserved' => 1,
         ));
-        $this->$property = $newActivityType['values']['value'];
+				$newActivityType = reset($newActivityType['values']);
+        $this->$property = $newActivityType['value'];
       }
     }
   }

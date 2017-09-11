@@ -67,7 +67,11 @@ class CRM_Apiprocessing_GroupContact {
 		
 		$contact = new CRM_Apiprocessing_Contact();
 		try {
-			$newsletterContactId = $contact->findContactIdWithEmail($apiParams['email']);
+			if (isset($apiParams['contact_hash'])) {
+				$newsletterContactId = $contact->findContactIdWithHashAndEmail($apiParams['contact_hash'], $apiParams['email']);
+			} else {
+				$newsletterContactId = $contact->findContactIdWithEmail($apiParams['email']);
+			}
 		} catch (Exception $ex) {
 			return array(
     			'is_error' => 1,
@@ -91,6 +95,13 @@ class CRM_Apiprocessing_GroupContact {
     			'error_message' => 'Could not unsubscribe contact to newsletters in '.__METHOD__.', contact your system administrator. Error from API GroupContact create: '.$ex->getMessage(), 
 				);
 			}
+		} else {
+			return array(
+    			'is_error' => 1,
+    			'count' => 0,
+    			'values' => array(),
+    			'error_message' => 'Could not unsubscribe contact to newsletters in because we could not match it to a contact in '.__METHOD__.', contact your system administrator. Error from API GroupContact create: '.$ex->getMessage(), 
+				);
 		}
 				
     return array(
@@ -129,7 +140,7 @@ class CRM_Apiprocessing_GroupContact {
   			'is_error' => 1,
   			'count' => 0,
   			'values' => array(),
-  			'error_message' => 'Could not subscribe contact to newsletters in '.__METHOD__.', contact your system administrator. Error from API GroupContact create: '.$ex->getMessage(), 
+  			'error_message' => 'Could not subscribe contact to newsletters in '.__METHOD__.', contact your system administrator. Error from API process incoming contact: '.$ex->getMessage(), 
 			);
 		}
 		

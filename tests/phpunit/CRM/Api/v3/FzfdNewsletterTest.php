@@ -23,7 +23,14 @@ class CRM_Api_v3_FzfdNewsletterTest extends CRM_Api_v3_FzfdAbstractTest implemen
 	
 	private $newsletterGroups = array();
 	
+	private $new_contact_group_id;
+	
 	protected $_apiversion = 3;
+	
+	/**
+	 * @var CRM_Apiprocessing_Settings
+	 */
+	protected $apiSettings;
 
   public function setUpHeadless() {
     // Civi\Test has many helpers, like install(), uninstall(), sql(), and sqlFile().
@@ -58,6 +65,14 @@ class CRM_Api_v3_FzfdNewsletterTest extends CRM_Api_v3_FzfdAbstractTest implemen
 		}
 		
 		$this->createLoggedInUser();
+		
+		$this->apiSettings = CRM_Apiprocessing_Settings::singleton();
+		$new_contact_group = civicrm_api3('Group', 'create', array(
+			'name' => 'forumzfd_new_contacts',
+			'title' => 'forumzfd_new_contacts',
+		));
+		$this->new_contact_group_id = $new_contact_group['id'];
+		$this->apiSettings->set('new_contacts_group_id', $new_contact_group['id']);
   }
 
   public function tearDown() {
@@ -66,6 +81,7 @@ class CRM_Api_v3_FzfdNewsletterTest extends CRM_Api_v3_FzfdAbstractTest implemen
   
   /**
 	 * Test a subscribe action to multiple newsletters for a new contact.
+	 * This test also tests whether a contact is added to the group for new contacts
 	 */
   public function testSubscribeCreateNewContact() {
   	$subset = array(
@@ -81,6 +97,14 @@ class CRM_Api_v3_FzfdNewsletterTest extends CRM_Api_v3_FzfdAbstractTest implemen
 		
 		$result = civicrm_api3('FzfdNewsletter', 'subscribe', $apiParams);
 		$this->assertArraySubset($subset, $result, 'Failed test to subscribe a new contact');
+		
+		$contact_id = $this->callAPISuccessGetValue('Contact', array('email' => 'john.smith@example.com', 'return' => 'id'));
+		// Test whether the contact is added to the group for new contacts.
+		$this->callAPISuccessGetSingle('GroupContact', array(
+			'group_id' => $this->new_contact_group_id,
+			'contact_id' => $contact_id,
+			'status' => 'Added'
+		));
   }
 	
 	/**
@@ -114,6 +138,9 @@ class CRM_Api_v3_FzfdNewsletterTest extends CRM_Api_v3_FzfdAbstractTest implemen
 	 * The result is that it should create a new contact and create an error activity
 	 */
 	public function testSubscribeWithExistingMultipleContacts() {
+		// Turn off the setting for adding new contacts to a  group. 
+		$this->apiSettings->set('new_contacts_group_id', '');
+		
 		$contact1 = civicrm_api3('Contact', 'create', array(
 			'contact_type' => 'Individual',
 			'first_name' => 'Tim',
@@ -140,6 +167,17 @@ class CRM_Api_v3_FzfdNewsletterTest extends CRM_Api_v3_FzfdAbstractTest implemen
 		
 		$result = civicrm_api3('FzfdNewsletter', 'subscribe', $apiParams);
 		$this->assertArraySubset($subset, $result, 'Failed test to subscribe a new contact which already exists in the system');
+		
+		
+		$contact_id = $this->callAPISuccessGetValue('Contact', array('email' => 'tim@example.com', 'return' => 'id'));
+		// Test whether the contact is added to the group for new contacts. It should not have been added.
+		$this->callAPIFailure('GroupContact', 'getsingle', array(
+			'group_id' => $this->new_contact_group_id,
+			'contact_id' => $contact_id,
+			'status' => 'Added'
+		));
+		
+		$this->apiSettings->set('new_contacts_group_id', $this->new_contact_group_id);
 	}
 	
 	/**
@@ -189,6 +227,63 @@ class CRM_Api_v3_FzfdNewsletterTest extends CRM_Api_v3_FzfdAbstractTest implemen
 		$unsubscribeParams['newsletter_ids'] = $this->newsletterGroups[0].';'.$this->newsletterGroups[1];
 		$this->callAPIFailure('FzfdNewsletter', 'Unsubscribe', $unsubscribeParams);
 	 }
+	 
+	 /**
+	  * Test the subscribe and unsubscribe api with the contact hash.
+	  */
+	public function testSubscribeAndUnsubscribeWithHash() {
+		$contact = civicrm_api3('Contact', 'create', array(
+			'contact_type' => 'Individual',
+			'first_name' => 'Peter',
+			'last_name' => 'Fisher',
+			'email' => 'peter.fisher@example.com'
+		));
+		$contact_hash = civicrm_api3('Contact', 'getvalue', array('id' => $contact['id'], 'return' => 'hash'));
+
+		// Test whether subscribe with an invalid hash is failing.
+		$subscribeParams['first_name'] = 'Peter';
+		$subscribeParams['last_name'] = 'Fisher';
+		$subscribeParams['email'] = 'peter.fisher@example.com';
+		$subscribeParams['contact_hash'] = $contact_hash.'abcd'; // make it an invalid hash
+		$subscribeParams['newsletter_ids'] = $this->newsletterGroups[0].';'.$this->newsletterGroups[2];
+		$this->callAPIFailure('FzfdNewsletter', 'Subsubscribe', $subscribeParams);
+		
+		// Test whether the subscribe with a valid hash is succeeding.
+		$subscribeSubset = array(
+  		'is_error' => 0,
+  		'count' => 2,
+  		'values' => array(),
+		);
+		$subscribeParams = array();
+  	$subscribeParams['first_name'] = 'Peter';
+		$subscribeParams['last_name'] = 'Fisher';
+		$subscribeParams['email'] = 'peter.fisher@example.com';
+		$subscribeParams['contact_hash'] = $contact_hash;
+		$subscribeParams['newsletter_ids'] = $this->newsletterGroups[0].';'.$this->newsletterGroups[2];
+		$result = civicrm_api3('FzfdNewsletter', 'subscribe', $subscribeParams);
+		$this->assertArraySubset($subscribeSubset, $result, 'Failed test to subscribe an existing contact');
+		
+		// Test whether unsubscribe with an invalid hash is failing.
+		$unsubscribeParams = array();
+		$unsubscribeParams['email'] = 'peter.fisher@example.com';
+		$unsubscribeParams['contact_hash'] = $contact_hash.'abcf'; // make it an invalid hash.
+		$unsubscribeParams['newsletter_ids'] = $this->newsletterGroups[0].';'.$this->newsletterGroups[1];
+		$this->callAPIFailure('FzfdNewsletter', 'Unsubscribe', $unsubscribeParams); 
+		
+		// Test whether unsubscribe with a valid hash is succeeding.
+		$unsubscribeSubset = array(
+			'count' => 2,
+			'values' => array(),
+			'is_error' => 0,
+		);
+		$unsubscribeParams = array();
+		$unsubscribeParams['email'] = 'peter.fisher@example.com';
+		$unsubscribeParams['contact_hash'] = $contact_hash;
+		$unsubscribeParams['newsletter_ids'] = $this->newsletterGroups[0].';'.$this->newsletterGroups[1];
+		$result = civicrm_api3('FzfdNewsletter', 'unsubscribe', $unsubscribeParams);
+		$this->assertArraySubset($unsubscribeSubset, $result, 'Failed test to unsubscribe an existing contact');
+		
+	}  
 	
 	
 }

@@ -9,12 +9,17 @@
  */
 class CRM_Apiprocessing_Settings {
 
+	/**
+	 * @var CRM_Apiprocessing_Settings
+	 */ 
+	private static $singleton;
+
   private $_settings = array();
 
   /**
    * CRM_Apiprocessing_Settings constructor.
    */
-  function __construct() {
+  private function __construct() {
     $container = CRM_Extension_System::singleton()->getFullContainer();
     $fileName = $container->getPath('de.forumzfd.apiprocessing').'/resources/settings.json';
     if (!file_exists($fileName)) {
@@ -25,6 +30,16 @@ class CRM_Apiprocessing_Settings {
       $this->_settings = json_decode(file_get_contents($fileName), true);
     }
   }
+	
+	/**
+	 * @return CRM_Apiprocessing_Settings
+	 */
+	public static function singleton() {
+		if (!self::$singleton) {
+			self::$singleton = new CRM_Apiprocessing_Settings();
+		}
+		return self::$singleton;
+	}
 
   /**
    * Getter for all or one specific setting
@@ -38,5 +53,12 @@ class CRM_Apiprocessing_Settings {
       return $this->_settings[$key];
     }
   }
+	
+	/**
+	 * Setter for settings.
+	 */
+	public function set($key, $value) {
+		$this->_settings[$key] = $value;
+	}
 
 }
