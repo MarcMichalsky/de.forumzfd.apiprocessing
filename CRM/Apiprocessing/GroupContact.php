@@ -52,8 +52,41 @@ class CRM_Apiprocessing_GroupContact {
    */
   public function processApiSubscribe($apiParams) {
     // put newsletter ids from string into array
-    $subscribeNewsletterIds = CRM_Apiprocessing_Utils::storeNewsletterIds($apiParams['newsletter_id']);
-    return array();
+    $subscribeNewsletterIds = CRM_Apiprocessing_Utils::storeNewsletterIds($apiParams['newsletter_ids']);
+		// Validate newsletter Ids.
+		// @ToDo: develop validation function.
+		$contact = new CRM_Apiprocessing_Contact();
+		try {
+			$newsletterContactId = $contact->processIncomingContact($apiParams);
+		} catch (Exception $e) {
+			return array(
+    			'is_error' => 1,
+    			'count' => 0,
+    			'values' => array(),
+    			'error_message' => 'Could not subscribe contact to newsletters in '.__METHOD__.', contact your system administrator. Eroor from API GroupContact create: '.$ex->getMessage(), 
+				);
+		}
+		
+		if ($newsletterContactId) {
+			$groupContactApiParams['group_id'] = $subscribeNewsletterIds;
+			$groupContactApiParams['contact_id'] = $newsletterContactId;
+			try {
+				$result = civicrm_api3('GroupContact', 'create', $groupContactApiParams);
+			} catch (CiviCRM_API3_Exception $ex) {
+				return array(
+    			'is_error' => 1,
+    			'count' => 0,
+    			'values' => array(),
+    			'error_message' => 'Could not subscribe contact to newsletters in '.__METHOD__.', contact your system administrator. Eroor from API GroupContact create: '.$ex->getMessage(), 
+				);
+			}
+		}
+				
+    return array(
+    	'is_error' => 0,
+    	'count' => count($subscribeNewsletterIds),
+    	'values' => array(),
+		);
   }
 
 }

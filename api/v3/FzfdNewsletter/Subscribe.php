@@ -9,11 +9,11 @@
  * @see http://wiki.civicrm.org/confluence/display/CRMDOC/API+Architecture+Standards
  */
 function _civicrm_api3_fzfd_newsletter_Subscribe_spec(&$spec) {
-  $spec['expense_date'] = array(
-    'name' => 'expense_date',
-    'title' => 'expense_date',
-    'type' => CRM_Utils_Type::T_DATE,
-    'api.required' => 1,
+  $spec['prefix'] = array(
+    'name' => 'prefix',
+    'title' => 'prefix',
+    'type' => CRM_Utils_Type::T_STRING,
+    'api.required' => 0,
   );
   $spec['first_name'] = array(
     'name' => 'first_name',
@@ -33,9 +33,15 @@ function _civicrm_api3_fzfd_newsletter_Subscribe_spec(&$spec) {
     'type' => CRM_Utils_Type::T_STRING,
     'api.required' => 1,
   );
-  $spec['newsletter_id'] = array(
-    'name' => 'newsletter_id',
-    'title' => 'newsletter_id',
+	$spec['contact_hash'] = array(
+    'name' => 'contact_hash',
+    'title' => 'contact_hash',
+    'type' => CRM_Utils_Type::T_STRING,
+    'api.required' => 0,
+  );
+  $spec['newsletter_ids'] = array(
+    'name' => 'newsletter_ids',
+    'title' => 'newsletter_ids',
     'type' => CRM_Utils_Type::T_STRING,
     'api.required' => 1,
   );
@@ -52,10 +58,13 @@ function _civicrm_api3_fzfd_newsletter_Subscribe_spec(&$spec) {
  */
 function civicrm_api3_fzfd_newsletter_Subscribe($params) {
   $groupContact = new CRM_Apiprocessing_GroupContact();
-  $returnValues = $groupContact->processApiSubscribe($params);
+	$returnValues = $groupContact->processApiSubscribe($params);
+	var_dump($returnValues); exit();
+	return civicrm_api3_create_success($returnValues['values'], $params, 'FzfdNewsletter', 'subscribe');
+  /*
   if ($returnValues['is_error'] == 0) {
-    return civicrm_api3_create_success($returnValues, $params, 'FzfdNewsletter', 'subscribe');
+    return civicrm_api3_create_success($returnValues['values'], $params, 'FzfdNewsletter', 'subscribe');
   } else {
     return civicrm_api3_create_error($returnValues['error_message'], $params);
-  }
+  }*/
 }
