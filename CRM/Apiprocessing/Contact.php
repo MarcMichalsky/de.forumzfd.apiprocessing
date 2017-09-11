@@ -17,6 +17,40 @@ class CRM_Apiprocessing_Contact {
   function __construct()   {
     $this->_defaultContactType = "Individual";
   }
+	
+	/**
+   * Method to find either the contact id with email and hash if there is a single match or the number of matches found
+   *
+	 * @param $hash
+   * @param $email
+   * @return array|bool
+   */
+	public function findContactIdWithHashAndEmail($hash, $email) {
+		$email = filter_var($email, FILTER_SANITIZE_EMAIL);
+    if (empty($email) || !filter_var($email, FILTER_VALIDATE_EMAIL)) {
+      return FALSE;
+    }
+    try {
+      $contactCount = civicrm_api3('Contact', 'getcount', array(
+        'email' => $email,
+        'hash' => $hash,
+      ));
+      if ($contactCount == 1) {
+        $contactId = civicrm_api3('Contact', 'getvalue', array(
+          'email' => $email,
+          'hash' => $hash,
+          'return' => 'id',
+        ));
+        return array('contact_id' => $contactId,);
+      } elseif ($contactCount > 1) {
+        return array('count' => $contactCount);
+      } else {
+      	return FALSE;
+      }
+    }
+    catch (CiviCRM_API3_Exception $ex) {
+    }
+	}
 
   /**
    * Method to find either the individual id with email if there is a single match or the number of matches found
@@ -60,7 +94,15 @@ class CRM_Apiprocessing_Contact {
     if (!isset($params['email']) || empty($params['email'])) {
       return FALSE;
     }
+<<<<<<< HEAD
     $find = $this->findIndividualIdWithEmail($params['email']);
+=======
+		if (isset($params['contact_hash'])) {
+    	$find = $this->findContactIdWithHashAndEmail($params['contact_hash'], $params['email']);
+		} else {
+			$find = $this->findContactIdWithEmail($params['email']);
+		}
+>>>>>>> 86e27b10a77a98fe6c10c9b2c354240dfaf2c6b3
     if (!$find) {
       return FALSE;
     }
@@ -74,10 +116,17 @@ class CRM_Apiprocessing_Contact {
         $params['contact_id'] = $newIndividual['id'];
         $address = new CRM_Apiprocessing_Address();
         $address->createNewAddress($params);
+				
+				$this->addNewContactToGroup($newContact['id']);
+				
         // if more than one contact found with email, create error activity
         if (isset($find['count']) && $find['count'] > 1) {
           $errorActivity = new CRM_Apiprocessing_Activity();
+<<<<<<< HEAD
           $errorActivity->createNewErrorActivity('forumzfd','More than one individual found with email', $params);
+=======
+          $errorActivity->createNewErrorActivity('Forumzfd','More than one contact found with email', $params);
+>>>>>>> 86e27b10a77a98fe6c10c9b2c354240dfaf2c6b3
         }
         return $newIndividual['id'];
       }
@@ -130,6 +179,22 @@ class CRM_Apiprocessing_Contact {
     }
     return $newIndividualParams;
   }
+
+	/**
+	 * Add a contact to the group new_contacts which is set by the administrator.
+	 * This setting could be empty so a check takes places whether the setting is set. 
+	 * If not set the contact will not be added to a group.
+	 */
+	private function addNewContactToGroup($contact_id) {
+		$settings = CRM_Apiprocessing_Settings::singleton();
+    $new_contact_group_id = $settings->get('new_contacts_group_id');
+		if (!empty($new_contact_group_id)) {
+			civicrm_api3('GroupContact', 'create', array(
+				'group_id' => $new_contact_group_id,
+				'contact_id' => $contact_id
+			));
+		}
+	}
 
   /**
    * Method to generate gender id based on prefix

@@ -32,8 +32,6 @@ class CRM_Apiprocessing_Activity {
       'subject' => ts('Error message from API: '.$errorMessage),
       'details' => CRM_Apiprocessing_Utils::renderTemplate('activities/ApiProblem.tpl', $params),
     );
-    CRM_Core_Error::debug('activity params', $activityParams);
-    exit();
     civicrm_api3('Activity', 'create', $activityParams);
   }
 }

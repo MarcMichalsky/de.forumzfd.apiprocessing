@@ -66,7 +66,7 @@ class CRM_Apiprocessing_Utils {
 
       $smarty->assign($key, $value);
     }
-
+		$smarty->assign('data', $vars);
     // create result
     $result =  $smarty->fetch($templatePath);
 
