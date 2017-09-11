@@ -97,7 +97,7 @@ class CRM_Apiprocessing_Contact {
 		if (isset($params['contact_hash'])) {
     	$find = $this->findContactIdWithHashAndEmail($params['contact_hash'], $params['email']);
 		} else {
-			$find = $this->findContactIdWithEmail($params['email']);
+			$find = $this->findIndividualIdWithEmail($params['email']);
 		}
     if (!$find) {
       return FALSE;
@@ -112,9 +112,7 @@ class CRM_Apiprocessing_Contact {
         $params['contact_id'] = $newIndividual['id'];
         $address = new CRM_Apiprocessing_Address();
         $address->createNewAddress($params);
-				
-				$this->addNewContactToGroup($newContact['id']);
-				
+				$this->addNewContactToSettingsGroup($newIndividual['id']);
         // if more than one contact found with email, create error activity
         if (isset($find['count']) && $find['count'] > 1) {
           $errorActivity = new CRM_Apiprocessing_Activity();
@@ -173,17 +171,19 @@ class CRM_Apiprocessing_Contact {
   }
 
 	/**
-	 * Add a contact to the group new_contacts which is set by the administrator.
+	 * Method to add a contact to the group new_contacts which is set by the administrator.
 	 * This setting could be empty so a check takes places whether the setting is set. 
 	 * If not set the contact will not be added to a group.
+   *
+   * @param int $contactId
 	 */
-	private function addNewContactToGroup($contact_id) {
+	private function addNewContactToSettingsGroup($contactId) {
 		$settings = CRM_Apiprocessing_Settings::singleton();
-    $new_contact_group_id = $settings->get('new_contacts_group_id');
+    $newContactGroupId = $settings->get('new_contacts_group_id');
 		if (!empty($new_contact_group_id)) {
 			civicrm_api3('GroupContact', 'create', array(
-				'group_id' => $new_contact_group_id,
-				'contact_id' => $contact_id
+				'group_id' => $newContactGroupId,
+				'contact_id' => $contactId,
 			));
 		}
 	}

@@ -169,7 +169,7 @@ class CRM_Apiprocessing_Form_Settings extends CRM_Core_Form {
    */
   public function setDefaultValues() {
     $defaults = array();
-    $settings = CRM_Apiprocessing_Settings::singleton();
+    $settings = new CRM_Apiprocessing_Settings();
     $apiSettings = $settings->get();
     foreach ($apiSettings as $key => $value) {
       $defaults[$key] = $value;
