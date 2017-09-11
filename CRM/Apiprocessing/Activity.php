@@ -18,7 +18,7 @@ class CRM_Apiprocessing_Activity {
    */
   public function createNewErrorActivity($problemSource = 'forumzfd', $errorMessage, $params) {
     // determine activity type id based on problem source
-    $activityFunctionName = 'get'.$problemSource.'ActivityTypeId';
+    $activityFunctionName = 'get'.$problemSource.'ApiProblemActivityTypeId';
     $assigneeFunctionName = 'get'.$problemSource.'AssigneeId';
     $activityTypeId = CRM_Apiprocessing_Config::singleton()->$activityFunctionName();
     $assigneeId = CRM_Apiprocessing_Config::singleton()->$assigneeFunctionName();

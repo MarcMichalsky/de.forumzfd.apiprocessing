@@ -75,11 +75,9 @@ class CRM_Apiprocessing_Contact {
         $address = new CRM_Apiprocessing_Address();
         $address->createNewAddress($params);
         // if more than one contact found with email, create error activity
-        CRM_Core_Error::debug('find', $find);
-        exit();
         if (isset($find['count']) && $find['count'] > 1) {
           $errorActivity = new CRM_Apiprocessing_Activity();
-          $errorActivity->createNewErrorActivity('forumzfd','More than one contact found with email', $params);
+          $errorActivity->createNewErrorActivity('Forumzfd','More than one contact found with email', $params);
         }
         return $newContact['id'];
       }

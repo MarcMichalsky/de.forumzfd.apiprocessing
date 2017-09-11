@@ -59,12 +59,9 @@ function _civicrm_api3_fzfd_newsletter_Subscribe_spec(&$spec) {
 function civicrm_api3_fzfd_newsletter_Subscribe($params) {
   $groupContact = new CRM_Apiprocessing_GroupContact();
 	$returnValues = $groupContact->processApiSubscribe($params);
-	var_dump($returnValues); exit();
-	return civicrm_api3_create_success($returnValues['values'], $params, 'FzfdNewsletter', 'subscribe');
-  /*
   if ($returnValues['is_error'] == 0) {
-    return civicrm_api3_create_success($returnValues['values'], $params, 'FzfdNewsletter', 'subscribe');
+    return $returnValues;
   } else {
     return civicrm_api3_create_error($returnValues['error_message'], $params);
-  }*/
+  }
 }
