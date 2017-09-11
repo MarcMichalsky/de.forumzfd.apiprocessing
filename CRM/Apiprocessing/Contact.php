@@ -94,15 +94,11 @@ class CRM_Apiprocessing_Contact {
     if (!isset($params['email']) || empty($params['email'])) {
       return FALSE;
     }
-<<<<<<< HEAD
-    $find = $this->findIndividualIdWithEmail($params['email']);
-=======
 		if (isset($params['contact_hash'])) {
     	$find = $this->findContactIdWithHashAndEmail($params['contact_hash'], $params['email']);
 		} else {
 			$find = $this->findContactIdWithEmail($params['email']);
 		}
->>>>>>> 86e27b10a77a98fe6c10c9b2c354240dfaf2c6b3
     if (!$find) {
       return FALSE;
     }
@@ -122,11 +118,7 @@ class CRM_Apiprocessing_Contact {
         // if more than one contact found with email, create error activity
         if (isset($find['count']) && $find['count'] > 1) {
           $errorActivity = new CRM_Apiprocessing_Activity();
-<<<<<<< HEAD
           $errorActivity->createNewErrorActivity('forumzfd','More than one individual found with email', $params);
-=======
-          $errorActivity->createNewErrorActivity('Forumzfd','More than one contact found with email', $params);
->>>>>>> 86e27b10a77a98fe6c10c9b2c354240dfaf2c6b3
         }
         return $newIndividual['id'];
       }
