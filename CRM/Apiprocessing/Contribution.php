@@ -50,7 +50,9 @@ class CRM_Apiprocessing_Contribution {
             break;
           case CRM_Apiprocessing_Config::singleton()->getSepaOneOffPaymentInstrumentId():
             $sepaOneOffData = $this->createSepaOneOffParams($params, $donorContactId);
-            $this->createSepaFirst($sepaOneOffData);
+            if (!empty($sepaOneOffData)) {
+              $this->createSepaFirst($sepaOneOffData);
+            }
             break;
           default:
             $contributionData = $this->createContributionParams($params, $donorContactId);
@@ -60,7 +62,25 @@ class CRM_Apiprocessing_Contribution {
       }
     }
   }
+
+  /**
+   * Method to create parameter list for one off sepa
+   *
+   * @param $params
+   * @param $donorContactId
+   * @return array
+   */
   public function createSepaOneOffParams($params, $donorContactId) {
+    $sepaParams = array();
+    $creditor = CRM_Sepa_Logic_Settings::defaultCreditor();
+    if (empty($creditor)) {
+      $activity = new CRM_Apiprocessing_Activity();
+      $activity->createNewErrorActivity('forumzfd', 'Could not find a default creditor for SEPA in '
+        .__METHOD__.', create one in your CiviSepa Settings. Donation has not been processed!', $params);
+    } else {
+
+    }
+    return $sepaParams;
 
   }
   public function createContributionParams($params, $donorContactId) {

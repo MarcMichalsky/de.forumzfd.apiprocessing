@@ -18,6 +18,7 @@ class CRM_Apiprocessing_Config {
   private $_akademieApiProblemActivityTypeId = NULL;
   private $_scheduledActivityStatusId = NULL;
   private $_defaultLocationTypeId = NULL;
+  private $_defaultPhoneTypeId = NULL;
   private $_defaultCountryId = NULL;
   private $_sepaFirstPaymentInstrumentId = NULL;
   private $_sepaOneOffPaymentInstrumentId = NULL;
@@ -60,6 +61,27 @@ class CRM_Apiprocessing_Config {
     catch (CiviCRM_API3_Exception $ex) {
       throw new Exception('Could not find a default location type id in '.__METHOD__
         .', contact your system administrator. Error from API LocationType getvalue: '.$ex->getMessage());
+    }
+    try {
+      $this->_defaultPhoneTypeId = civicrm_api3('OptionValue', 'getvalue', array(
+        'option_group_id' => 'phone_type',
+        'name' => 'Phone',
+        'return' => 'value'));
+    }
+    catch (CiviCRM_API3_Exception $ex) {
+      // if Phone not found, just take the first one found and log error
+      try {
+        $this->_defaultPhoneTypeId = civicrm_api3('OptionValue', 'getvalue', array(
+          'option_group_id' => 'phone_type',
+          'return' => 'value',
+          'options' => array('limit' => 1),
+        ));
+        CRM_Core_Error::debug_log_message('No phone type with name Phone found in '.__METHOD__
+          .', first phone type found used as default phone type for ForumZFD api processing');
+      } catch (CiviCRM_API3_Exception $ex) {
+        throw new Exception('Could not find any phone type in ' . __METHOD__
+          . ', contact your system administrator. Error from API LocationType getvalue: ' . $ex->getMessage());
+      }
     }
     try {
       $this->_defaultCountryId = civicrm_api3('Setting', 'getvalue', array(
@@ -113,6 +135,15 @@ class CRM_Apiprocessing_Config {
    */
   public function getDefaultLocationTypeId() {
     return $this->_defaultLocationTypeId;
+  }
+
+  /**
+   * Getter for default phone type id
+   *
+   * @return null
+   */
+  public function getDefaultPhoneTypeId() {
+    return $this->_defaultPhoneTypeId;
   }
 
   /**

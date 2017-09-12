@@ -134,6 +134,12 @@ class CRM_Apiprocessing_Contact {
           $address = new CRM_Apiprocessing_Address();
           $address->createNewAddress($addressParams);
         }
+        // create phone if applicable
+        if (isset($params['phone']) && !empty($params['phone'])) {
+          $phone = new CRM_Apiprocessing_Phone();
+          $phone->createIncomingPhone($params, $newOrganization['id']);
+        }
+
         $this->addNewContactToSettingsGroup($newOrganization['id']);
         // if more than one organization found with name, create error activity
         if (isset($find['count']) && $find['count'] > 1) {
@@ -204,6 +210,11 @@ class CRM_Apiprocessing_Contact {
         if (isset($params['individual_addresses']) && !empty($params['individual_addresses'])) {
           $address = new CRM_Apiprocessing_Address();
           $address->processIncomingAddressArray($params['individual_addresses'], $newIndividual['id']);
+        }
+        // create phone if applicable
+        if (isset($params['phone']) && !empty($params['phone'])) {
+          $phone = new CRM_Apiprocessing_Phone();
+          $phone->createIncomingPhone($params, $newIndividual['id']);
         }
 				$this->addNewContactToSettingsGroup($newIndividual['id']);
         // if more than one individual found with email, create error activity
