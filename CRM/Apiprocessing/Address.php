@@ -8,6 +8,7 @@
  * @license AGPL-3.0
  */
 class CRM_Apiprocessing_Address {
+
   public function createNewAddress($params) {
     $result = array();
     $addressFields = civicrm_api3('Address', 'getfields', array());
@@ -35,6 +36,28 @@ class CRM_Apiprocessing_Address {
       }
     }
     return $result;
+  }
+
+  /**
+   * Method to process an array of addresses
+   *
+   * @param $addressArray
+   * @param $contactId
+   */
+  public function processIncomingAddressArray($addressArray, $contactId) {
+    // log error if addressArray is not an array
+    if (!is_array($addressArray)) {
+      $activity = new CRM_Apiprocessing_Activity();
+      $errorMessage = 'Incoming parameter addressArray is not an array in '.__METHOD__.', no address(es) created';
+      $activity->createNewErrorActivity('forumzfd', $errorMessage, array(
+        'contact_id' => $contactId,
+        'addressArray' => $addressArray,));
+    } else {
+      foreach ($addressArray as $address) {
+        $address['contact_id'] = $contactId;
+        $this->createNewAddress($address);
+      }
+    }
   }
 
 }

@@ -16,7 +16,6 @@ class CRM_Apiprocessing_Config {
   private $_employeeRelationshipTypeId = NULL;
   private $_forumzfdApiProblemActivityTypeId = NULL;
   private $_akademieApiProblemActivityTypeId = NULL;
-  private $_akademieAssigneeId = NULL;
   private $_scheduledActivityStatusId = NULL;
   private $_defaultLocationTypeId = NULL;
   private $_defaultCountryId = NULL;
