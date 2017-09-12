@@ -9,7 +9,86 @@
  * @see http://wiki.civicrm.org/confluence/display/CRMDOC/API+Architecture+Standards
  */
 function _civicrm_api3_fzfd_petition_Sign_spec(&$spec) {
-  $spec['magicword']['api.required'] = 1;
+  $spec['prefix_id'] = array(
+    'name' => 'prefix',
+    'title' => 'prefix',
+    'type' => CRM_Utils_Type::T_INT,
+    'api.required' => 0,
+	);
+	$spec['formal_title'] = array(
+    'name' => 'formal_title',
+    'title' => 'formal_title',
+    'type' => CRM_Utils_Type::T_STRING,
+    'api.required' => 0,
+	);
+	$spec['first_name'] = array(
+    'name' => 'first_name',
+    'title' => 'first_name',
+    'type' => CRM_Utils_Type::T_STRING,
+    'api.required' => 1,
+  );
+  $spec['last_name'] = array(
+    'name' => 'last_name',
+    'title' => 'last_name',
+    'type' => CRM_Utils_Type::T_STRING,
+    'api.required' => 1,
+  );
+  $spec['email'] = array(
+    'name' => 'email',
+    'title' => 'email',
+    'type' => CRM_Utils_Type::T_STRING,
+    'api.required' => 1,
+  );
+	
+	$spec['individual_addresses'] = array(
+    'name' => 'individual_addresses',
+    'title' => 'individual_addresses',
+    'type' => CRM_Utils_Type::T_ENUM,
+    'api.required' => 0,
+  );
+	
+	$spec['organization_name'] = array(
+    'name' => 'organization_name',
+    'title' => 'organization_name',
+    'type' => CRM_Utils_Type::T_STRING,
+    'api.required' => 0,
+	);
+	$spec['organization_street_address'] = array(
+    'name' => 'organization_street_address',
+    'title' => 'organization_street_address',
+    'type' => CRM_Utils_Type::T_STRING,
+    'api.required' => 0,
+	);
+	$spec['organization_postal_code'] = array(
+    'name' => 'organization_postal_code',
+    'title' => 'organization_postal_code',
+    'type' => CRM_Utils_Type::T_STRING,
+    'api.required' => 0,
+	);
+	$spec['organization_city'] = array(
+    'name' => 'organization_city',
+    'title' => 'organization_city',
+    'type' => CRM_Utils_Type::T_STRING,
+    'api.required' => 0,
+	);
+	$spec['organization_country_iso'] = array(
+    'name' => 'organization_country_iso',
+    'title' => 'organization_country_iso',
+    'type' => CRM_Utils_Type::T_STRING,
+    'api.required' => 0,
+	);
+	$spec['source'] = array(
+    'name' => 'source',
+    'title' => 'source',
+    'type' => CRM_Utils_Type::T_STRING,
+    'api.required' => 0,
+	);
+	$spec['campaign_id'] = array(
+    'name' => 'campaign_id',
+    'title' => 'campaign_id',
+    'type' => CRM_Utils_Type::T_INT,
+    'api.required' => 0,
+	);
 }
 
 /**
@@ -22,20 +101,11 @@ function _civicrm_api3_fzfd_petition_Sign_spec(&$spec) {
  * @throws API_Exception
  */
 function civicrm_api3_fzfd_petition_Sign($params) {
-  if (array_key_exists('magicword', $params) && $params['magicword'] == 'sesame') {
-    $returnValues = array(
-      // OK, return several data rows
-      12 => array('id' => 12, 'name' => 'Twelve'),
-      34 => array('id' => 34, 'name' => 'Thirty four'),
-      56 => array('id' => 56, 'name' => 'Fifty six'),
-    );
-    // ALTERNATIVE: $returnValues = array(); // OK, success
-    // ALTERNATIVE: $returnValues = array("Some value"); // OK, return a single value
-
-    // Spec: civicrm_api3_create_success($values = 1, $params = array(), $entity = NULL, $action = NULL)
-    return civicrm_api3_create_success($returnValues, $params, 'NewEntity', 'NewAction');
-  }
-  else {
-    throw new API_Exception(/*errorMessage*/ 'Everyone knows that the magicword is "sesame"', /*errorCode*/ 1234);
+	$activity = new CRM_Apiprocessing_Activity();
+	$returnValues = $activity->processApiPetitionSign($params);
+  if ($returnValues['is_error'] == 0) {
+    return $returnValues;
+  } else {
+    return civicrm_api3_create_error($returnValues['error_message'], $params);
   }
 }

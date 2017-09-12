@@ -20,6 +20,8 @@ class CRM_Apiprocessing_Settings {
    * CRM_Apiprocessing_Settings constructor.
    */
   public function __construct() {
+    $config = CRM_Apiprocessing_Config::singleton();
+			
     $container = CRM_Extension_System::singleton()->getFullContainer();
     $fileName = $container->getPath('de.forumzfd.apiprocessing').'/resources/settings.json';
     if (!file_exists($fileName)) {
@@ -29,6 +31,10 @@ class CRM_Apiprocessing_Settings {
     } else {
       $this->_settings = json_decode(file_get_contents($fileName), true);
     }
+		
+		if (empty($this->_settings['fzfd_petition_signed_activity_type_id'])) {
+			$this->_settings['fzfd_petition_signed_activity_type_id'] = $config->getFzfdPetitionSignedActivityTypeId();
+		}
   }
 	
 	/**

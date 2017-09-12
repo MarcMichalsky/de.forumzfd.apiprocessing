@@ -7,6 +7,7 @@
  */
 class CRM_Apiprocessing_Form_Settings extends CRM_Core_Form {
 
+	private $apiSettings;
   private $_activityTypesList = array();
   private $_employeesList = array();
   private $_groupList = array();
@@ -94,6 +95,7 @@ class CRM_Apiprocessing_Form_Settings extends CRM_Core_Form {
    * @access public
    */
   function preProcess() {
+  	$this->apiSettings = CRM_Apiprocessing_Settings::singleton();
     CRM_Utils_System::setTitle(ts('Settings for ForumZFD API processing between website and CiviCRM'));
     $this->setActivityTypeList();
     $this->setEmployeeList();
@@ -109,6 +111,7 @@ class CRM_Apiprocessing_Form_Settings extends CRM_Core_Form {
     $this->add('select', 'akademie_error_activity_type_id', ts('Activity Type for Akademie Errors'), $this->_activityTypesList, TRUE);
     $this->add('select', 'akademie_error_activity_assignee_id', ts('Assign Akademie Error Activities to'), $this->_employeesList, TRUE);
     $this->add('select', 'new_contacts_group_id', ts('Add New Contacts to Group'), $this->_groupList, FALSE);
+		$this->add('select', 'fzfd_petition_signed_activity_type_id', ts('Activity Type for ForumZFD Petition Sign'), $this->_activityTypesList, TRUE);
 
     // add buttons
     $this->addButtons(array(
@@ -141,6 +144,7 @@ class CRM_Apiprocessing_Form_Settings extends CRM_Core_Form {
         'forumzfd_error_activity_assignee_id' => $formValues['forumzfd_error_activity_assignee_id'],
         'akademie_error_activity_type_id' => $formValues['akademie_error_activity_type_id'],
         'akademie_error_activity_assignee_id' => $formValues['akademie_error_activity_assignee_id'],
+        'fzfd_petition_signed_activity_type_id' => $formValues['fzfd_petition_signed_activity_type_id'],
       );
       if (!empty($formValues['new_contacts_group_id'])) {
         $data['new_contacts_group_id'] = $formValues['new_contacts_group_id'];
@@ -169,8 +173,7 @@ class CRM_Apiprocessing_Form_Settings extends CRM_Core_Form {
    */
   public function setDefaultValues() {
     $defaults = array();
-    $settings = new CRM_Apiprocessing_Settings();
-    $apiSettings = $settings->get();
+    $apiSettings = $this->apiSettings->get();
     foreach ($apiSettings as $key => $value) {
       $defaults[$key] = $value;
     }

@@ -17,6 +17,7 @@ class CRM_Apiprocessing_Config {
   private $_forumzfdApiProblemActivityTypeId = NULL;
   private $_akademieApiProblemActivityTypeId = NULL;
   private $_scheduledActivityStatusId = NULL;
+	private $_completedActivityStatusId = NULL;
   private $_defaultLocationTypeId = NULL;
   private $_defaultPhoneTypeId = NULL;
   private $_defaultCountryId = NULL;
@@ -51,6 +52,17 @@ class CRM_Apiprocessing_Config {
     }
     catch (CiviCRM_API3_Exception $ex) {
       throw new Exception('Could not find the standard scheduled activity status in '.__METHOD__
+        .', contact your system administrator. Error from API OptionValue Type getvalue: '.$ex->getMessage());
+    }
+		try {
+      $this->_completedActivityStatusId = civicrm_api3('OptionValue', 'getvalue', array(
+        'option_group_id' => 'activity_status',
+        'name' => 'Completed',
+        'return' => 'value',
+      ));
+    }
+    catch (CiviCRM_API3_Exception $ex) {
+      throw new Exception('Could not find the standard completed activity status in '.__METHOD__
         .', contact your system administrator. Error from API OptionValue Type getvalue: '.$ex->getMessage());
     }
     try {
@@ -154,6 +166,15 @@ class CRM_Apiprocessing_Config {
   public function getScheduledActivityStatusId() {
     return $this->_scheduledActivityStatusId;
   }
+	
+	/**
+   * Getter for completed activity status id
+   *
+   * @return null
+   */
+  public function getCompletedActivityStatusId() {
+    return $this->_completedActivityStatusId;
+  }
 
   /**
    * Getter for akademieApiProblemActivityTypeId
@@ -172,6 +193,10 @@ class CRM_Apiprocessing_Config {
   public function getForumzfdApiProblemActivityTypeId() {
     return $this->_forumzfdApiProblemActivityTypeId;
   }
+	
+	public function getFzfdPetitionSignedActivityTypeId() {
+		return $this->_fzfdPetitionSignedActivityTypeId;
+	}
 
   /**
    * Getter for employee relationship type id
@@ -189,6 +214,7 @@ class CRM_Apiprocessing_Config {
     $activityTypesToFetch = array(
       'forumzfd_api_problem',
       'akademie_api_problem',
+      'fzfd_petition_signed',
       );
     foreach ($activityTypesToFetch as $activityTypeName) {
       $nameParts = explode('_', $activityTypeName);
@@ -208,9 +234,15 @@ class CRM_Apiprocessing_Config {
       }
       catch (CiviCRM_API3_Exception $ex) {
         // create activity type if not found
+        if ($activityTypeName == 'fzfd_petition_signed') {
+  				$activityTypeLabel = 'An Petition teilgenommen';
+  			} else {
+  				$activityTypeLabel = CRM_Apiprocessing_Utils::createLabelFromName($activityTypeName);
+  			}
+         
         $newActivityType = civicrm_api3('OptionValue', 'create', array(
           'option_group_id' => 'activity_type',
-          'label' => CRM_Apiprocessing_Utils::createLabelFromName($activityTypeName),
+          'label' => $activityTypeLabel,
           'name' => $activityTypeName,
           'description' => CRM_Apiprocessing_Utils::createLabelFromName($activityTypeName)
             .' in traffic between website(s) and CiviCRM',
