@@ -201,9 +201,10 @@ class CRM_Apiprocessing_Contact {
       	$newIndividualParams['debug'] = 1;
         $newIndividual = civicrm_api3('Contact', 'create', $newIndividualParams);
         // create address if applicable
-        $params['contact_id'] = $newIndividual['id'];
-        $address = new CRM_Apiprocessing_Address();
-        $address->createNewAddress($params);
+        if (isset($params['individual_addresses']) && !empty($params['individual_addresses'])) {
+          $address = new CRM_Apiprocessing_Address();
+          $address->processIncomingAddressArray($params['individual_addresses'], $newIndividual['id']);
+        }
 				$this->addNewContactToSettingsGroup($newIndividual['id']);
         // if more than one individual found with email, create error activity
         if (isset($find['count']) && $find['count'] > 1) {
