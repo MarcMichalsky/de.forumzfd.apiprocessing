@@ -31,6 +31,11 @@
     <div class="content">{$form.new_contacts_group_id.html}</div>
     <div class="clear"></div>
   </div>
+ <div class="crm-section">
+    <div class="label">{$form.fzfd_petition_signed_activity_type_id.label}</div>
+    <div class="content">{$form.fzfd_petition_signed_activity_type_id.html}</div>
+    <div class="clear"></div>
+  </div>
 
   {* FOOTER *}
   <div class="crm-submit-buttons">

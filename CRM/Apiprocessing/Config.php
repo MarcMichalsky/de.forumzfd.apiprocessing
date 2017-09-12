@@ -142,6 +142,10 @@ class CRM_Apiprocessing_Config {
   public function getForumzfdApiProblemActivityTypeId() {
     return $this->_forumzfdApiProblemActivityTypeId;
   }
+	
+	public function getFzfdPetitionSignedActivityTypeId() {
+		return $this->_fzfdPetitionSignedActivityTypeId;
+	}
 
   /**
    * Getter for employee relationship type id
@@ -159,6 +163,7 @@ class CRM_Apiprocessing_Config {
     $activityTypesToFetch = array(
       'forumzfd_api_problem',
       'akademie_api_problem',
+      'fzfd_petition_signed',
       );
     foreach ($activityTypesToFetch as $activityTypeName) {
       $nameParts = explode('_', $activityTypeName);
