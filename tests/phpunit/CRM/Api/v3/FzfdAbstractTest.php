@@ -22,6 +22,7 @@ class CRM_Api_v3_FzfdAbstractTest extends \PHPUnit_Framework_TestCase {
       'contact_id' => $contactID,
       'uf_name' => 'superman',
       'uf_id' => 6,
+      'domain_id' => 1,
     ));
 
     $session = CRM_Core_Session::singleton();

@@ -16,7 +16,7 @@ class CRM_Apiprocessing_Activity {
    * @param $errorMessage
    * @param $params
    */
-  public function createNewErrorActivity($problemSource = 'forumzfd', $errorMessage, $params) {
+  public function createNewErrorActivity($problemSource = 'forumzfd', $errorMessage, $params, $contactId = false) {
     // determine activity type id based on problem source
     $apiSettings = CRM_Apiprocessing_Settings::singleton();
     $activitySettingsKey = $problemSource.'_error_activity_type_id';
@@ -32,6 +32,9 @@ class CRM_Apiprocessing_Activity {
       'subject' => ts('Error message from API: '.$errorMessage),
       'details' => CRM_Apiprocessing_Utils::renderTemplate('activities/ApiProblem.tpl', $params),
     );
+		if ($contactId) {
+			$activityParams['target_contact_id'] = $contactId;
+		}
   	civicrm_api3('Activity', 'create', $activityParams);
   }
 	

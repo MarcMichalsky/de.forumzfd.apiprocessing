@@ -31,6 +31,16 @@ class CRM_Apiprocessing_Config {
   private $_sepaFrstMandateStatus = NULL;
   private $_sepaOoffMandateType = NULL;
   private $_sepaRcurMandateType = NULL;
+	private $_akademieCustomGroup = NULL;
+	private $_experienceCustomFieldId = NULL;
+	private $_employerCustomFieldId = NULL;
+	private $_wishesCustomFieldId = NULL;
+	private $_registeredParticipantStatusId = NULL;
+	private $_cancelledParticipantStatusId = NULL;
+	private $_eventCustomGroup = NULL;
+	private $_trainerCustomFieldId = NULL;
+	private $_teilnahmeOrganisationCustomFieldId = NULL;
+	private $_ansprechInhaltCustomFieldId = NULL;
 
   /**
    * CRM_Mafsepa_Config constructor.
@@ -114,6 +124,77 @@ class CRM_Apiprocessing_Config {
       ));
     }
     catch (CiviCRM_API3_Exception $ex) {
+    }
+		
+		try {
+			$this->_akademieCustomGroup = civicrm_api3('CustomGroup', 'getsingle', array('name' => 'akademie'));
+		} catch (CiviCRM_API3_Exception $ex) {
+			throw new Exception('Could not find custom data set Akademie in '.__METHOD__
+			.' contact your system administrator. Error from API CustomGroup getsingle: '.$ex->getMessage());
+		}
+		try {
+			$this->_experienceCustomFieldId = civicrm_api3('CustomField', 'getvalue', array('name' => 'experience', 'custom_group_id' => $this->_akademieCustomGroup['id'],'return' => 'id'));
+		} catch (CiviCRM_API3_Exception $ex) {
+			throw new Exception('Could not find custom field Experience in '.__METHOD__
+			.' contact your system administrator. Error from API CustomField getvalue: '.$ex->getMessage());
+		}
+		try {
+			$this->_wishesCustomFieldId = civicrm_api3('CustomField', 'getvalue', array('name' => 'wishes', 'custom_group_id' => $this->_akademieCustomGroup['id'],'return' => 'id'));
+		} catch (CiviCRM_API3_Exception $ex) {
+			throw new Exception('Could not find custom field Wishes in '.__METHOD__
+			.' contact your system administrator. Error from API CustomField getvalue: '.$ex->getMessage());
+		}
+		try {
+			$this->_employerCustomFieldId = civicrm_api3('CustomField', 'getvalue', array('name' => 'employer', 'custom_group_id' => $this->_akademieCustomGroup['id'],'return' => 'id'));
+		} catch (CiviCRM_API3_Exception $ex) {
+			throw new Exception('Could not find custom field Employer in '.__METHOD__
+			.' contact your system administrator. Error from API CustomField getvalue: '.$ex->getMessage());
+		}
+		
+		try {
+			$this->_eventCustomGroup = civicrm_api3('CustomGroup', 'getsingle', array('name' => 'event'));
+		} catch (CiviCRM_API3_Exception $ex) {
+			throw new Exception('Could not find custom data set Event in '.__METHOD__
+			.' contact your system administrator. Error from API CustomGroup getsingle: '.$ex->getMessage());
+		}
+		try {
+			$this->_trainerCustomFieldId = civicrm_api3('CustomField', 'getvalue', array('name' => 'trainer', 'custom_group_id' => $this->_eventCustomGroup['id'],'return' => 'id'));
+		} catch (CiviCRM_API3_Exception $ex) {
+			throw new Exception('Could not find custom field Trainer in '.__METHOD__
+			.' contact your system administrator. Error from API CustomField getvalue: '.$ex->getMessage());
+		}
+		try {
+			$this->_teilnahmeOrganisationCustomFieldId = civicrm_api3('CustomField', 'getvalue', array('name' => 'teilnahme_organisation', 'custom_group_id' => $this->_eventCustomGroup['id'],'return' => 'id'));
+		} catch (CiviCRM_API3_Exception $ex) {
+			throw new Exception('Could not find custom field Teilnahme für Organisation in '.__METHOD__
+			.' contact your system administrator. Error from API CustomField getvalue: '.$ex->getMessage());
+		}
+		try {
+			$this->_ansprechInhaltCustomFieldId = civicrm_api3('CustomField', 'getvalue', array('name' => 'ansprech_inhalt', 'custom_group_id' => $this->_eventCustomGroup['id'],'return' => 'id'));
+		} catch (CiviCRM_API3_Exception $ex) {
+			throw new Exception('Could not find custom field Ansprech Inhalt in '.__METHOD__
+			.' contact your system administrator. Error from API CustomField getvalue: '.$ex->getMessage());
+		}
+		
+		try {
+      $this->_registeredParticipantStatusId = civicrm_api3('ParticipantStatusType', 'getvalue', array(
+        'name' => 'Registered',
+        'return' => 'id',
+      ));
+    }
+    catch (CiviCRM_API3_Exception $ex) {
+      throw new Exception('Could not find the standard registered participant status in '.__METHOD__
+        .', contact your system administrator. Error from API OptionValue Type getvalue: '.$ex->getMessage());
+    }
+		try {
+      $this->_cancelledParticipantStatusId = civicrm_api3('ParticipantStatusType', 'getvalue', array(
+        'name' => 'Cancelled',
+        'return' => 'id',
+      ));
+    }
+    catch (CiviCRM_API3_Exception $ex) {
+      throw new Exception('Could not find the standard cancelled participant status in '.__METHOD__
+        .', contact your system administrator. Error from API OptionValue Type getvalue: '.$ex->getMessage());
     }
   }
 
@@ -286,6 +367,62 @@ class CRM_Apiprocessing_Config {
   public function getEmployeeRelationshipTypeId() {
     return $this->_employeeRelationshipTypeId;
   }
+	
+	/**
+	 * Getter for employer custom field id
+	 */
+	public function getEmployerCustomFieldId() {
+		return $this->_employerCustomFieldId;
+	}
+	
+	/**
+	 * Getter for experience custom field id
+	 */
+	public function getExperienceCustomFieldId() {
+		return $this->_experienceCustomFieldId;
+	}
+	
+	/**
+	 * Getter for wishes custom field id
+	 */
+	public function getWishesCustomFieldId() {
+		return $this->_wishesCustomFieldId;
+	}
+	
+	/**
+	 * Getter for trainer custom field id
+	 */
+	 public function getTrainerCustomFieldId() {
+	 	return $this->_trainerCustomFieldId;
+	 }
+	 
+	 /**
+	 * Getter for Teilnahme für Organisation custom field id
+	 */
+	 public function getTeilnahmeOrganisationCustomFieldId() {
+	 	return $this->_teilnahmeOrganisationCustomFieldId;
+	 }
+	 
+	 /**
+	 * Getter for Ansprech Inhalt custom field id
+	 */
+	 public function getAnsprechInhaltCustomFieldId() {
+	 	return $this->_ansprechInhaltCustomFieldId;
+	 }
+	
+	/**
+	 * Getter for participant status Registered
+	 */
+	public function getRegisteredParticipantStatus() {
+		return $this->_registeredParticipantStatusId;
+	}
+	
+	/**
+	 * Getter for participant status Cancelled
+	 */
+	public function getCancelledParticipantStatus() {
+		return $this->_cancelledParticipantStatusId;
+	}
 
   /**
    * Method to set and if required create the activity types
