@@ -19,7 +19,7 @@ require_once('FzfdAbstractTest.php');
  *
  * @group headless
  */
-class CRM_Api_v3_FzfdNewsletterTest extends CRM_Api_v3_FzfdAbstractTest implements HeadlessInterface, TransactionalInterface {
+class CRM_Api_v3_FzfdPetitionTest extends CRM_Api_v3_FzfdAbstractTest implements HeadlessInterface, TransactionalInterface {
 	
 	private $campaign_id = false;
 	
