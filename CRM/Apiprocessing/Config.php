@@ -182,9 +182,15 @@ class CRM_Apiprocessing_Config {
       }
       catch (CiviCRM_API3_Exception $ex) {
         // create activity type if not found
+        if ($activityTypeName == 'fzfd_petition_signed') {
+  				$activityTypeLabel = 'An Petition teilgenommen';
+  			} else {
+  				$activityTypeLabel = CRM_Apiprocessing_Utils::createLabelFromName($activityTypeName);
+  			}
+         
         $newActivityType = civicrm_api3('OptionValue', 'create', array(
           'option_group_id' => 'activity_type',
-          'label' => CRM_Apiprocessing_Utils::createLabelFromName($activityTypeName),
+          'label' => $activityTypeLabel,
           'name' => $activityTypeName,
           'description' => CRM_Apiprocessing_Utils::createLabelFromName($activityTypeName)
             .' in traffic between website(s) and CiviCRM',
