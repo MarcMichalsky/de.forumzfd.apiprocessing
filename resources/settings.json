@@ -3,5 +3,7 @@
     "forumzfd_error_activity_assignee_id": "56950",
     "akademie_error_activity_type_id": "107",
     "akademie_error_activity_assignee_id": "56950",
+    "fzfd_petition_signed_activity_type_id": "110",
+    "default_cycle_day_sepa": "20",
     "new_contacts_group_id": "3"
 }

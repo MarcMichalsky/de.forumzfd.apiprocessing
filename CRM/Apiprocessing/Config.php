@@ -21,17 +21,30 @@ class CRM_Apiprocessing_Config {
   private $_defaultLocationTypeId = NULL;
   private $_defaultPhoneTypeId = NULL;
   private $_defaultCountryId = NULL;
-  private $_sepaFirstPaymentInstrumentId = NULL;
-  private $_sepaOneOffPaymentInstrumentId = NULL;
-  private $_sepaRecurringPaymentInstrumentId = NULL;
+  private $_defaultCurrency = NULL;
+  private $_sepaFrstPaymentInstrumentId = NULL;
+  private $_sepaOoffPaymentInstrumentId = NULL;
+  private $_sepaRcurPaymentInstrumentId = NULL;
+  private $_sepaOoffFinancialTypeId = NULL;
+  private $_sepaRcurFinancialTypeId = NULL;
+  private $_sepaOoffMandateStatus = NULL;
+  private $_sepaFrstMandateStatus = NULL;
+  private $_sepaOoffMandateType = NULL;
+  private $_sepaRcurMandateType = NULL;
 
   /**
    * CRM_Mafsepa_Config constructor.
    */
   function __construct() {
     $this->setActivityTypes();
-    $this->setAssigneeIds();
+    $this->_sepaOoffMandateStatus = "OOFF";
+    $this->_sepaOoffMandateType = "OOFF";
+    $this->_sepaFrstMandateStatus = "FRST";
+    $this->_sepaRcurMandateType = "RCUR";
+    $this->_defaultCurrency = "EUR";
+
     $this->setSepaPaymentInstrumentIds();
+    $this->setSepaFinancialTypeIds();
     try {
       $this->_employeeRelationshipTypeId = civicrm_api3('RelationshipType', 'getvalue', array(
         'name_a_b' => 'Employee of',
@@ -105,12 +118,70 @@ class CRM_Apiprocessing_Config {
   }
 
   /**
+   * Getter for sepa first mandate status
+   *
+   * @return null
+   */
+  public function getSepaFrstMandateStatus() {
+    return $this->_sepaFrstMandateStatus;
+  }
+
+  /**
+   * Getter for sepa one off mandate status
+   *
+   * @return null
+   */
+  public function getSepaOoffMandateStatus() {
+    return $this->_sepaOoffMandateStatus;
+  }
+
+  /**
+   * Getter for sepa one off mandate type
+   *
+   * @return null
+   */
+  public function getSepaOoffMandateType() {
+    return $this->_sepaOoffMandateType;
+  }
+
+  /**
+   * Getter for sepa recurring mandate type
+   *
+   * @return null
+   */
+  public function getSepaRcurMandateType() {
+    return $this->_sepaRcurMandateType;
+  }
+
+  /**
+   * Getter for sepa recurring financial type id
+   *
+   * @return null
+   */
+  public function getSepaRcurFinancialTypeId() {
+    return $this->_sepaRcurFinancialTypeId;
+  }
+
+  /**
+   * Getter for sepa one off financial type id
+   *
+   * @return null
+   */
+  public function getSepaOoffFinancialTypeId() {
+    return $this->_sepaOoffFinancialTypeId;
+  }
+
+  public function getDefaultOoffMandateStatus() {
+
+  }
+
+  /**
    * Getter for sepa one off payment instrument id
    *
    * @return null
    */
-  public function getSepaOneOffPaymentInstrumentId() {
-    return $this->_sepaOneOffPaymentInstrumentId;
+  public function getSepaOoffPaymentInstrumentId() {
+    return $this->_sepaOoffPaymentInstrumentId;
   }
 
   /**
@@ -118,8 +189,8 @@ class CRM_Apiprocessing_Config {
    *
    * @return null
    */
-  public function getSepaRecurringPaymentInstrumentId() {
-    return $this->_sepaRecurringPaymentInstrumentId;
+  public function getSepaRcurPaymentInstrumentId() {
+    return $this->_sepaRcurPaymentInstrumentId;
   }
 
   /**
@@ -127,8 +198,17 @@ class CRM_Apiprocessing_Config {
    *
    * @return null
    */
-  public function getSepaFirstPaymentInstrumentId() {
-    return $this->_sepaFirstPaymentInstrumentId;
+  public function getSepaFrstPaymentInstrumentId() {
+    return $this->_sepaFrstPaymentInstrumentId;
+  }
+
+  /**
+   * Getter for default currency
+   *
+   * @return null
+   */
+  public function getDefaultCurrency() {
+    return $this->_defaultCurrency;
   }
 
   /**
@@ -283,8 +363,35 @@ class CRM_Apiprocessing_Config {
         .__METHOD__.', contact your system administrator');
     }
   }
-  private function setAssigneeIds() {
 
+  /**
+   * Method to set the financial types for SEPA
+   *
+   * @throws Exception
+   */
+  private function setSepaFinancialTypeIds() {
+    $rcurFinancialTypeName = 'Förderbeitrag';
+    $ooffFinancialTypeName = 'Spende';
+    try {
+      $this->_sepaRcurFinancialTypeId = civicrm_api3('FinancialType', 'getvalue', array(
+        'name' => $rcurFinancialTypeName,
+        'return' => 'id',
+      ));
+    }
+    catch (CiviCRM_API3_Exception $ex) {
+      throw new Exception('Could not find SEPA financial type '.$rcurFinancialTypeName.' in '.__METHOD__
+        .', contact your system administrator!');
+    }
+    try {
+      $this->_sepaOoffFinancialTypeId = civicrm_api3('FinancialType', 'getvalue', array(
+        'name' => $ooffFinancialTypeName,
+        'return' => 'id',
+      ));
+    }
+    catch (CiviCRM_API3_Exception $ex) {
+      throw new Exception('Could not find SEPA financial type '.$ooffFinancialTypeName.' in '.__METHOD__
+        .', contact your system administrator!');
+    }
   }
 
   /**
