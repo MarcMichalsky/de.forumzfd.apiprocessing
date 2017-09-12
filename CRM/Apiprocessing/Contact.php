@@ -19,25 +19,18 @@ class CRM_Apiprocessing_Contact {
   }
 	
 	/**
-   * Method to find either the contact id with email and hash if there is a single match or the number of matches found
+   * Method to find either the contact id with hash if there is a single match or the number of matches found
    *
 	 * @param $hash
-   * @param $email
    * @return array|bool
    */
-	public function findContactIdWithHashAndEmail($hash, $email) {
-		$email = filter_var($email, FILTER_SANITIZE_EMAIL);
-    if (empty($email) || !filter_var($email, FILTER_VALIDATE_EMAIL)) {
-      return FALSE;
-    }
+	public function findIndividualIdWithHash($hash) {
     try {
       $individualCount = civicrm_api3('Contact', 'getcount', array(
-        'email' => $email,
         'hash' => $hash,
       ));
       if ($individualCount == 1) {
         $individualId = civicrm_api3('Contact', 'getvalue', array(
-          'email' => $email,
           'hash' => $hash,
           'return' => 'id',
         ));
@@ -193,7 +186,7 @@ class CRM_Apiprocessing_Contact {
       return FALSE;
     }
 		if (isset($params['contact_hash'])) {
-    	$find = $this->findContactIdWithHashAndEmail($params['contact_hash'], $params['email']);
+    	$find = $this->findIndividualIdWithHash($params['contact_hash']);
 		} else {
 			$find = $this->findIndividualIdWithEmail($params['email']);
 		}
@@ -205,6 +198,7 @@ class CRM_Apiprocessing_Contact {
     } else {
       $newIndividualParams = $this->getNewIndividualParams($params);
       try {
+      	$newIndividualParams['debug'] = 1;
         $newIndividual = civicrm_api3('Contact', 'create', $newIndividualParams);
         // create address if applicable
         $params['contact_id'] = $newIndividual['id'];
@@ -284,7 +278,7 @@ class CRM_Apiprocessing_Contact {
 	private function addNewContactToSettingsGroup($contactId) {
 		$settings = CRM_Apiprocessing_Settings::singleton();
     $newContactGroupId = $settings->get('new_contacts_group_id');
-		if (!empty($new_contact_group_id)) {
+		if (!empty($newContactGroupId)) {
 			civicrm_api3('GroupContact', 'create', array(
 				'group_id' => $newContactGroupId,
 				'contact_id' => $contactId,

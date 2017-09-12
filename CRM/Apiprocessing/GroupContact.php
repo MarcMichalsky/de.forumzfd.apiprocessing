@@ -68,9 +68,9 @@ class CRM_Apiprocessing_GroupContact {
 		$contact = new CRM_Apiprocessing_Contact();
 		try {
 			if (isset($apiParams['contact_hash'])) {
-				$newsletterContactId = $contact->findContactIdWithHashAndEmail($apiParams['contact_hash'], $apiParams['email']);
+				$newsletterContactId = $contact->findIndividualIdWithHash($apiParams['contact_hash']);
 			} else {
-				$newsletterContactId = $contact->findContactIdWithEmail($apiParams['email']);
+				$newsletterContactId = $contact->findIndividualIdWithEmail($apiParams['email']);
 			}
 		} catch (Exception $ex) {
 			return array(
@@ -81,9 +81,9 @@ class CRM_Apiprocessing_GroupContact {
 				);
 		}
 		
-		if ($newsletterContactId) {
+		if (isset($newsletterContactId['individual_id'])) {
 			$groupContactApiParams['group_id'] = $subscribeNewsletterIds;
-			$groupContactApiParams['contact_id'] = $newsletterContactId;
+			$groupContactApiParams['contact_id'] = $newsletterContactId['individual_id'];
 			$groupContactApiParams['status'] = 'Removed';
 			try {
 				$result = civicrm_api3('GroupContact', 'create', $groupContactApiParams);
@@ -134,8 +134,9 @@ class CRM_Apiprocessing_GroupContact {
 		
 		$contact = new CRM_Apiprocessing_Contact();
 		try {
-			$newsletterContactId = $contact->processIncomingContact($apiParams);
+			$newsletterContactId = $contact->processIncomingIndividual($apiParams);
 		} catch (Exception $ex) {
+			throw $ex;
 			return array(
   			'is_error' => 1,
   			'count' => 0,
