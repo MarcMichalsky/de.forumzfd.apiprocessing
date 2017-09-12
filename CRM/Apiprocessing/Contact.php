@@ -31,19 +31,19 @@ class CRM_Apiprocessing_Contact {
       return FALSE;
     }
     try {
-      $contactCount = civicrm_api3('Contact', 'getcount', array(
+      $individualCount = civicrm_api3('Contact', 'getcount', array(
         'email' => $email,
         'hash' => $hash,
       ));
-      if ($contactCount == 1) {
-        $contactId = civicrm_api3('Contact', 'getvalue', array(
+      if ($individualCount == 1) {
+        $individualId = civicrm_api3('Contact', 'getvalue', array(
           'email' => $email,
           'hash' => $hash,
           'return' => 'id',
         ));
-        return array('contact_id' => $contactId,);
-      } elseif ($contactCount > 1) {
-        return array('count' => $contactCount);
+        return array('individual_id' => $individualId,);
+      } elseif ($individualCount > 1) {
+        return array('count' => $individualCount);
       } else {
       	return FALSE;
       }
@@ -64,17 +64,17 @@ class CRM_Apiprocessing_Contact {
       return FALSE;
     }
     try {
-      $contactCount = civicrm_api3('Contact', 'getcount', array(
+      $individualCount = civicrm_api3('Contact', 'getcount', array(
         'email' => $email,
       ));
-      if ($contactCount == 1) {
-        $contactId = civicrm_api3('Contact', 'getvalue', array(
+      if ($individualCount == 1) {
+        $individualId = civicrm_api3('Contact', 'getvalue', array(
           'email' => $email,
           'return' => 'id',
         ));
-        return array('contact_id' => $contactId,);
+        return array('individual_id' => $individualId,);
       } else {
-        return array('count' => $contactCount);
+        return array('count' => $individualCount);
       }
     }
     catch (CiviCRM_API3_Exception $ex) {
@@ -82,9 +82,107 @@ class CRM_Apiprocessing_Contact {
   }
 
   /**
-   * Method to process an incoming contact. This method will determine if the contact can be uniquely identified by the
-   * email. If no contact with the email is found, it will create a new contact. If more contacts are found with the email,
-   * it will create a new contact but also create an error activity.
+   * Method to find either the organization id with organization_name if there is a single match or the number of matches found
+   *
+   * @param $organizationName
+   * @return array|bool
+   */
+  public function findOrganizationIdWithName($organizationName) {
+    if (empty($organizationName)) {
+      return FALSE;
+    }
+    try {
+      $organizationCount = civicrm_api3('Contact', 'getcount', array(
+        'contact_type' => 'Organization',
+        'organization_name' => $organizationName,
+      ));
+      if ($organizationCount == 1) {
+        $organizationId = civicrm_api3('Contact', 'getvalue', array(
+          'contact_type' => 'Organization',
+          'organization_name' => $organizationName,
+          'return' => 'id',
+        ));
+        return array('organization_id' => $organizationId,);
+      } else {
+        return array('count' => $organizationCount);
+      }
+    }
+    catch (CiviCRM_API3_Exception $ex) {
+    }
+  }
+
+  /**
+   * Method to process incoming organization. It will try to find an organization with the incoming organization_name. If
+   * no organization is found, a new one will be created. If 1 organization is found, the id will be returned. If more
+   * than 1 are found, a new organization will be created as well as an error activity.
+   *
+   * @param $params
+   * @return bool|mixed
+   * @throws Exception
+   */
+  public function processIncomingOrganization($params) {
+    if (!isset($params['organization_name']) || empty($params['organization_name'])) {
+      return FALSE;
+    }
+    $find = $this->findOrganizationIdWithName($params['organization_name']);
+    if (!$find) {
+      return FALSE;
+    }
+    if (isset($find['organization_id'])) {
+      return $find['organization_id'];
+    } else {
+      $newOrganizationParams = $this->getNewOrganizationParams($params);
+      try {
+        $newOrganization = civicrm_api3('Contact', 'create', $newOrganizationParams);
+        // create address if applicable
+        $addressParams = $this->getOrganizationAddressParams($params);
+        if (!empty($addressParams)) {
+          $addressParams['contact_id'] = $newOrganization['id'];
+          $address = new CRM_Apiprocessing_Address();
+          $address->createNewAddress($addressParams);
+        }
+        $this->addNewContactToSettingsGroup($newOrganization['id']);
+        // if more than one organization found with name, create error activity
+        if (isset($find['count']) && $find['count'] > 1) {
+          $errorActivity = new CRM_Apiprocessing_Activity();
+          $errorActivity->createNewErrorActivity('forumzfd','More than one organization found with organization name', $params);
+        }
+        return $newOrganization['id'];
+      }
+      catch (CiviCRM_API3_Exception $ex) {
+        throw new Exception('Could not create a new organization in '.__METHOD__
+          .'contact your system administrator. Error message from API Contact create '.$ex->getMessage());
+      }
+    }
+  }
+
+  /**
+   * Method to distill the address params from the incoming params from website
+   *
+   * @param $params
+   * @return array
+   */
+  private function getOrganizationAddressParams($params) {
+    $addressParams = array();
+    if (isset($params['organization_street_address']) && !empty($params['organization_street_address'])) {
+      $addressParams['street_address'] = $params['organization_street_address'];
+    }
+    if (isset($params['organization_postal_code']) && !empty($params['organization_postal_code'])) {
+      $addressParams['postal_code'] = $params['organization_postal_code'];
+    }
+    if (isset($params['organization_city']) && !empty($params['organization_city'])) {
+      $addressParams['city'] = $params['organization_city'];
+    }
+    if (isset($params['organization_country_iso']) && !empty($params['organization_country_iso'])) {
+      $addressParams['country_iso'] = $params['organization_country_iso'];
+    }
+    return $addressParams;
+  }
+
+  /**
+   * Method to process an incoming individual. This method will determine if the individual can be uniquely identified
+   * by the email. If no individual with the email is found, it will create a new individual. If more individuals are
+   * found with the email, it will create a new individual but also create an error activity.
    *
    * @param $params
    * @return int|bool
@@ -102,8 +200,8 @@ class CRM_Apiprocessing_Contact {
     if (!$find) {
       return FALSE;
     }
-    if (isset($find['contact_id'])) {
-      return $find['contact_id'];
+    if (isset($find['individual_id'])) {
+      return $find['individual_id'];
     } else {
       $newIndividualParams = $this->getNewIndividualParams($params);
       try {
@@ -113,7 +211,7 @@ class CRM_Apiprocessing_Contact {
         $address = new CRM_Apiprocessing_Address();
         $address->createNewAddress($params);
 				$this->addNewContactToSettingsGroup($newIndividual['id']);
-        // if more than one contact found with email, create error activity
+        // if more than one individual found with email, create error activity
         if (isset($find['count']) && $find['count'] > 1) {
           $errorActivity = new CRM_Apiprocessing_Activity();
           $errorActivity->createNewErrorActivity('forumzfd','More than one individual found with email', $params);
@@ -149,13 +247,6 @@ class CRM_Apiprocessing_Contact {
         }
       }
     }
-    // address fields are useless *don't ask*
-    $addressParams = array('street_address', 'postal_code', 'city',  'country_id');
-    foreach ($addressParams as $addressParam) {
-      if (isset($newIndividualParams[$addressParam])) {
-        unset($newIndividualParams[$addressParam]);
-      }
-    }
     // if gender_id not set, generate from prefix
     if (!isset($newIndividualParams['gender_id'])) {
       if (isset($params['prefix_id'])) {
@@ -168,6 +259,19 @@ class CRM_Apiprocessing_Contact {
       }
     }
     return $newIndividualParams;
+  }
+
+  /**
+   * Method to distill organization create params from params array (coming in from website)
+   *
+   * @param $params
+   * @return array
+   */
+  private function getNewOrganizationParams($params) {
+    return array(
+      'contact_type' => 'Organization',
+      'organization_name' => $params['organization_name'],
+    );
   }
 
 	/**
