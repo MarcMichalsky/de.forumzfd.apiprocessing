@@ -8,6 +8,7 @@
  * @license AGPL-3.0
  */
 class CRM_Apiprocessing_Address {
+
   public function createNewAddress($params) {
     $result = array();
     $addressFields = civicrm_api3('Address', 'getfields', array());

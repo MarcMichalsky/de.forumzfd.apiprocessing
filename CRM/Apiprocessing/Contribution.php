@@ -81,56 +81,74 @@ class CRM_Apiprocessing_Contribution {
     if (!isset($params['email']) || empty($params['email'])) {
       return FALSE;
     }
-    $contactParams = array(
-      'email' => $params['email'],
+    $individualParams = $params;
+    $removes = array(
+      'payment_instrument_id',
+      'amount',
+      'donation_date',
+      'campaign_id',
+      'source',
+      'organization_name',
+      'organization_street_address',
+      'organization_postal_code',
+      'organization_city',
+      'organization_country_iso',
+      'iban',
+      'start_date',
+      'bic',
+      'frequency_interval',
+      'frequency_unit',
+      'cycle_day',
       );
-    $possibles = array('first_name', 'last_name', 'prefix_id', 'formal_title');
-    foreach ($possibles as $possible) {
-      if (isset($params[$possible]) && !empty($params[$possible])) {
-        $contactParams[$possible] = $params[$possible];
+    foreach ($removes as $remove) {
+      if (isset($individualParams[$remove])) {
+        unset($individualParams[$remove]);
       }
     }
-    $contact = new CRM_Apiprocessing_Contact();
+    $individual = new CRM_Apiprocessing_Contact();
     // if prefix_id is used, generate gender_id
     if (isset($params['prefix_id']) && !empty($params['prefix_id'])) {
-      $genderId = $contact->generateGenderFromPrefix($params['prefix_id']);
+      $genderId = $individual->generateGenderFromPrefix($params['prefix_id']);
       if ($genderId) {
-        $contactParams['gender_id'] = $genderId;
+        $individualParams['gender_id'] = $genderId;
       }
     }
-    return $contact->processIncomingContact($contactParams);
+    return $individual->processIncomingIndividual($individualParams);
   }
 
   /**
    * Method to create or find organization
    *
    * @param $params
+   * @param $individualId
    * @return bool|int
    */
-  public function processOrganization($params) {
+  public function processOrganization($params, $individualId) {
     // return FALSE if no organization name in params
     if (!isset($params['organization_name']) || empty($params['organization_name'])) {
       return FALSE;
     }
-    $contactParams = array(
-      'email' => $params['email'],
+    $organizationParams = array(
+      'organization_name' => $params['organization_name'],
+      'contact_type' => 'Organization',
     );
-    $possibles = array('first_name', 'last_name', 'prefix_id', 'formal_title');
+    $possibles = array(
+      'organization_street_address',
+      'organization_postal_code',
+      'organization_city',
+      'organization_country_iso',
+    );
     foreach ($possibles as $possible) {
       if (isset($params[$possible]) && !empty($params[$possible])) {
-        $contactParams[$possible] = $params[$possible];
+        $organizationParams[$possible] = $params[$possible];
       }
     }
-    $contact = new CRM_Apiprocessing_Contact();
-    // if prefix_id is used, generate gender_id
-    if (isset($params['prefix_id']) && !empty($params['prefix_id'])) {
-      $genderId = $contact->generateGenderFromPrefix($params['prefix_id']);
-      if ($genderId) {
-        $contactParams['gender_id'] = $genderId;
-      }
-    }
-    return $contact->processIncomingContact($contactParams);
-
+    $organization = new CRM_Apiprocessing_Contact();
+    $organizationId = $organization->processIncomingOrganization($organizationParams);
+    // now process relationship between organization and individual
+    $relationship = new CRM_Apiprocessing_Relationship();
+    $relationship->processEmployerRelationship($organizationId, $individualId);
+    return $organizationId;
   }
 
   /**
