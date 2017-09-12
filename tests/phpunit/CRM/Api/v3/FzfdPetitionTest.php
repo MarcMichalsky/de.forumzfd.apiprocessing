@@ -63,6 +63,7 @@ class CRM_Api_v3_FzfdNewsletterTest extends CRM_Api_v3_FzfdAbstractTest implemen
 		$this->apiSettings->set('new_contacts_group_id', $new_contact_group['id']);
 		$this->apiSettings->set('forumzfd_error_activity_type_id', $this->apiConfig->getForumzfdApiProblemActivityTypeId());
 		$this->apiSettings->set('forumzfd_error_activity_assignee_id', CRM_Core_Session::singleton()->get('userID'));
+		$this->apiSettings->set('fzfd_petition_signed_activity_type_id', $this->apiConfig->getFzfdPetitionSignedActivityTypeId());
 		
 		$campaign = civicrm_api3('Campaign', 'create', array('title' => 'test'));
 		$this->campaign_id = $campaign['id'];
@@ -144,8 +145,7 @@ class CRM_Api_v3_FzfdNewsletterTest extends CRM_Api_v3_FzfdAbstractTest implemen
 		$activity = $this->retrieveActivity($contact['id'], true);
 		$this->assertEquals($this->campaign_id, $activity['campaign_id'], 'The activity is not linked to an campaign');
 		
-		$addressArray = array(); // @Todo retrieve the addresses of the contact
-		$this->assertCount(2, $addressArray, 'Expected two addresses');
+		$this->callAPISuccessGetCount('Address', array('contact_id' => $contact['id']), 2);
 	}
 
 /**
@@ -169,13 +169,11 @@ class CRM_Api_v3_FzfdNewsletterTest extends CRM_Api_v3_FzfdAbstractTest implemen
 		$result = $this->callAPISuccess('FzfdPetition', 'sign', $petitionParams);
 		$this->assertArraySubset($subset, $result, 'Failed test to sign a petition');
 		$contact = $this->callAPISuccessGetSingle('Contact', array('email' => $petitionParams['email']));
-		$activity = $this->retrieveActivity($contact['id'], true);
+		$organization = $this->callAPISuccessGetSingle('Contact', array('organization_name' => $petitionParams['organization_name'], 'contact_type' => 'Organization'));
+		$activity = $this->retrieveActivity($organization['id'], true);
 		$this->assertEquals($this->campaign_id, $activity['campaign_id'], 'The activity is not linked to an campaign');
-		
-		// Check whether the organization is created
-		$organization = $this->callAPISuccessGetSingle('Contact', array('organization_name' => $petitionParams['organization_name']));
 		// Check whether a relationship between the organization and the individual is created
-		$employeeOfRelationshipTypeId = civicrm_api3('RelationshipType', 'getvalue', array('name_a_b' => 'Employee of'));
+		$employeeOfRelationshipTypeId = $this->apiConfig->getEmployeeRelationshipTypeId();
 		$relationship = $this->callAPISuccessGetSingle('Relationship', array(
 			'relationship_type_id' => $employeeOfRelationshipTypeId,
 			'contact_id_a' => $contact['id'],
@@ -184,9 +182,9 @@ class CRM_Api_v3_FzfdNewsletterTest extends CRM_Api_v3_FzfdAbstractTest implemen
 	}
 
 	/**
-	 * Test the petition sign api with only the required values, the campaign, prefix, formal_title and source
+	 * Test the petition sign api with only the required values, prefix, formal_title and source
 	 */
-	public function testPetitionSignWithRequiredValuesCampaignAndOptionalFields() {
+	public function testPetitionSignWithRequiredValuesAndOptionalFields() {
 		$subset = array(
 			'is_error' => 0,
 			'count' => 1,
@@ -198,7 +196,6 @@ class CRM_Api_v3_FzfdNewsletterTest extends CRM_Api_v3_FzfdAbstractTest implemen
 		$petitionParams['first_name'] = 'John';
 		$petitionParams['last_name'] = 'Doe';
 		$petitionParams['email'] = 'john.doe@example.com';
-		$petitionParams['campaign_id'] = $this->campaign_id;
 		$petitionParams['prefix_id'] = $prefixes['value'];
 		$petitionParams['formal_title'] = 'Herr Dr.';
 		$petitionParams['source'] = 'Unit test';
@@ -207,9 +204,8 @@ class CRM_Api_v3_FzfdNewsletterTest extends CRM_Api_v3_FzfdAbstractTest implemen
 		$contact = $this->callAPISuccessGetSingle('Contact', array('email' => $petitionParams['email']));
 		$this->assertEquals($petitionParams['prefix_id'], $contact['prefix_id']);
 		$this->assertEquals($petitionParams['formal_title'], $contact['formal_title']);
-		$this->assertEquals($petitionParams, $contact['source'], $contact['source']);
 		$activity = $this->retrieveActivity($contact['id'], true);
-		$this->assertEquals($this->campaign_id, $activity['campaign_id'], 'The activity is not linked to an campaign');
+		$this->assertEquals($petitionParams['source'], $activity['subject']);
 	}
 	
 	/**
