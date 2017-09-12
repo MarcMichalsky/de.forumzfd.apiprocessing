@@ -66,13 +66,18 @@ class CRM_Api_v3_FzfdNewsletterTest extends CRM_Api_v3_FzfdAbstractTest implemen
 		
 		$this->createLoggedInUser();
 		
+		$apiConfig = CRM_Apiprocessing_Config::singleton();
 		$this->apiSettings = CRM_Apiprocessing_Settings::singleton();
 		$new_contact_group = civicrm_api3('Group', 'create', array(
 			'name' => 'forumzfd_new_contacts',
 			'title' => 'forumzfd_new_contacts',
 		));
 		$this->new_contact_group_id = $new_contact_group['id'];
+		
+		// Fake API settings as the settings in the JSON file does not reflect the data in the test database.
 		$this->apiSettings->set('new_contacts_group_id', $new_contact_group['id']);
+		$this->apiSettings->set('forumzfd_error_activity_type_id', $apiConfig->getForumzfdApiProblemActivityTypeId());
+		$this->apiSettings->set('forumzfd_error_activity_assignee_id', CRM_Core_Session::singleton()->get('userID'));
   }
 
   public function tearDown() {
@@ -160,7 +165,7 @@ class CRM_Api_v3_FzfdNewsletterTest extends CRM_Api_v3_FzfdAbstractTest implemen
   		'values' => array(),
 		);
 		
-  	$apiParams['first_name'] = 'Tim';
+  	$apiParams['first_name'] = 'Timothy';
 		$apiParams['last_name'] = 'Fuller';
 		$apiParams['email'] = 'tim@example.com';
 		$apiParams['newsletter_ids'] = $this->newsletterGroups[0].';'.$this->newsletterGroups[2];
@@ -168,12 +173,19 @@ class CRM_Api_v3_FzfdNewsletterTest extends CRM_Api_v3_FzfdAbstractTest implemen
 		$result = civicrm_api3('FzfdNewsletter', 'subscribe', $apiParams);
 		$this->assertArraySubset($subset, $result, 'Failed test to subscribe a new contact which already exists in the system');
 		
-		
-		$contact_id = $this->callAPISuccessGetValue('Contact', array('email' => 'tim@example.com', 'return' => 'id'));
+		// A get single should fail as we have three contacts with this email address in the system.
+		$contact = $this->callAPIFailure('Contact', 'getsingle', array('email' => 'tim@example.com', 'return' => 'id'));
+		// A get single with the first and last name should succeed as we have only one with a first and last name in the database.
+		$contact = $this->callAPISuccessGetSingle('Contact', array(
+			'email' => 'tim@example.com',
+			'first_name' => 'Timothy',
+			'last_name' => 'Fuller', 
+			'return' => 'id'
+		));
 		// Test whether the contact is added to the group for new contacts. It should not have been added.
 		$this->callAPIFailure('GroupContact', 'getsingle', array(
 			'group_id' => $this->new_contact_group_id,
-			'contact_id' => $contact_id,
+			'contact_id' => $contact['id'],
 			'status' => 'Added'
 		));
 		
@@ -262,6 +274,11 @@ class CRM_Api_v3_FzfdNewsletterTest extends CRM_Api_v3_FzfdAbstractTest implemen
 		$subscribeParams['newsletter_ids'] = $this->newsletterGroups[0].';'.$this->newsletterGroups[2];
 		$result = civicrm_api3('FzfdNewsletter', 'subscribe', $subscribeParams);
 		$this->assertArraySubset($subscribeSubset, $result, 'Failed test to subscribe an existing contact');
+		$this->callAPISuccessGetSingle('GroupContact', array(
+			'group_id' => $this->newsletterGroups[0],
+			'contact_id' => $contact['id'],
+			'status' => 'Added'
+		));
 		
 		// Test whether unsubscribe with an invalid hash is failing.
 		$unsubscribeParams = array();
@@ -282,6 +299,11 @@ class CRM_Api_v3_FzfdNewsletterTest extends CRM_Api_v3_FzfdAbstractTest implemen
 		$unsubscribeParams['newsletter_ids'] = $this->newsletterGroups[0].';'.$this->newsletterGroups[1];
 		$result = civicrm_api3('FzfdNewsletter', 'unsubscribe', $unsubscribeParams);
 		$this->assertArraySubset($unsubscribeSubset, $result, 'Failed test to unsubscribe an existing contact');
+		$this->callAPISuccessGetSingle('GroupContact', array(
+			'group_id' => $this->newsletterGroups[0],
+			'contact_id' => $contact['id'],
+			'status' => 'Removed'
+		));
 		
 	}  
 	
