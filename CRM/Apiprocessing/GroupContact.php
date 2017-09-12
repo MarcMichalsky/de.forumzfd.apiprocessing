@@ -167,17 +167,17 @@ class CRM_Apiprocessing_GroupContact {
 		);
   }
 
-/**
- * Function to remove the group ids which don't exist or are not a child of the newsletter parent group.
- */
-private function filterGroupIds($groupIds) {
-	$return = array();
-	foreach($groupIds as $groupId) {
-		if (in_array($groupId, $this->_newsletterGroupIds)) {
-			$return[] = $groupId;
+	/**
+	 * Function to remove the group ids which don't exist or are not a child of the newsletter parent group.
+	 */
+	public function filterGroupIds($groupIds) {
+		$return = array();
+		foreach($groupIds as $groupId) {
+			if (in_array($groupId, $this->_newsletterGroupIds)) {
+				$return[] = $groupId;
+			}
 		}
+		return $return;
 	}
-	return $return;
-}
 
 }
