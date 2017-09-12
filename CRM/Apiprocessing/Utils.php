@@ -31,6 +31,9 @@ class CRM_Apiprocessing_Utils {
    * @return string
    */
   public static function createLabelFromName($name) {
+  	if ($name == 'fzfd_petition_signed') {
+  		return 'An Petition teilgenommen';
+  	}
     $parts = explode('_', $name);
     if (isset($parts[1])) {
       foreach ($parts as $key => $value) {
