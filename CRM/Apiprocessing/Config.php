@@ -30,6 +30,7 @@ class CRM_Apiprocessing_Config {
 	private $_wishesCustomFieldId = NULL;
 	private $_registeredParticipantStatusId = NULL;
 	private $_cancelledParticipantStatusId = NULL;
+	private $_nueParticipantStatusTypeId = NULL;
 	private $_eventCustomGroup = NULL;
 	private $_trainerCustomFieldId = NULL;
 	private $_teilnahmeOrganisationCustomFieldId = NULL;
@@ -162,6 +163,25 @@ class CRM_Apiprocessing_Config {
 			throw new Exception('Could not find custom field Ansprech Inhalt in '.__METHOD__
 			.' contact your system administrator. Error from API CustomField getvalue: '.$ex->getMessage());
 		}
+
+	try {
+      $this->_nueParticipantStatusTypeId = civicrm_api3('ParticipantStatusType', 'getvalue', array(
+        'name' => 'neu',
+        'return' => 'id',
+      ));
+    }
+    catch (CiviCRM_API3_Exception $ex) {
+      $result = civicrm_api3('ParticipantStatusType', 'create', array(
+	      'sequential' => 1,
+	      'class' => "Positive",
+	      'label' => "Neu",
+	      'is_active' => 1,
+	      'is_reserved' => 1,
+	      'is_counted' => 0,
+	      'name' => "neu",
+	    ));
+			$this->_nueParticipantStatusTypeId = $result['id'];
+    }
 		
 		try {
       $this->_registeredParticipantStatusId = civicrm_api3('ParticipantStatusType', 'getvalue', array(
@@ -333,16 +353,23 @@ class CRM_Apiprocessing_Config {
 	/**
 	 * Getter for participant status Registered
 	 */
-	public function getRegisteredParticipantStatus() {
+	public function getRegisteredParticipantStatusId() {
 		return $this->_registeredParticipantStatusId;
 	}
 	
 	/**
 	 * Getter for participant status Cancelled
 	 */
-	public function getCancelledParticipantStatus() {
+	public function getCancelledParticipantStatusId() {
 		return $this->_cancelledParticipantStatusId;
 	}
+	
+	/**
+	 * Getter for participant status Neu
+	 */
+	 public function getNeuParticipantStatusId() {
+	 	return $this->_nueParticipantStatusTypeId;
+	 }
 
   /**
    * Method to set and if required create the activity types
