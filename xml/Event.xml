@@ -76,5 +76,24 @@
       <in_selector>0</in_selector>
       <custom_group_name>fzfd_event_data</custom_group_name>
     </CustomField>
+    <CustomField>
+      <name>fzfd_bewerbung</name>
+      <label>Ist Bewerbung?</label>
+      <data_type>Boolean</data_type>
+      <html_type>Radio</html_type>
+      <default_value>0</default_value>
+      <is_required>1</is_required>
+      <is_searchable>1</is_searchable>
+      <is_search_range>0</is_search_range>
+      <weight>1</weight>
+      <is_active>1</is_active>
+      <is_view>0</is_view>
+      <text_length>255</text_length>
+      <note_columns>60</note_columns>
+      <note_rows>4</note_rows>
+      <column_name>fzfd_bewerbung</column_name>
+      <in_selector>0</in_selector>
+      <custom_group_name>fzfd_event_data</custom_group_name>
+    </CustomField>
   </CustomFields>
 </CustomData>
