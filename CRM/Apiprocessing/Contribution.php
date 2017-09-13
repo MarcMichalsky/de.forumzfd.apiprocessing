@@ -16,7 +16,7 @@ class CRM_Apiprocessing_Contribution {
   /**
    * Method to create a SEPA mandate and log any errors in activity
    *
-   * @param $sepaData
+   * @param array $sepaData
    */
   public function createSepaMandate($sepaData) {
     try {
@@ -33,7 +33,7 @@ class CRM_Apiprocessing_Contribution {
   /**
    * Method to process the data coming in from the website
    *
-   * @param $params
+   * @param array $params
    */
   public function processIncomingData($params) {
     if ($this->validIncomingParams($params) == TRUE) {
@@ -67,12 +67,35 @@ class CRM_Apiprocessing_Contribution {
       }
     }
   }
+  /**
+   * Method to create parameter list for contribution
+   *
+   * @param array $params
+   * @param int $donorContactId
+   * @return array
+   */
+  public function createContributionParams($params, $donorContactId) {
+    $contributionParams = array(
+      'total_amount' => $params['amount'],
+      'financial_type_id' => CRM_Apiprocessing_Config::singleton()->getContributionFinancialTypeId(),
+      'payment_instrument_id' => $params['payment_instrument_id'],
+      'contact_id' => $donorContactId,
+      'currency' => CRM_Apiprocessing_Config::singleton()->getDefaultCurrency(),
+      'contribution_status_id' => CRM_Apiprocessing_Config::singleton()->getCompletedContributionStatusId(),
+      'receive_date' => $this->setContributionReceiveDate($params),
+      'source' => $this->setSource($params),
+    );
+    // add campaign_id if in parameters
+    if (isset($params['campaign_id']) && !empty($params['campaign_id'])) {
+      $contributionParams['campaign_id'] = $params['campaign_id'];
+    }
+  }
 
   /**
    * Method to create parameter list for one off sepa
    *
-   * @param $params
-   * @param $donorContactId
+   * @param array $params
+   * @param int $donorContactId
    * @return array
    */
   public function createSepaOoffParams($params, $donorContactId) {
@@ -107,14 +130,11 @@ class CRM_Apiprocessing_Contribution {
     }
     return $sepaParams;
   }
-  public function createContributionParams($params, $donorContactId) {
-
-  }
 
   /**
    * Method to set the passed source or the default one
    *
-   * @param $params
+   * @param array $params
    * @return string
    */
   private function setSource($params) {
@@ -129,7 +149,7 @@ class CRM_Apiprocessing_Contribution {
   /**
    * Method to set the start date for sepa
    *
-   * @param $params
+   * @param array $params
    * @return false|string
    */
   private function setSepaStartDate($params) {
@@ -144,9 +164,25 @@ class CRM_Apiprocessing_Contribution {
   }
 
   /**
+   * Method to set the receive date for contribution
+   *
+   * @param array $params
+   * @return false|string
+   */
+  private function setContributionReceiveDate($params) {
+    // default receive date to system date if not set
+    if (isset($params['receive_date']) && !empty($params['receive_date'])) {
+      $receiveDate = new DateTime($params['receive_date']);
+      return $receiveDate->format('YmdHis');
+    } else {
+      return date('YmdHis');
+    }
+  }
+
+  /**
    * Method to set the frequency interval for sepa
    *
-   * @param $params
+   * @param array $params
    * @return false|string
    */
   private function setFrequencyInterval($params) {
@@ -161,7 +197,7 @@ class CRM_Apiprocessing_Contribution {
   /**
    * Method to determine what cycle day to use, one from params if valid else default
    *
-   * @param $params
+   * @param array $params
    * @return array|mixed
    */
   private function setCycleDay($params) {
@@ -193,8 +229,8 @@ class CRM_Apiprocessing_Contribution {
   /**
    * Method to set the parameters for a sepa recurring mandate
    *
-   * @param $params
-   * @param $donorContactId
+   * @param array $params
+   * @param int $donorContactId
    * @return array
    */
   public function createSepaFrstParams($params, $donorContactId) {
@@ -236,7 +272,7 @@ class CRM_Apiprocessing_Contribution {
   /**
    * Method to create or find individual
    *
-   * @param $params
+   * @param array $params
    * @return bool|int
    */
   public function processIndividual($params) {
@@ -282,8 +318,8 @@ class CRM_Apiprocessing_Contribution {
   /**
    * Method to create or find organization
    *
-   * @param $params
-   * @param $individualId
+   * @param array $params
+   * @param int $individualId
    * @return bool|int
    */
   public function processOrganization($params, $individualId) {
@@ -317,7 +353,7 @@ class CRM_Apiprocessing_Contribution {
   /**
    * Method to check if incoming parameters are valid
    *
-   * @param $params
+   * @param array $params
    * @return bool
    * @throws Exception when non valid parameters found
    */

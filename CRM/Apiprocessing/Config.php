@@ -18,6 +18,7 @@ class CRM_Apiprocessing_Config {
   private $_akademieApiProblemActivityTypeId = NULL;
   private $_scheduledActivityStatusId = NULL;
 	private $_completedActivityStatusId = NULL;
+	private $_completedContributionStatusId = NULL;
   private $_defaultLocationTypeId = NULL;
   private $_defaultPhoneTypeId = NULL;
   private $_defaultCountryId = NULL;
@@ -25,6 +26,7 @@ class CRM_Apiprocessing_Config {
   private $_sepaFrstPaymentInstrumentId = NULL;
   private $_sepaOoffPaymentInstrumentId = NULL;
   private $_sepaRcurPaymentInstrumentId = NULL;
+  private $_contributionFinancialTypeId = NULL;
   private $_sepaOoffFinancialTypeId = NULL;
   private $_sepaRcurFinancialTypeId = NULL;
   private $_sepaOoffMandateStatus = NULL;
@@ -54,7 +56,7 @@ class CRM_Apiprocessing_Config {
     $this->_defaultCurrency = "EUR";
 
     $this->setSepaPaymentInstrumentIds();
-    $this->setSepaFinancialTypeIds();
+    $this->setFinancialTypeIds();
     try {
       $this->_employeeRelationshipTypeId = civicrm_api3('RelationshipType', 'getvalue', array(
         'name_a_b' => 'Employee of',
@@ -86,6 +88,17 @@ class CRM_Apiprocessing_Config {
     }
     catch (CiviCRM_API3_Exception $ex) {
       throw new Exception('Could not find the standard completed activity status in '.__METHOD__
+        .', contact your system administrator. Error from API OptionValue Type getvalue: '.$ex->getMessage());
+    }
+		try {
+      $this->_completedContributionStatusId = civicrm_api3('OptionValue', 'getvalue', array(
+        'option_group_id' => 'contribution_status',
+        'name' => 'Completed',
+        'return' => 'value',
+      ));
+    }
+    catch (CiviCRM_API3_Exception $ex) {
+      throw new Exception('Could not find the standard completed contribution status in '.__METHOD__
         .', contact your system administrator. Error from API OptionValue Type getvalue: '.$ex->getMessage());
     }
     try {
@@ -244,6 +257,15 @@ class CRM_Apiprocessing_Config {
   }
 
   /**
+   * Getter for contribution default financial type id
+   *
+   * @return null
+   */
+  public function getContributionFinancialTypeId() {
+    return $this->_contributionFinancialTypeId;
+  }
+
+  /**
    * Getter for sepa one off financial type id
    *
    * @return null
@@ -335,6 +357,15 @@ class CRM_Apiprocessing_Config {
    */
   public function getCompletedActivityStatusId() {
     return $this->_completedActivityStatusId;
+  }
+
+	/**
+   * Getter for completed contribution status id
+   *
+   * @return null
+   */
+  public function getCompletedContributionStatusId() {
+    return $this->_completedContributionStatusId;
   }
 
   /**
@@ -506,9 +537,10 @@ class CRM_Apiprocessing_Config {
    *
    * @throws Exception
    */
-  private function setSepaFinancialTypeIds() {
+  private function setFinancialTypeIds() {
     $rcurFinancialTypeName = 'Förderbeitrag';
     $ooffFinancialTypeName = 'Spende';
+    $contributionFinancialTypeName = 'Spende';
     try {
       $this->_sepaRcurFinancialTypeId = civicrm_api3('FinancialType', 'getvalue', array(
         'name' => $rcurFinancialTypeName,
@@ -527,6 +559,16 @@ class CRM_Apiprocessing_Config {
     }
     catch (CiviCRM_API3_Exception $ex) {
       throw new Exception('Could not find SEPA financial type '.$ooffFinancialTypeName.' in '.__METHOD__
+        .', contact your system administrator!');
+    }
+    try {
+      $this->_contributionFinancialTypeId = civicrm_api3('FinancialType', 'getvalue', array(
+        'name' => $contributionFinancialTypeName,
+        'return' => 'id',
+      ));
+    }
+    catch (CiviCRM_API3_Exception $ex) {
+      throw new Exception('Could not find contribution default financial type '.$contributionFinancialTypeName.' in '.__METHOD__
         .', contact your system administrator!');
     }
   }
