@@ -238,6 +238,7 @@ class CRM_Apiprocessing_Contact {
    * @return array
    */
   private function getNewIndividualParams($params) {
+  	$config = CRM_Apiprocessing_Config::singleton();
     $newIndividualParams = array();
     if (isset($params['contact_type']) && !empty($params['contact_type'])) {
       $newIndividualParams['contact_type'] = $params['contact_type'];
@@ -264,6 +265,14 @@ class CRM_Apiprocessing_Contact {
         $newIndividualParams['gender_id'] = $genderId;
       }
     }
+		
+		if (isset($params['additional_data'])) {
+			$newIndividualParams['custom_'.$config->getAdditionalDataCustomFieldId()] = $params['additional_data'];
+		}
+		if (isset($params['department'])) {
+			$newIndividualParams['custom_'.$config->getDepartmentCustomFieldId()] = $params['department'];
+		}
+		
     return $newIndividualParams;
   }
 
