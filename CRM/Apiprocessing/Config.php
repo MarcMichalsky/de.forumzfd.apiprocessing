@@ -205,6 +205,7 @@ class CRM_Apiprocessing_Config {
 	      'is_reserved' => 1,
 	      'is_counted' => 0,
 	      'name' => "neu",
+	      'weight' => 0,
 	    ));
 			$this->_nueParticipantStatusTypeId = $result['id'];
     }
