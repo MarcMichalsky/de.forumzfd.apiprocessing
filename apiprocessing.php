@@ -85,6 +85,7 @@ function apiprocessing_civicrm_xmlMenu(&$files) {
  * @link http://wiki.civicrm.org/confluence/display/CRMDOC/hook_civicrm_install
  */
 function apiprocessing_civicrm_install() {
+  _apiprocessing_required_extensions_installed();
   _apiprocessing_civix_civicrm_install();
 }
 
@@ -112,6 +113,7 @@ function apiprocessing_civicrm_uninstall() {
  * @link http://wiki.civicrm.org/confluence/display/CRMDOC/hook_civicrm_enable
  */
 function apiprocessing_civicrm_enable() {
+  _apiprocessing_required_extensions_installed();
   _apiprocessing_civix_civicrm_enable();
 }
 
@@ -180,6 +182,32 @@ function apiprocessing_civicrm_angularModules(&$angularModules) {
 function apiprocessing_civicrm_alterSettingsFolders(&$metaDataFolders = NULL) {
   _apiprocessing_civix_civicrm_alterSettingsFolders($metaDataFolders);
 }
+
+/**
+ * Function to check if the required extensions are installed
+ *
+ * @throws Exception
+ */
+function _apiprocessing_required_extensions_installed() {
+  $required = array(
+    'org.project60.sepa' => FALSE,
+  );
+  $installedExtensions = civicrm_api3('Extension', 'get', array(
+    'option' => array('limit' => 0,),));
+  foreach ($installedExtensions['values'] as $installedExtension) {
+    if (isset($required[$installedExtension['key']]) && $installedExtension['status'] == 'installed') {
+      $required[$installedExtension['key']] = TRUE;
+    }
+  }
+  foreach ($required as $requiredExtension => $installed) {
+    if (!$installed) {
+      throw new Exception('Required extension '.$requiredExtension.' is not installed, can not install or enable 
+      de.forumzfd.apiprocessing. Please install the extension and then retry installing or enabling 
+      de.forumzfd.apiprocessing');
+    }
+  }
+}
+
 
 // --- Functions below this ship commented out. Uncomment as required. ---
 
