@@ -1,6 +1,34 @@
 <?php
 
-class CRM_Api_v3_FzfdAbstractTest extends \PHPUnit_Framework_TestCase {
+use Civi\Test\HeadlessInterface;
+use Civi\Test\HookInterface;
+use Civi\Test\TransactionalInterface;
+
+class CRM_Api_v3_FzfdAbstractTest extends \PHPUnit_Framework_TestCase implements HeadlessInterface, TransactionalInterface {
+	
+	/**
+	 * @var CRM_Apiprocessing_Settings
+	 */
+	protected $apiSettings;
+	
+	/**
+	 * @var CRM_Apiprocessing_Config
+	 */
+	protected $apiConfig;
+	
+	protected $new_contact_group_id;
+	
+	protected $_apiversion = 3;
+	
+	public function setUpHeadless() {
+    // Civi\Test has many helpers, like install(), uninstall(), sql(), and sqlFile().
+    // See: https://github.com/civicrm/org.civicrm.testapalooza/blob/master/civi-test.md
+    return \Civi\Test::headless()
+    	->callback(array('CRM_Api_v3_FzfdAbstractTest', 'createFinancialTypes'))
+			->install('org.project60.sepa')
+      ->installMe(__DIR__)
+      ->apply();
+  }
 
  /**
    * Emulate a logged in user since certain functions use that.
@@ -29,6 +57,40 @@ class CRM_Api_v3_FzfdAbstractTest extends \PHPUnit_Framework_TestCase {
     $session->set('userID', $contactID);
     return $contactID;
   }
+	
+	public static function createFinancialTypes() {
+		civicrm_api3('FinancialType', 'create', array(
+			'is_deductible' => 0,
+  		'is_active' => 1,
+  		'name' => "Förderbeitrag",
+		));
+		civicrm_api3('FinancialType', 'create', array(
+			'is_deductible' => 0,
+  		'is_active' => 1,
+  		'name' => "Spende",
+		));
+	}
+	
+	public function setUp() {
+		parent::setUp();
+		$this->createLoggedInUser();
+		
+		$this->apiConfig = CRM_Apiprocessing_Config::singleton();
+		$this->apiSettings = CRM_Apiprocessing_Settings::singleton();
+		
+		$new_contact_group = civicrm_api3('Group', 'create', array(
+			'name' => 'forumzfd_new_contacts',
+			'title' => 'forumzfd_new_contacts',
+		));
+		$this->new_contact_group_id = $new_contact_group['id'];
+		
+		// Fake API settings as the settings in the JSON file does not reflect the data in the test database.
+		$this->apiSettings->set('new_contacts_group_id', $new_contact_group['id']);
+		$this->apiSettings->set('forumzfd_error_activity_type_id', $this->apiConfig->getForumzfdApiProblemActivityTypeId());
+		$this->apiSettings->set('forumzfd_error_activity_assignee_id', CRM_Core_Session::singleton()->get('userID'));
+		$this->apiSettings->set('akademie_error_activity_type_id', $this->apiConfig->getAkademieApiProblemActivityTypeId());
+		$this->apiSettings->set('akademie_error_activity_assignee_id', CRM_Core_Session::singleton()->get('userID'));
+	}
 	
 	/**
    * Check that api returned 'is_error' => 0.

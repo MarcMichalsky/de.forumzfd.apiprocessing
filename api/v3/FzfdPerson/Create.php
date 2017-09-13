@@ -1,20 +1,14 @@
 <?php
 
 /**
- * FzfdAkademie.Apply API specification (optional)
+ * FzfdPerson.Create API specification (optional)
  * This is used for documentation and validation.
  *
  * @param array $spec description of fields supported by this API call
  * @return void
  * @see http://wiki.civicrm.org/confluence/display/CRMDOC/API+Architecture+Standards
  */
-function _civicrm_api3_fzfd_akademie_Apply_spec(&$spec) {
-  $spec['event_id'] = array(
-    'name' => 'event_id',
-    'title' => 'event_id',
-    'type' => CRM_Utils_Type::T_INT,
-    'api.required' => 1,
-	);	
+function _civicrm_api3_fzfd_person_Create_spec(&$spec) {
   $spec['prefix_id'] = array(
     'name' => 'prefix',
     'title' => 'prefix',
@@ -53,36 +47,27 @@ function _civicrm_api3_fzfd_akademie_Apply_spec(&$spec) {
     'api.required' => 0,
   );
 	
-	$spec['organization_name'] = array(
-    'name' => 'organization_name',
-    'title' => 'organization_name',
+	$spec['additional_information'] = array(
+    'name' => 'additional_information',
+    'title' => 'additional_information',
     'type' => CRM_Utils_Type::T_STRING,
     'api.required' => 0,
 	);
-	$spec['organization_street_address'] = array(
-    'name' => 'organization_street_address',
-    'title' => 'organization_street_address',
+	
+	$spec['department'] = array(
+    'name' => 'department',
+    'title' => 'department',
     'type' => CRM_Utils_Type::T_STRING,
     'api.required' => 0,
 	);
-	$spec['organization_postal_code'] = array(
-    'name' => 'organization_postal_code',
-    'title' => 'organization_postal_code',
+	
+	$spec['job_title'] = array(
+    'name' => 'job_title',
+    'title' => 'job_title',
     'type' => CRM_Utils_Type::T_STRING,
     'api.required' => 0,
 	);
-	$spec['organization_city'] = array(
-    'name' => 'organization_city',
-    'title' => 'organization_city',
-    'type' => CRM_Utils_Type::T_STRING,
-    'api.required' => 0,
-	);
-	$spec['organization_country_iso'] = array(
-    'name' => 'organization_country_iso',
-    'title' => 'organization_country_iso',
-    'type' => CRM_Utils_Type::T_STRING,
-    'api.required' => 0,
-	);
+	
 	$spec['phone'] = array(
     'name' => 'phone',
     'title' => 'phone',
@@ -95,34 +80,10 @@ function _civicrm_api3_fzfd_akademie_Apply_spec(&$spec) {
     'type' => CRM_Utils_Type::T_INT,
     'api.required' => 0,
 	);
-	$spec['experience'] = array(
-    'name' => 'experience',
-    'title' => 'experience',
-    'type' => CRM_Utils_Type::T_STRING,
-    'api.required' => 0,
-	);
-	$spec['employer'] = array(
-    'name' => 'employer',
-    'title' => 'employer',
-    'type' => CRM_Utils_Type::T_STRING,
-    'api.required' => 0,
-	);
-	$spec['wishes'] = array(
-    'name' => 'wishes',
-    'title' => 'wishes',
-    'type' => CRM_Utils_Type::T_STRING,
-    'api.required' => 0,
-	);
-	$spec['newsletter_ids'] = array(
-    'name' => 'newsletter_ids',
-    'title' => 'newsletter_ids',
-    'type' => CRM_Utils_Type::T_STRING,
-    'api.required' => 0,
-  );
 }
 
 /**
- * FzfdAkademie.Apply API
+ * FzfdPerson.Create API
  *
  * @param array $params
  * @return array API result descriptor
@@ -130,11 +91,16 @@ function _civicrm_api3_fzfd_akademie_Apply_spec(&$spec) {
  * @see civicrm_api3_create_error
  * @throws API_Exception
  */
-function civicrm_api3_fzfd_akademie_Apply($params) {
-  $participant = new CRM_Apiprocessing_Participant();
-	$returnValues = $participant->processApply($params);
-  if ($returnValues['is_error'] == 0) {
-    return $returnValues;
+function civicrm_api3_fzfd_person_create($params) {
+	$contact = new CRM_Apiprocessing_Contact();
+	$contactId = $contact->processIncomingIndividual($params);
+  if ($contactId) {
+  	$returnValues = array(
+			array(
+				'contact_id' => $contactId,
+			),
+		);
+    return civicrm_api3_create_success($returnValues);
   } else {
     return civicrm_api3_create_error($returnValues['error_message'], $params);
   }

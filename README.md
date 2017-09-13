@@ -17,8 +17,10 @@ This extension ships with unit tests for the following API's:
 * FzfdNewsletter.subscribe
 * FzfdNewsletter.unsubscribe
 * FzfdPetition.sign
-* FzfdAkademi.register
+* FzfdAkademie.register
+* FzfdAkademie.apply
 * FzfdEvent.get
+* FzfdPerson.create
 
 To run the unit tests use the following command
 

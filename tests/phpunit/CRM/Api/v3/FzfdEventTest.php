@@ -19,30 +19,10 @@ require_once('FzfdAbstractTest.php');
  *
  * @group headless
  */
-class CRM_Api_v3_FzfdEventTest extends CRM_Api_v3_FzfdAbstractTest implements HeadlessInterface, TransactionalInterface {
-	
-	/**
-	 * @var CRM_Apiprocessing_Config
-	 */
-	protected $apiConfig;
-	
-	protected $_apiversion = 3;
-	
-	public function setUpHeadless() {
-    // Civi\Test has many helpers, like install(), uninstall(), sql(), and sqlFile().
-    // See: https://github.com/civicrm/org.civicrm.testapalooza/blob/master/civi-test.md
-    return \Civi\Test::headless()
-			->install('org.project60.sepa')
-      ->installMe(__DIR__)
-      ->apply();
-  }
+class CRM_Api_v3_FzfdEventTest extends CRM_Api_v3_FzfdAbstractTest {
 
   public function setUp() {
     parent::setUp();
-		
-		$this->createLoggedInUser();
-		
-		$this->apiConfig = CRM_Apiprocessing_Config::singleton();
   }
 
   public function tearDown() {
@@ -91,6 +71,7 @@ class CRM_Api_v3_FzfdEventTest extends CRM_Api_v3_FzfdAbstractTest implements He
 		$eventParams1['custom_'.$this->apiConfig->getTrainerCustomFieldId()] = $trainer1['id'].';'.$trainer2['id'];
 		$eventParams1['custom_'.$this->apiConfig->getTeilnahmeOrganisationCustomFieldId()] = $teilnemendeOrganisation['id'];
 		$eventParams1['custom_'.$this->apiConfig->getAnsprechInhaltCustomFieldId()] = $ansprecher1['id'].';'.$ansprecher2['id'];
+		$eventParams2['custom_'.$this->apiConfig->getBewerbungCustomFieldId()] = 0;
 		$eventParams1['event_type_id'] = $event_types['value'];
 		$eventParams1['title'] = 'Unit test - online registration';
 		
@@ -99,17 +80,28 @@ class CRM_Api_v3_FzfdEventTest extends CRM_Api_v3_FzfdAbstractTest implements He
 		$eventParams2['custom_'.$this->apiConfig->getTrainerCustomFieldId()] = $trainer1['id'].';'.$trainer2['id'];
 		$eventParams2['custom_'.$this->apiConfig->getTeilnahmeOrganisationCustomFieldId()] = $teilnemendeOrganisation['id'];
 		$eventParams2['custom_'.$this->apiConfig->getAnsprechInhaltCustomFieldId()] = $ansprecher1['id'].';'.$ansprecher2['id'];
+		$eventParams2['custom_'.$this->apiConfig->getBewerbungCustomFieldId()] = 0;
 		$eventParams2['event_type_id'] = $event_types['value'];
 		$eventParams2['title'] = 'Unit test - no online registration';
 		
+		$eventParams3['is_online_registration'] = 1;
+		$eventParams3['start_date'] = $now->format('Ymd His');
+		$eventParams3['custom_'.$this->apiConfig->getTrainerCustomFieldId()] = $trainer1['id'].';'.$trainer2['id'];
+		$eventParams3['custom_'.$this->apiConfig->getTeilnahmeOrganisationCustomFieldId()] = $teilnemendeOrganisation['id'];
+		$eventParams3['custom_'.$this->apiConfig->getAnsprechInhaltCustomFieldId()] = $ansprecher1['id'].';'.$ansprecher2['id'];
+		$eventParams3['custom_'.$this->apiConfig->getBewerbungCustomFieldId()] = 1;
+		$eventParams3['event_type_id'] = $event_types['value'];
+		$eventParams3['title'] = 'Unit test - online registration - bewerbung';
+		
 		$event1 = civicrm_api3('Event', 'create', $eventParams1);
 		$event2 = civicrm_api3('Event', 'create', $eventParams2);
+		$event3 = civicrm_api3('Event', 'create', $eventParams3);
 		
-		$this->callAPISuccessGetCount('FzfdEvent', array(), 1);
+		$this->callAPISuccessGetCount('FzfdEvent', array(), 2);
 		$events = $this->callAPISuccess('FzfdEvent', 'get', array());
 		$expectedEvents = array(
 			'is_error' => 0,
-			'count' => 1,
+			'count' => 2,
 			'values' => array(
 				0 => array(
 					'event_id' => $event1['id'],
@@ -135,8 +127,36 @@ class CRM_Api_v3_FzfdEventTest extends CRM_Api_v3_FzfdAbstractTest implements He
 							'ansprech_inhalt_id' => $ansprecher2['id'],
 							'ansprech_inhalt_name' => 'Hannah Lee'
 						)
-					)
-				)
+					),
+					'bewerbung' => 0,
+				),
+				1 => array(
+					'event_id' => $event3['id'],
+					'event_title' => 'Unit test - online registration - bewerbung',
+					'trainer' => array(
+						0 => array(
+							'contact_id' => $trainer1['id'],
+							'contact_name' => 'John Smith'
+						),
+						1 => array(
+							'contact_id' => $trainer2['id'],
+							'contact_name' => 'James Armstrong'
+						),
+					),
+					'teilnahme_organisation_id' => $teilnemendeOrganisation['id'],
+					'teilnahme_organisation_name' => 'ForumZFD',
+					'ansprech_inhalt' => array(
+						0 => array(
+							'ansprech_inhalt_id' => $ansprecher1['id'],
+							'ansprech_inhalt_name' => 'Sarah Johnson'
+						),
+						1 => array(
+							'ansprech_inhalt_id' => $ansprecher2['id'],
+							'ansprech_inhalt_name' => 'Hannah Lee'
+						)
+					),
+					'bewerbung' => 1,
+				),
 			)
 		);
 		$this->assertArraySubset($expectedEvents, $events);

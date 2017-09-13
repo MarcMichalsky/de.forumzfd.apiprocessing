@@ -64,6 +64,11 @@ function civicrm_api3_fzfd_event_Get($params) {
 				);
 			}
 		}
+
+		$returnValue['bewerbung'] = 0;
+		if (isset($event['custom_'.$config->getBewerbungCustomFieldId()]) && $event['custom_'.$config->getBewerbungCustomFieldId()]) {
+			$returnValue['bewerbung'] = 1;
+		}
 		$returnValues[] = $returnValue;
 	}
 	return civicrm_api3_create_success($returnValues, $params, 'FzfdEvent', 'get');

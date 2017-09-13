@@ -2,9 +2,14 @@
 
 class CRM_Apiprocessing_Participant {
 	
+	/**
+	 * Process a registration for an event.
+	 */
 	public function processRegistration($apiParams) {
 		try {
 			$config = CRM_Apiprocessing_Config::singleton();
+			$activity = new CRM_Apiprocessing_Activity();
+			
 			$contact = new CRM_Apiprocessing_Contact();
 			$contactId = $contact->processIncomingIndividual($apiParams);
 			if (isset($apiParams['organization_name']) && !empty($apiParams['organization_name'])) {
@@ -17,64 +22,25 @@ class CRM_Apiprocessing_Participant {
 			$this->processCustomFields($apiParams, $contactId);
 			$this->processNewsletterSubscribtions($apiParams, $contactId);
 			
-			// Try to find an existing registration. If so create an error activity and do not create an extra participant record.
-			try {
-				$existingParticipantParams = array(
-					'event_id' => $apiParams['event_id'],
-					'contact_id' => $contactId,
-					'status_id' => $config->getRegisteredParticipantStatus(),
-				);
-				$existingParticipant = civicrm_api3('Participant', 'getsingle', $existingParticipantParams);
-				$activity = new CRM_Apiprocessing_Activity();
-				$activity->createNewErrorActivity('akademie', ts('Request to check the data'), $apiParams, $contactId);
-				return array(
-					'is_error' => 0,
-					'count' => 1,
-					'values' => array(
-						array(
-							'event_id' => $apiParams['event_id'],
-							'contact_id' => $contactId,
-							'participant_id' => $existingParticipant['participant_id'],
-						),
-					)
-				);
-			} catch (exception $e) {
-				// Do nothing. We did not find an existing registration.
-			}
-			
 			$participantParams = array(
 				'event_id' => $apiParams['event_id'],
 				'contact_id' => $contactId,
-				'status_id' => $config->getRegisteredParticipantStatus(),
+				'status_id' => $config->getRegisteredParticipantStatusId(),
 			);
 			
-			// Try to find a cancelled registration
-			try {
-				$canclledParticipantParams = array(
-					'event_id' => $apiParams['event_id'],
-					'contact_id' => $contactId,
-					'status_id' => $config->getCancelledParticipantStatus(),
-				);
-				$cancelledParticipant = civicrm_api3('Participant', 'getsingle', $canclledParticipantParams);
-				$participantParams['id'] = $cancelledParticipant['participant_id'];
+			// Try to find an existing registration. If so create an error activity and do not create an extra participant record.
+			$existingParticipant = $this->findCurrentRegistration($apiParams['event_id'], $contactId);
+			if ($existingParticipant && isset($existingParticipant['participant_status_id']) && $existingParticipant['participant_status_id'] == $config->getRegisteredParticipantStatusId()) {
+				$activity->createNewErrorActivity('akademie', ts('Request to check the data'), $apiParams, $contactId);
+				return $this->createApi3SuccessReturnArray($apiParams['event_id'], $contactId, $existingParticipant['participant_id']);
+			} elseif ($existingParticipant && isset($existingParticipant['participant_status_id']) && $existingParticipant['participant_status_id'] == $config->getCancelledParticipantStatusId()) {
+				$participantParams['id'] = $existingParticipant['participant_id'];
 				$activity = new CRM_Apiprocessing_Activity();
 				$activity->createNewErrorActivity('akademie', ts('Request to check the data'), $apiParams, $contactId);
-			} catch (exception $e) {
-				// Do nothing. We did not find an existing registration.
 			}
 			
 			$result = civicrm_api3('Participant', 'create', $participantParams);
-			return array(
-				'is_error' => 0,
-				'count' => 1,
-				'values' => array(
-					array(
-						'event_id' => $apiParams['event_id'],
-						'contact_id' => $contactId,
-						'participant_id' => $result['id'],
-					),
-				)
-			);
+			return $this->createApi3SuccessReturnArray($apiParams['event_id'], $contactId, $result['id']);
 			
 		} catch (Exception $ex) {
 			return array(
@@ -84,6 +50,93 @@ class CRM_Apiprocessing_Participant {
     			'error_message' => 'Could not register for an event in '.__METHOD__.', contact your system administrator. Error: '.$ex->getMessage(), 
 				);
 		}
+	}
+
+	/** 
+	 * Process an apply for an event. Apply means I want to come and is used to invest how many people are interested.
+	 */
+	public function processApply($apiParams) {
+		try {
+			$config = CRM_Apiprocessing_Config::singleton();
+			$activity = new CRM_Apiprocessing_Activity();
+			
+			$contact = new CRM_Apiprocessing_Contact();
+			$contactId = $contact->processIncomingIndividual($apiParams);
+			if (isset($apiParams['organization_name']) && !empty($apiParams['organization_name'])) {
+        $organizationId = $this->processOrganization($apiParams, $contactId);
+      }
+			if (empty($contactId)) {
+				throw new Exception('Could not find or create a contact for applying for an event');
+			}
+			
+			$this->processCustomFields($apiParams, $contactId);
+			$this->processNewsletterSubscribtions($apiParams, $contactId);
+			
+			$participantParams = array(
+				'event_id' => $apiParams['event_id'],
+				'contact_id' => $contactId,
+				'status_id' => $config->getNeuParticipantStatusId(),
+			);
+			
+			// Try to find an existing registration. If so create an error activity and do not create an extra participant record.
+			$existingParticipant = $this->findCurrentRegistration($apiParams['event_id'], $contactId);
+			if ($existingParticipant && isset($existingParticipant['participant_status_id']) && $existingParticipant['participant_status_id'] == $config->getNeuParticipantStatusId()) {
+				$activity->createNewErrorActivity('akademie', ts('Request to check the data'), $apiParams, $contactId);
+				return $this->createApi3SuccessReturnArray($apiParams['event_id'], $contactId, $existingParticipant['participant_id']);
+			} elseif ($existingParticipant && isset($existingParticipant['participant_status_id']) && $existingParticipant['participant_status_id'] == $config->getCancelledParticipantStatusId()) {
+				$participantParams['id'] = $existingParticipant['participant_id'];
+				$activity = new CRM_Apiprocessing_Activity();
+				$activity->createNewErrorActivity('akademie', ts('Request to check the data'), $apiParams, $contactId);
+			} elseif ($existingParticipant && isset($existingParticipant['participant_status_id']) && $existingParticipant['participant_status_id'] != $config->getCancelledParticipantStatusId() && $existingParticipant['participant_status_id'] != $config->getNeuParticipantStatusId()) {
+				$activity = new CRM_Apiprocessing_Activity();
+				$activity->createNewErrorActivity('akademie', ts('Request to check the data'), $apiParams, $contactId);
+			}
+			
+			$result = civicrm_api3('Participant', 'create', $participantParams);
+			return $this->createApi3SuccessReturnArray($apiParams['event_id'], $contactId, $result['id']);
+			
+		} catch (Exception $ex) {
+			return array(
+    			'is_error' => 1,
+    			'count' => 0,
+    			'values' => array(),
+    			'error_message' => 'Could not apply for an event in '.__METHOD__.', contact your system administrator. Error: '.$ex->getMessage(), 
+				);
+		}
+	}
+
+	/**
+	 * Find a current registration for an event. If no registration is present we return False.
+	 */
+	private function findCurrentRegistration($event_id, $contact_id) {
+		$participantParams = array(
+			'event_id' => $event_id,
+			'contact_id' => $contact_id,
+		);
+		$result = civicrm_api3('Participant', 'get', $participantParams);
+		if ($result['count'] > 0) {
+			// In theory there could be more than one registration we return the first one.
+			$participant = reset($result['values']);
+			return $participant;
+		} 
+		return false;
+	}
+
+	/**
+ 	 * Returns an Api3 success array for registering or applying successfully. 
+ 	 */
+	private function createApi3SuccessReturnArray($event_id, $contact_id, $participant_id) {
+		return array(
+				'is_error' => 0,
+				'count' => 1,
+				'values' => array(
+					array(
+						'event_id' => $event_id,
+						'contact_id' => $contact_id,
+						'participant_id' => $participant_id,
+					),
+				)
+			);
 	}
 
 	/**

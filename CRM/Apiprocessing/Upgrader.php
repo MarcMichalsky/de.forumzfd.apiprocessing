@@ -9,6 +9,7 @@ class CRM_Apiprocessing_Upgrader extends CRM_Apiprocessing_Upgrader_Base {
     $this->executeCustomDataFile('xml/Akademie.xml');
 		$this->executeCustomDataFile('xml/Event.xml');
 		$this->executeCustomDataFile('xml/Campaign.xml');
+		$this->executeCustomDataFile('xml/WeitereInformation.xml');
   }
 
   /**
