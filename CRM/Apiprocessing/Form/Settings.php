@@ -11,7 +11,24 @@ class CRM_Apiprocessing_Form_Settings extends CRM_Core_Form {
   private $_activityTypesList = array();
   private $_employeesList = array();
   private $_groupList = array();
+  private $_cycleDaysList = array();
 
+  /**
+   * Method to set the cycle days list
+   */
+  private function setCycleDaysList() {
+    try {
+      $cycleDays = civicrm_api3('Setting', 'getvalue', array('name' => 'cycledays',));
+      if (!empty($cycleDays)) {
+        $values = explode(',', $cycleDays);
+        foreach ($values as $value) {
+          $this->_cycleDaysList[$value] = $value;
+        }
+      }
+    }
+    catch (CiviCRM_API3_Exception $ex) {
+    }
+  }
   /**
    * Method to set the list of activity types
    */
@@ -100,6 +117,7 @@ class CRM_Apiprocessing_Form_Settings extends CRM_Core_Form {
     $this->setActivityTypeList();
     $this->setEmployeeList();
     $this->setGroupList();
+    $this->setCycleDaysList();
   }
 
   /**
@@ -112,6 +130,7 @@ class CRM_Apiprocessing_Form_Settings extends CRM_Core_Form {
     $this->add('select', 'akademie_error_activity_assignee_id', ts('Assign Akademie Error Activities to'), $this->_employeesList, TRUE);
     $this->add('select', 'new_contacts_group_id', ts('Add New Contacts to Group'), $this->_groupList, FALSE);
 		$this->add('select', 'fzfd_petition_signed_activity_type_id', ts('Activity Type for ForumZFD Petition Sign'), $this->_activityTypesList, TRUE);
+		$this->add('select', 'default_cycle_day_sepa', ts('Default Cycle Day for SEPA Recurring Mandate'), $this->_cycleDaysList, TRUE);
 
     // add buttons
     $this->addButtons(array(
@@ -146,6 +165,11 @@ class CRM_Apiprocessing_Form_Settings extends CRM_Core_Form {
         'akademie_error_activity_assignee_id' => $formValues['akademie_error_activity_assignee_id'],
         'fzfd_petition_signed_activity_type_id' => $formValues['fzfd_petition_signed_activity_type_id'],
       );
+      if (!empty($formValues['default_cycle_day_sepa'])) {
+        $data['default_cycle_day_sepa'] = $formValues['default_cycle_day_sepa'];
+      } else {
+        $data['default_cycle_day_sepa'] = "";
+      }
       if (!empty($formValues['new_contacts_group_id'])) {
         $data['new_contacts_group_id'] = $formValues['new_contacts_group_id'];
       } else {
