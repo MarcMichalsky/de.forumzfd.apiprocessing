@@ -19,7 +19,7 @@ require_once('FzfdAbstractTest.php');
  *
  * @group headless
  */
-class CRM_Api_v3_FzfdAkademieTest extends CRM_Api_v3_FzfdAbstractTest {
+class CRM_Api_v3_FzfdPersonTest extends CRM_Api_v3_FzfdAbstractTest {
 		
 	public function setUp() {
     parent::setUp();
