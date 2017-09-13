@@ -19,30 +19,10 @@ require_once('FzfdAbstractTest.php');
  *
  * @group headless
  */
-class CRM_Api_v3_FzfdEventTest extends CRM_Api_v3_FzfdAbstractTest implements HeadlessInterface, TransactionalInterface {
-	
-	/**
-	 * @var CRM_Apiprocessing_Config
-	 */
-	protected $apiConfig;
-	
-	protected $_apiversion = 3;
-	
-	public function setUpHeadless() {
-    // Civi\Test has many helpers, like install(), uninstall(), sql(), and sqlFile().
-    // See: https://github.com/civicrm/org.civicrm.testapalooza/blob/master/civi-test.md
-    return \Civi\Test::headless()
-			->install('org.project60.sepa')
-      ->installMe(__DIR__)
-      ->apply();
-  }
+class CRM_Api_v3_FzfdEventTest extends CRM_Api_v3_FzfdAbstractTest {
 
   public function setUp() {
     parent::setUp();
-		
-		$this->createLoggedInUser();
-		
-		$this->apiConfig = CRM_Apiprocessing_Config::singleton();
   }
 
   public function tearDown() {
