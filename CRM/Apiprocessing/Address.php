@@ -18,8 +18,8 @@ class CRM_Apiprocessing_Address {
       }
     }
     // replace country iso_code with id
-    if (isset($params['country_iso_code'])) {
-      $addressParams['country_id'] = CRM_Apiprocessing_Utils::getCountryIdWithIso($params['country_iso_code']);
+    if (isset($params['country_iso'])) {
+      $addressParams['country_id'] = CRM_Apiprocessing_Utils::getCountryIdWithIso($params['country_iso']);
     }
     // location type id is required so use default if not set
     if (!isset($addressParams['location_type_id']) || empty($addressParams['location_type_id'])) {
@@ -53,9 +53,9 @@ class CRM_Apiprocessing_Address {
         'contact_id' => $contactId,
         'addressArray' => $addressArray,));
     } else {
-      foreach ($addressArray as $address) {
-        $address['contact_id'] = $contactId;
-        $this->createNewAddress($address);
+      foreach ($addressArray as $addressKey => $newAddress) {
+        $newAddress['contact_id'] = $contactId;
+        $this->createNewAddress($newAddress);
       }
     }
   }

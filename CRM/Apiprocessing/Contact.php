@@ -204,7 +204,6 @@ class CRM_Apiprocessing_Contact {
     } else {
       $newIndividualParams = $this->getNewIndividualParams($params);
       try {
-      	$newIndividualParams['debug'] = 1;
         $newIndividual = civicrm_api3('Contact', 'create', $newIndividualParams);
         // create address if applicable
         if (isset($params['individual_addresses']) && !empty($params['individual_addresses'])) {
@@ -226,7 +225,7 @@ class CRM_Apiprocessing_Contact {
       }
       catch (CiviCRM_API3_Exception $ex) {
         throw new Exception('Could not create a new individual in '.__METHOD__
-          .'contact your system administrator. Error message from API Contact create '.$ex->getMessage());
+          .', contact your system administrator. Error message from API Contact create '.$ex->getMessage());
       }
     }
   }

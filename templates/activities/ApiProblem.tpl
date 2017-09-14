@@ -7,7 +7,13 @@
   {foreach from=$data item=value key=key}
     <tr>
       <td>{$key}</td>
-      <td>{$value}</td>
+      {if $value|is_array}
+        {foreach from=$value key=dataKey item=dataValue}
+          <td>{$dataKey}&nbsp;:{$dataValue}</td>
+        {/foreach}
+      {else}
+        <td>{$value}</td>
+      {/if}
     </tr>
   {/foreach}
 </table>

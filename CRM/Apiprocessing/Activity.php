@@ -35,7 +35,7 @@ class CRM_Apiprocessing_Activity {
 		if ($contactId) {
 			$activityParams['target_contact_id'] = $contactId;
 		}
-  	civicrm_api3('Activity', 'create', $activityParams);
+    civicrm_api3('Activity', 'create', $activityParams);
   }
 	
 	/**

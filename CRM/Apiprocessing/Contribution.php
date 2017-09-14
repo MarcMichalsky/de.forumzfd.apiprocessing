@@ -9,8 +9,21 @@
  */
 class CRM_Apiprocessing_Contribution {
 
+  /**
+   * Method to create a contribution
+   *
+   * @param $contributionData
+   */
   public function createNonSepa($contributionData) {
-
+    try {
+      civicrm_api3('Contribution', 'create', $contributionData);
+    }
+    catch (CiviCRM_API3_Exception $ex) {
+      CRM_Core_Error::debug_log_message('Could not create a contribution, error from API Contribution Create: '.$ex->getMessage());
+      $errorMessage = 'Could not create a contribution, please check and correct!';
+      $activity = new CRM_Apiprocessing_Activity();
+      $activity->createNewErrorActivity('forumzfd', $errorMessage, $contributionData);
+    }
   }
 
   /**
@@ -89,6 +102,7 @@ class CRM_Apiprocessing_Contribution {
     if (isset($params['campaign_id']) && !empty($params['campaign_id'])) {
       $contributionParams['campaign_id'] = $params['campaign_id'];
     }
+    return $contributionParams;
   }
 
   /**
@@ -107,7 +121,7 @@ class CRM_Apiprocessing_Contribution {
         .__METHOD__.', create one in your CiviSepa Settings. Donation has not been processed!', $params);
     } else {
       $sepaParams = array(
-        'creditor_id' => $creditor->creditor_id,
+        'creditor_id' => $creditor->id,
         'contact_id' => $donorContactId,
         'financial_type_id' => CRM_Apiprocessing_Config::singleton()->getSepaOoffFinancialTypeId(),
         'status' => CRM_Apiprocessing_Config::singleton()->getSepaOoffMandateStatus(),
@@ -242,7 +256,7 @@ class CRM_Apiprocessing_Contribution {
         .__METHOD__.', create one in your CiviSepa Settings. Donation has not been processed!', $params);
     } else {
       $sepaParams = array(
-        'creditor_id' => $creditor->creditor_id,
+        'creditor_id' => $creditor->id,
         'contact_id' => $donorContactId,
         'financial_type_id' => CRM_Apiprocessing_Config::singleton()->getSepaRcurFinancialTypeId(),
         'status' => CRM_Apiprocessing_Config::singleton()->getSepaFrstMandateStatus(),
@@ -256,6 +270,7 @@ class CRM_Apiprocessing_Contribution {
         'cycle_day' => $this->setCycleDay($params),
         'frequency_unit' => $params['frequency_unit'],
         'source' => $this->setSource($params),
+        'iban' => $params['iban'],
       );
       // set campaign if entered
       if (isset($params['campaign_id']) && !empty($params['campaign_id'])) {
@@ -387,8 +402,13 @@ class CRM_Apiprocessing_Contribution {
         }
       }
       // check if frequency unit is valid
-      $validFrequencyUnits = array('monthly', 'quarterly', 'semi-annually', 'annually');
-      if (!in_array($params['frequency_unit'], $validFrequencyUnits)) {
+      try {
+        civicrm_api3('OptionValue', 'getsingle', array(
+          'option_group_id' => 'recur_frequency_units',
+          'value' => $params['frequency_unit'],
+        ));
+      }
+      catch (CiviCRM_API3_Exception $ex) {
         throw new Exception('Invalid frequency unit '.$params['frequency_unit'].' used for SEPA First when trying to add a donation in '.__METHOD__);
       }
     }
