@@ -129,6 +129,7 @@ class CRM_Apiprocessing_Contribution {
         'currency' => CRM_Apiprocessing_Config::singleton()->getDefaultCurrency(),
         // todo 'reference' =>
         'total_amount' => $params['amount'],
+        'iban' => $params['iban'],
         'start_date' => $this->setSepaStartDate($params),
         'source' => $this->setSource($params),
         'creation_date' => date('YmdHis'),
@@ -263,7 +264,7 @@ class CRM_Apiprocessing_Contribution {
         'type' => CRM_Apiprocessing_Config::singleton()->getSepaRcurMandateType(),
         'currency' => CRM_Apiprocessing_Config::singleton()->getDefaultCurrency(),
         // todo 'reference' =>
-        'total_amount' => $params['amount'],
+        'amount' => $params['amount'],
         'creation_date' => date('YmdHis'),
         'start_date' => $this->setSepaStartDate($params),
         'frequency_interval' => $this->setFrequencyInterval($params),
@@ -395,7 +396,7 @@ class CRM_Apiprocessing_Contribution {
     }
     // check if the payment instrument dependent mandatory params are present
     if ($params['payment_instrument_id'] == CRM_Apiprocessing_Config::singleton()->getSepaFrstPaymentInstrumentId()) {
-      $mandatories = array('iban', 'frequency_unit', 'cycle_day');
+      $mandatories = array('iban', 'frequency_unit');
       foreach ($mandatories as $mandatory) {
         if (!isset($params[$mandatory]) || empty($params[$mandatory])) {
           throw new Exception('Could not find mandatory parameter '.$mandatory.' for SEPA First when trying to add a donation in '.__METHOD__);

@@ -42,6 +42,41 @@
     <div class="clear"></div>
   </div>
 
+  <div class="help-block" id="help">
+    {ts}You can set the minimum and maximum values for each of the three donation levels below.{/ts}
+  </div>
+
+  <div class="crm-section">
+    <div class="label">{$form.fzfd_donation_level_one_min.label}</div>
+    <div class="content">{$form.fzfd_donation_level_one_min.html}</div>
+    <div class="clear"></div>
+  </div>
+  <div class="crm-section">
+    <div class="label">{$form.fzfd_donation_level_one_max.label}</div>
+    <div class="content">{$form.fzfd_donation_level_one_max.html}</div>
+    <div class="clear"></div>
+  </div>
+  <div class="crm-section">
+    <div class="label">{$form.fzfd_donation_level_two_min.label}</div>
+    <div class="content">{$form.fzfd_donation_level_two_min.html}</div>
+    <div class="clear"></div>
+  </div>
+  <div class="crm-section">
+    <div class="label">{$form.fzfd_donation_level_two_max.label}</div>
+    <div class="content">{$form.fzfd_donation_level_two_max.html}</div>
+    <div class="clear"></div>
+  </div>
+  <div class="crm-section">
+    <div class="label">{$form.fzfd_donation_level_three_min.label}</div>
+    <div class="content">{$form.fzfd_donation_level_three_min.html}</div>
+    <div class="clear"></div>
+  </div>
+  <div class="crm-section">
+    <div class="label">{$form.fzfd_donation_level_three_max.label}</div>
+    <div class="content">{$form.fzfd_donation_level_three_max.html}</div>
+    <div class="clear"></div>
+  </div>
+
   {* FOOTER *}
   <div class="crm-submit-buttons">
     {include file="CRM/common/formButtons.tpl" location="bottom"}

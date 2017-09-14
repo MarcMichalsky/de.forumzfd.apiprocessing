@@ -131,6 +131,12 @@ class CRM_Apiprocessing_Form_Settings extends CRM_Core_Form {
     $this->add('select', 'new_contacts_group_id', ts('Add New Contacts to Group'), $this->_groupList, FALSE);
 		$this->add('select', 'fzfd_petition_signed_activity_type_id', ts('Activity Type for ForumZFD Petition Sign'), $this->_activityTypesList, TRUE);
 		$this->add('select', 'default_cycle_day_sepa', ts('Default Cycle Day for SEPA Recurring Mandate'), $this->_cycleDaysList, TRUE);
+		$this->add('text', 'fzfd_donation_level_one_min', ts('Mimimum amount donation level 1'), array(), true );
+		$this->add('text', 'fzfd_donation_level_one_max', ts('Maximum amount donation level 1'), array(), true );
+		$this->add('text', 'fzfd_donation_level_two_min', ts('Mimimum amount donation level 2'), array(), true );
+		$this->add('text', 'fzfd_donation_level_two_max', ts('Maximum amount donation level 2'), array(), true );
+		$this->add('text', 'fzfd_donation_level_three_min', ts('Mimimum amount donation level 3'), array(), true );
+		$this->add('text', 'fzfd_donation_level_three_max', ts('Maximum amount donation level 3'), array(), true );
 
     // add buttons
     $this->addButtons(array(
@@ -164,6 +170,12 @@ class CRM_Apiprocessing_Form_Settings extends CRM_Core_Form {
         'akademie_error_activity_type_id' => $formValues['akademie_error_activity_type_id'],
         'akademie_error_activity_assignee_id' => $formValues['akademie_error_activity_assignee_id'],
         'fzfd_petition_signed_activity_type_id' => $formValues['fzfd_petition_signed_activity_type_id'],
+        'fzfd_donation_level_one_min' => $formValues['fzfd_donation_level_one_min'],
+        'fzfd_donation_level_one_max' => $formValues['fzfd_donation_level_one_max'],
+        'fzfd_donation_level_two_min' => $formValues['fzfd_donation_level_two_min'],
+        'fzfd_donation_level_two_max' => $formValues['fzfd_donation_level_two_max'],
+        'fzfd_donation_level_three_min' => $formValues['fzfd_donation_level_three_min'],
+        'fzfd_donation_level_three_max' => $formValues['fzfd_donation_level_three_max'],
       );
       if (!empty($formValues['default_cycle_day_sepa'])) {
         $data['default_cycle_day_sepa'] = $formValues['default_cycle_day_sepa'];
@@ -203,4 +215,61 @@ class CRM_Apiprocessing_Form_Settings extends CRM_Core_Form {
     }
     return $defaults;
   }
+
+  /**
+   * Overridden parent method to add validation rules
+   *
+   */
+  public function addRules() {
+    $this->addFormRule(array('CRM_Apiprocessing_Form_Settings', 'validateDonationLevels'));
+  }
+
+  /**
+   * Method to validate number of participants
+   *
+   * @param $fields
+   * @return bool|array
+   */
+  public static function validateDonationLevels($fields) {
+    // validate all donation levels are numeric
+    $numericFields = array(
+      'fzfd_donation_level_one_min',
+      'fzfd_donation_level_one_max',
+      'fzfd_donation_level_two_min',
+      'fzfd_donation_level_two_max',
+      'fzfd_donation_level_three_min',
+      'fzfd_donation_level_three_max',
+    );
+    foreach ($numericFields as $numericField) {
+      if (!is_numeric($fields[$numericField])) {
+        $errors[$numericField] = ts('Minimum or maximum level can only contain numbers!');
+      }
+    }
+    if (!empty($errors)) {
+      return $errors;
+    }
+    // validate for each level if min and max are correct
+    if ($fields['fzfd_donation_level_one_min'] > $fields['fzfd_donation_level_one_max']) {
+      $errors['fzfd_donation_level_one_min'] = ts('Minimum can not be bigger than maximum!');
+    }
+    if ($fields['fzfd_donation_level_two_min'] > $fields['fzfd_donation_level_two_max']) {
+      $errors['fzfd_donation_level_two_min'] = ts('Minimum can not be bigger than maximum!');
+    }
+    if ($fields['fzfd_donation_level_three_min'] > $fields['fzfd_donation_level_three_max']) {
+      $errors['fzfd_donation_level_three_min'] = ts('Minimum can not be bigger than maximum!');
+    }
+    // validate if levels do not overlap
+    if ($fields['fzfd_donation_level_two_min'] <= $fields['fzfd_donation_level_one_max']) {
+      $errors['fzfd_donation_level_two_min'] = ts('Minimum of level 2 overlaps maximum of level 1!');
+    }
+    if ($fields['fzfd_donation_level_two_min'] <= $fields['fzfd_donation_level_one_max']) {
+      $errors['fzfd_donation_level_two_min'] = ts('Minimum of level 2 overlaps maximum of level 1!');
+    }
+    if (!empty($errors)) {
+      return $errors;
+    } else {
+      return TRUE;
+    }
+  }
+
 }

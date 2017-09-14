@@ -645,8 +645,8 @@ class CRM_Apiprocessing_Config {
 		try {
 			$this->_bewerbungCustomFieldId = civicrm_api3('CustomField', 'getvalue', array('name' => 'fzfd_bewerbung', 'custom_group_id' => $this->_eventCustomGroup['id'],'return' => 'id'));
 		} catch (CiviCRM_API3_Exception $ex) {
-			//throw new Exception('Could not find custom field Bewerbung in '.__METHOD__
-			//.' contact your system administrator. Error from API CustomField getvalue: '.$ex->getMessage());
+			throw new Exception('Could not find custom field Bewerbung in '.__METHOD__
+			.' contact your system administrator. Error from API CustomField getvalue: '.$ex->getMessage());
 		}
     try {
       $this->_campaignOnLineCustomFieldId = civicrm_api3('CustomField', 'getvalue', array(
@@ -662,20 +662,20 @@ class CRM_Apiprocessing_Config {
 		try {
 			$this->_additionalDataCustomGroup = civicrm_api3('CustomGroup', 'getsingle', array('name' => 'fzfd_additional_data'));
 		} catch (CiviCRM_API3_Exception $ex) {
-			//throw new Exception('Could not find custom data set Additional Data in '.__METHOD__
-			//.' contact your system administrator. Error from API CustomGroup getsingle: '.$ex->getMessage());
+			throw new Exception('Could not find custom data set Additional Data in '.__METHOD__
+			.' contact your system administrator. Error from API CustomGroup getsingle: '.$ex->getMessage());
 		}
 		try {
 			$this->_additionalDataCustomFieldId = civicrm_api3('CustomField', 'getvalue', array('name' => 'fzfd_additional_data', 'custom_group_id' => $this->_additionalDataCustomGroup['id'],'return' => 'id'));
 		} catch (CiviCRM_API3_Exception $ex) {
-			//throw new Exception('Could not find custom field Additional Data in '.__METHOD__
-			//.' contact your system administrator. Error from API CustomField getvalue: '.$ex->getMessage());
+			throw new Exception('Could not find custom field Additional Data in '.__METHOD__
+			.' contact your system administrator. Error from API CustomField getvalue: '.$ex->getMessage());
 		}
 		try {
 			$this->_departmentDataCustomFieldId = civicrm_api3('CustomField', 'getvalue', array('name' => 'fzfd_department', 'custom_group_id' => $this->_additionalDataCustomGroup['id'],'return' => 'id'));
 		} catch (CiviCRM_API3_Exception $ex) {
-			//throw new Exception('Could not find custom field Department in '.__METHOD__
-			//.' contact your system administrator. Error from API CustomField getvalue: '.$ex->getMessage());
+			throw new Exception('Could not find custom field Department in '.__METHOD__
+			.' contact your system administrator. Error from API CustomField getvalue: '.$ex->getMessage());
 		}
   }
 
