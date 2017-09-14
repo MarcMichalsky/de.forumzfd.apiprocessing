@@ -9,7 +9,124 @@
  * @see http://wiki.civicrm.org/confluence/display/CRMDOC/API+Architecture+Standards
  */
 function _civicrm_api3_fzfd_donation_Create_spec(&$spec) {
-  $spec['magicword']['api.required'] = 1;
+  $spec['email'] = array(
+    'name' => 'email',
+    'title' => 'email',
+    'type' => CRM_Utils_Type::T_STRING,
+    'api.required' => 1,
+  );
+  $spec['payment_instrument_id'] = array(
+    'name' => 'payment_instrument_id',
+    'title' => 'payment_instrument_id',
+    'api.required' => 1,
+    'type' => CRM_Utils_Type::T_INT,
+  );
+  $spec['amount'] = array(
+    'name' => 'amount',
+    'title' => 'amount',
+    'api.required' => 1,
+    'type' => CRM_Utils_Type::T_MONEY,
+  );
+  $spec['donation_date'] = array(
+    'name' => 'donation_date',
+    'title' => 'donation_date',
+    'type' => CRM_Utils_Type::T_DATE,
+  );
+  $spec['campaign_id'] = array(
+    'name' => 'campaign_id',
+    'title' => 'campaign_id',
+    'type' => CRM_Utils_Type::T_INT,
+  );
+  $spec['source'] = array(
+    'name' => 'source',
+    'title' => 'source',
+    'type' => CRM_Utils_Type::T_STRING,
+  );
+  $spec['first_name'] = array(
+    'name' => 'first_name',
+    'title' => 'first_name',
+    'type' => CRM_Utils_Type::T_STRING,
+  );
+  $spec['last_name'] = array(
+    'name' => 'last_name',
+    'title' => 'last_name',
+    'type' => CRM_Utils_Type::T_STRING,
+  );
+  $spec['prefix_id'] = array(
+    'name' => 'prefix_id',
+    'title' => 'prefix_id',
+    'type' => CRM_Utils_Type::T_INT,
+  );
+  $spec['formal_title'] = array(
+    'name' => 'formal_title',
+    'title' => 'formal_title',
+    'type' => CRM_Utils_Type::T_STRING,
+  );
+  $spec['phone'] = array(
+    'name' => 'phone',
+    'title' => 'phone',
+    'type' => CRM_Utils_Type::T_STRING,
+  );
+  $spec['iban'] = array(
+    'name' => 'iban',
+    'title' => 'iban',
+    'type' => CRM_Utils_Type::T_STRING,
+  );
+  $spec['bic'] = array(
+    'name' => 'bic',
+    'title' => 'bic',
+    'type' => CRM_Utils_Type::T_STRING,
+  );
+  $spec['start_date'] = array(
+    'name' => 'start_date',
+    'title' => 'start_date',
+    'type' => CRM_Utils_Type::T_DATE,
+  );
+  $spec['frequency_unit'] = array(
+    'name' => 'frequency_unit',
+    'title' => 'frequency_unit',
+    'type' => CRM_Utils_Type::T_STRING,
+  );
+  $spec['frequency_interval'] = array(
+    'name' => 'frequency_interval',
+    'title' => 'frequency_interval',
+    'type' => CRM_Utils_Type::T_INT,
+  );
+  $spec['cycle_day'] = array(
+    'name' => 'cycle_day',
+    'title' => 'cycle_day',
+    'type' => CRM_Utils_Type::T_INT,
+  );
+  $spec['organization_name'] = array(
+    'name' => 'organization_name',
+    'title' => 'organization_name',
+    'type' => CRM_Utils_Type::T_STRING,
+  );
+  $spec['organization_street_address'] = array(
+    'name' => 'organization_street_address',
+    'title' => 'organization_street_address',
+    'type' => CRM_Utils_Type::T_STRING,
+  );
+  $spec['organization_postal_code'] = array(
+    'name' => 'organization_postal_code',
+    'title' => 'organization_postal_code',
+    'type' => CRM_Utils_Type::T_STRING,
+  );
+  $spec['organization_city'] = array(
+    'name' => 'organization_city',
+    'title' => 'organization_city',
+    'type' => CRM_Utils_Type::T_STRING,
+  );
+  $spec['organization_country_iso'] = array(
+    'name' => 'organization_country_iso',
+    'title' => 'organization_country_iso',
+    'type' => CRM_Utils_Type::T_STRING,
+  );
+  $spec['individual_addresses'] = array(
+    'name' => 'individual_addresses',
+    'title' => 'individual_addresses',
+  );
+
 }
 
 /**
@@ -22,20 +139,6 @@ function _civicrm_api3_fzfd_donation_Create_spec(&$spec) {
  * @throws API_Exception
  */
 function civicrm_api3_fzfd_donation_Create($params) {
-  if (array_key_exists('magicword', $params) && $params['magicword'] == 'sesame') {
-    $returnValues = array(
-      // OK, return several data rows
-      12 => array('id' => 12, 'name' => 'Twelve'),
-      34 => array('id' => 34, 'name' => 'Thirty four'),
-      56 => array('id' => 56, 'name' => 'Fifty six'),
-    );
-    // ALTERNATIVE: $returnValues = array(); // OK, success
-    // ALTERNATIVE: $returnValues = array("Some value"); // OK, return a single value
-
-    // Spec: civicrm_api3_create_success($values = 1, $params = array(), $entity = NULL, $action = NULL)
-    return civicrm_api3_create_success($returnValues, $params, 'NewEntity', 'NewAction');
-  }
-  else {
-    throw new API_Exception(/*errorMessage*/ 'Everyone knows that the magicword is "sesame"', /*errorCode*/ 1234);
-  }
+  $contribution = new CRM_Apiprocessing_Contribution();
+  return civicrm_api3_create_success($contribution->processIncomingData($params), $params, 'FzfdDonation', 'Create');
 }
