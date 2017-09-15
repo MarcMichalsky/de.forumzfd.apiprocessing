@@ -49,6 +49,9 @@ class CRM_Apiprocessing_Config {
 	private $_ansprechInhaltCustomFieldId = NULL;
 	private $_bewerbungCustomFieldId = NULL;
 	private $_campaignOnLineCustomFieldId = NULL;
+	private $_protectedGroupCustomFieldId = NULL;
+	private $_goldGroupId = NULL;
+	private $_silverGroupId = NULL;
 
   /**
    * CRM_Mafsepa_Config constructor.
@@ -64,6 +67,9 @@ class CRM_Apiprocessing_Config {
     $this->setSepaPaymentInstrumentIds();
     $this->setFinancialTypeIds();
     $this->setCustomGroupsAndFields();
+    // careful, the groups have to be done after the custom groups and fields
+    // because it uses one custom field property (protectGroupCustomFieldId)!
+    $this->setGroups();
     try {
       $this->_employeeRelationshipTypeId = civicrm_api3('RelationshipType', 'getvalue', array(
         'name_a_b' => 'Employee of',
@@ -186,6 +192,33 @@ class CRM_Apiprocessing_Config {
       throw new Exception('Could not find the standard cancelled participant status in '.__METHOD__
         .', contact your system administrator. Error from API OptionValue Type getvalue: '.$ex->getMessage());
     }
+  }
+
+  /**
+   * Getter for gold group id
+   *
+   * @return null
+   */
+  public function getGoldGroupId() {
+    return $this->_goldGroupId;
+  }
+
+  /**
+   * Getter for silver group id
+   *
+   * @return null
+   */
+  public function getSilverGroupId() {
+    return $this->_silverGroupId;
+  }
+
+  /**
+   * Getter for custom field id protect group
+   *
+   * @return null
+   */
+  public function getProtectGroupCustomFieldId() {
+    return $this->_protectedGroupCustomFieldId;
   }
 
   /**
@@ -659,6 +692,17 @@ class CRM_Apiprocessing_Config {
       throw new Exception('Could not find custom field Kampagnen On Line Verfügabar (fzfd_camapaign_on_line) in '.__METHOD__
         .' contact your system administrator. Error from API CustomField getvalue: '.$ex->getMessage());
     }
+    try {
+      $this->_protectedGroupCustomFieldId = civicrm_api3('CustomField', 'getvalue', array(
+        'name' => 'group_protect',
+        'custom_group_id' => 'group_protect',
+        'return' => 'id',
+        ));
+    }
+    catch (CiviCRM_API3_Exception $ex) {
+      throw new Exception('Could not find custom field Kampagnen On Line Verfügabar (fzfd_camapaign_on_line) in '.__METHOD__
+        .' contact your system administrator. Error from API CustomField getvalue: '.$ex->getMessage());
+    }
 		try {
 			$this->_additionalDataCustomGroup = civicrm_api3('CustomGroup', 'getsingle', array('name' => 'fzfd_additional_data'));
 		} catch (CiviCRM_API3_Exception $ex) {
@@ -677,6 +721,95 @@ class CRM_Apiprocessing_Config {
 			throw new Exception('Could not find custom field Department in '.__METHOD__
 			.' contact your system administrator. Error from API CustomField getvalue: '.$ex->getMessage());
 		}
+  }
+
+  /**
+   * Method to set the groups
+   */
+  private function setGroups() {
+    $groups = array(
+      'fzfd_all_donors' => array(
+        'title' => 'Alle Spender',
+        'description' => 'Gruppe für Alle Spender (Silver und Gold sind Kinder Gruppen)',
+        'parent_name' => NULL,
+      ),
+      'fzfd_silver_donors' => array(
+        'title' => 'Silver Spender',
+        'description' => 'Gruppe für Alle Spender niveau Silver',
+        'parent_name' => 'fzfd_all_donors',
+        'property' => '_silverGroupId',
+      ),
+      'fzfd_gold_donors' => array(
+        'title' => 'Gold Spender',
+        'description' => 'Gruppe für Alle Spender niveau Gold',
+        'parent_name' => 'fzfd_all_donors',
+        'property' => '_goldGroupId',
+      ),
+    );
+    foreach ($groups as $groupName => $groupData) {
+      $this->createGroupIfNotExists($groupName, $groupData);
+    }
+  }
+
+  /**
+   * Method to create a group if required
+   *
+   * @param $groupName
+   * @param $groupData
+   */
+  private function createGroupIfNotExists($groupName, $groupData) {
+    $groupCount = civicrm_api3('Group', 'getcount', array(
+      'name' => $groupName,
+    ));
+    if ($groupCount == 0) {
+      $createdGroup = civicrm_api3('Group', 'create', array(
+        'sequential' => 1,
+        'name' => $groupName,
+        'title' => $groupData['title'],
+        'description' => $groupData['description'],
+        'group_type' => 'Mailing List',
+        'is_active' => 1,
+        'is_reserved' => 1,
+        'custom_'.$this->_protectedGroupCustomFieldId => 1,
+      ));
+      // fix issue with api modifying group name
+      $query = 'UPDATE civicrm_group SET name = %1, title = %2 WHERE id = %3';
+      CRM_Core_DAO::executeQuery($query, array(
+        1 => array($groupName, 'String'),
+        2 => array($groupData['title'], 'String'),
+        3 => array($createdGroup['id'], 'Integer'),
+      ));
+      // set parent if applicable
+      if (!empty($groupData['parent_name'])) {
+        $this->createGroupNesting($createdGroup['id'], $groupData['parent_name']);
+      }
+      // set property
+      $propertyName = $groupData['property'];
+      $this->$propertyName = $createdGroup['id'];
+    }
+  }
+
+  /**
+   * Method to create group nesting
+   *
+   * @param $childId
+   * @param $parentName
+   */
+  private function createGroupNesting($childId, $parentName) {
+    try {
+      $parentId = civicrm_api3('Group', 'getvalue', array(
+        'name' => $parentName,
+        'return' => 'id',
+      ));
+      civicrm_api3('GroupNesting', 'create', array(
+        'child_group_id' => $childId,
+        'parent_group_id' => $parentId,
+      ));
+    }
+    catch (CiviCRM_API3_Exception $ex) {
+      CRM_Core_Error::debug_log_message('Could not create group nesting between child group with id '
+        .$childId.' and parent group with name '.$parentName.', error from API GroupNesting Create: '.$ex->getMessage());
+    }
   }
 
   /**

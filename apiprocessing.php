@@ -191,6 +191,7 @@ function apiprocessing_civicrm_alterSettingsFolders(&$metaDataFolders = NULL) {
 function _apiprocessing_required_extensions_installed() {
   $required = array(
     'org.project60.sepa' => FALSE,
+    'org.civicoop.groupprotect' => FALSE,
   );
   $installedExtensions = civicrm_api3('Extension', 'get', array(
     'option' => array('limit' => 0,),));
