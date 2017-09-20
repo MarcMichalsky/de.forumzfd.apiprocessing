@@ -700,7 +700,7 @@ class CRM_Apiprocessing_Config {
         ));
     }
     catch (CiviCRM_API3_Exception $ex) {
-      throw new Exception('Could not find custom field Kampagnen On Line Verfügabar (fzfd_camapaign_on_line) in '.__METHOD__
+      throw new Exception('Could not find custom field group_protect in '.__METHOD__
         .' contact your system administrator. Error from API CustomField getvalue: '.$ex->getMessage());
     }
 		try {
@@ -784,8 +784,10 @@ class CRM_Apiprocessing_Config {
         $this->createGroupNesting($createdGroup['id'], $groupData['parent_name']);
       }
       // set property
-      $propertyName = $groupData['property'];
-      $this->$propertyName = $createdGroup['id'];
+      if (isset($groupData['property'])) {
+      	$propertyName = $groupData['property'];
+      	$this->$propertyName = $createdGroup['id'];
+			}
     }
   }
 
