@@ -42,12 +42,14 @@ class CRM_Api_v3_FzfdPersonTest extends CRM_Api_v3_FzfdAbstractTest {
 		$personParams['individual_addresses'] = array(
 			array(
 				'street_address' => 'Berliner Strasse 23',
+				'supplemental_address_1' => 'Supplement address non billing',
 				'postal_code' => '1234 AB',
 				'city' => 'Köln',
 				'country_iso' => 'DE',
 			),
 			array(
 				'street_address' => 'Antwerpplaz 23',
+				'supplemental_address_1' => 'Supplement address billing',
 				'postal_code' => '1234 AB',
 				'city' => 'Köln',
 				'country_iso' => 'DE',
@@ -77,5 +79,14 @@ class CRM_Api_v3_FzfdPersonTest extends CRM_Api_v3_FzfdAbstractTest {
 		
 		$this->callAPISuccessGetCount('Address', array('contact_id' => $contact['id']), 2);
 		$this->callAPISuccessGetCount('Phone', array('contact_id' => $contact['id']), 1);
+		
+		// Check the non billing address
+		$nonBillingAddress = $this->callAPISuccessGetSingle('Address', array('contact_id' => $contact['id'], 'is_billing' => 0));
+		$this->assertEquals('Berliner Strasse 23', $nonBillingAddress['street_address']);
+		$this->assertEquals('Supplement address non billing', $nonBillingAddress['supplemental_address_1']);
+		// Check the billing address
+		$billingAddress = $this->callAPISuccessGetSingle('Address', array('contact_id' => $contact['id'], 'is_billing' => 1));
+		$this->assertEquals('Antwerpplaz 23', $billingAddress['street_address']);
+		$this->assertEquals('Supplement address billing', $billingAddress['supplemental_address_1']);
 	}
 }
