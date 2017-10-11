@@ -78,12 +78,14 @@ class CRM_Api_v3_FzfdAkademieTest extends CRM_Api_v3_FzfdAbstractTest {
 		$akademieParams['individual_addresses'] = array(
 			array(
 				'street_address' => 'Berliner Strasse 23',
-				'postal_code' => '1234 AB',
+				'supplemental_address_1' => 'Supplement address non billing',
+				'postal_code' => '1234 AB',				
 				'city' => 'Köln',
 				'country_iso' => 'DE',
 			),
 			array(
 				'street_address' => 'Antwerpplaz 23',
+				'supplemental_address_1' => 'Supplement address billing',
 				'postal_code' => '1234 AB',
 				'city' => 'Köln',
 				'country_iso' => 'DE',
@@ -92,6 +94,7 @@ class CRM_Api_v3_FzfdAkademieTest extends CRM_Api_v3_FzfdAbstractTest {
 		);
 		$akademieParams['organization_name'] = 'CiviCooP';
 		$akademieParams['organization_street_address'] = 'Amsterdam Strasse 1';
+		$akademieParams['organization_supplemental_address_1'] = 'Organization Supplement address';
 		$akademieParams['organization_postal_code'] = '1234 Ab';
 		$akademieParams['organization_city'] = 'Hall';
 		$akademieParams['organization_country_iso'] = 'NL';
@@ -106,13 +109,22 @@ class CRM_Api_v3_FzfdAkademieTest extends CRM_Api_v3_FzfdAbstractTest {
 		$this->assertArraySubset($subset, $result, 'Failed test to register for an event');
 		$contact = $this->callAPISuccessGetSingle('Contact', array('email' => $akademieParams['email']));
 		$organization = $this->callAPISuccessGetSingle('Contact', array('organization_name' => $akademieParams['organization_name'], 'contact_type' => 'Organization'));
+		// Check the organization address
+		$organizationAddress = $this->callAPISuccessGetSingle('Address', array('contact_id' => $organization['id']));
+		$this->assertEquals('Amsterdam Strasse 1', $organizationAddress['street_address']);
+		$this->assertEquals('Organization Supplement address', $organizationAddress['supplemental_address_1']);
 		
 		// Check whether a phone and the addresses are stored.
 		$this->callAPISuccessGetCount('Address', array('contact_id' => $contact['id']), 2);
 		$this->callAPISuccessGetCount('Phone', array('contact_id' => $contact['id']), 1);
+		// Check the non billing address
+		$nonBillingAddress = $this->callAPISuccessGetSingle('Address', array('contact_id' => $contact['id'], 'is_billing' => 0));
+		$this->assertEquals('Berliner Strasse 23', $nonBillingAddress['street_address']);
+		$this->assertEquals('Supplement address non billing', $nonBillingAddress['supplemental_address_1']);
 		// Check the billing address
 		$billingAddress = $this->callAPISuccessGetSingle('Address', array('contact_id' => $contact['id'], 'is_billing' => 1));
 		$this->assertEquals('Antwerpplaz 23', $billingAddress['street_address']);
+		$this->assertEquals('Supplement address billing', $billingAddress['supplemental_address_1']);
 		
 		// Check whether a relationship between the organization and the individual is created
 		$employeeOfRelationshipTypeId = $this->apiConfig->getEmployeeRelationshipTypeId();
@@ -261,12 +273,14 @@ class CRM_Api_v3_FzfdAkademieTest extends CRM_Api_v3_FzfdAbstractTest {
 		$akademieParams['individual_addresses'] = array(
 			array(
 				'street_address' => 'Berliner Strasse 23',
+				'supplemental_address_1' => 'Supplement address non billing',
 				'postal_code' => '1234 AB',
 				'city' => 'Köln',
 				'country_iso' => 'DE',
 			),
 			array(
 				'street_address' => 'Antwerpplaz 23',
+				'supplemental_address_1' => 'Supplement address billing',
 				'postal_code' => '1234 AB',
 				'city' => 'Köln',
 				'country_iso' => 'DE',
@@ -275,6 +289,7 @@ class CRM_Api_v3_FzfdAkademieTest extends CRM_Api_v3_FzfdAbstractTest {
 		);
 		$akademieParams['organization_name'] = 'CiviCooP';
 		$akademieParams['organization_street_address'] = 'Amsterdam Strasse 1';
+		$akademieParams['organization_supplemental_address_1'] = 'Organization Supplement address';
 		$akademieParams['organization_postal_code'] = '1234 Ab';
 		$akademieParams['organization_city'] = 'Hall';
 		$akademieParams['organization_country_iso'] = 'NL';
@@ -289,13 +304,22 @@ class CRM_Api_v3_FzfdAkademieTest extends CRM_Api_v3_FzfdAbstractTest {
 		$this->assertArraySubset($subset, $result, 'Failed test to apply for an event');
 		$contact = $this->callAPISuccessGetSingle('Contact', array('email' => $akademieParams['email']));
 		$organization = $this->callAPISuccessGetSingle('Contact', array('organization_name' => $akademieParams['organization_name'], 'contact_type' => 'Organization'));
+		// Check the organization address
+		$organizationAddress = $this->callAPISuccessGetSingle('Address', array('contact_id' => $organization['id']));
+		$this->assertEquals('Amsterdam Strasse 1', $organizationAddress['street_address']);
+		$this->assertEquals('Organization Supplement address', $organizationAddress['supplemental_address_1']);
 		
 		// Check whether a phone and the addresses are stored.
 		$this->callAPISuccessGetCount('Address', array('contact_id' => $contact['id']), 2);
 		$this->callAPISuccessGetCount('Phone', array('contact_id' => $contact['id']), 1);
+		// Check the non billing address
+		$nonBillingAddress = $this->callAPISuccessGetSingle('Address', array('contact_id' => $contact['id'], 'is_billing' => 0));
+		$this->assertEquals('Berliner Strasse 23', $nonBillingAddress['street_address']);
+		$this->assertEquals('Supplement address non billing', $nonBillingAddress['supplemental_address_1']);
 		// Check the billing address
 		$billingAddress = $this->callAPISuccessGetSingle('Address', array('contact_id' => $contact['id'], 'is_billing' => 1));
 		$this->assertEquals('Antwerpplaz 23', $billingAddress['street_address']);
+		$this->assertEquals('Supplement address billing', $billingAddress['supplemental_address_1']);
 		
 		// Check whether a relationship between the organization and the individual is created
 		$employeeOfRelationshipTypeId = $this->apiConfig->getEmployeeRelationshipTypeId();

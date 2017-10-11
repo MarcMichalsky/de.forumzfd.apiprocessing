@@ -197,6 +197,7 @@ class CRM_Apiprocessing_Participant {
     );
     $possibles = array(
       'organization_street_address',
+      'organization_supplemental_address_1',
       'organization_postal_code',
       'organization_city',
       'organization_country_iso',

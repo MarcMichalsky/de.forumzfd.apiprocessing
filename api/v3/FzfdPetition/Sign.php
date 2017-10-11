@@ -59,6 +59,12 @@ function _civicrm_api3_fzfd_petition_Sign_spec(&$spec) {
     'type' => CRM_Utils_Type::T_STRING,
     'api.required' => 0,
 	);
+	$spec['organization_supplemental_address_1'] = array(
+    'name' => 'organization_supplemental_address_1',
+    'title' => 'organization_supplemental_address_1',
+    'type' => CRM_Utils_Type::T_STRING,
+    'api.required' => 0,
+	);
 	$spec['organization_postal_code'] = array(
     'name' => 'organization_postal_code',
     'title' => 'organization_postal_code',

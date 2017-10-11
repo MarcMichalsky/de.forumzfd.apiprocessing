@@ -166,6 +166,9 @@ class CRM_Apiprocessing_Contact {
     if (isset($params['organization_street_address']) && !empty($params['organization_street_address'])) {
       $addressParams['street_address'] = $params['organization_street_address'];
     }
+		if (isset($params['organization_supplemental_address_1']) && !empty($params['organization_supplemental_address_1'])) {
+      $addressParams['supplemental_address_1'] = $params['organization_supplemental_address_1'];
+    }
     if (isset($params['organization_postal_code']) && !empty($params['organization_postal_code'])) {
       $addressParams['postal_code'] = $params['organization_postal_code'];
     }

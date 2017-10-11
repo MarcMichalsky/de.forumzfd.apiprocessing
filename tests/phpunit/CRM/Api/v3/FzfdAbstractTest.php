@@ -24,6 +24,8 @@ class CRM_Api_v3_FzfdAbstractTest extends \PHPUnit_Framework_TestCase implements
     // Civi\Test has many helpers, like install(), uninstall(), sql(), and sqlFile().
     // See: https://github.com/civicrm/org.civicrm.testapalooza/blob/master/civi-test.md
     return \Civi\Test::headless()
+			->install('org.civicoop.groupprotect')
+			->callback(array('CRM_Api_v3_FzfdAbstractTest', 'configureGroupProtect'))
     	->callback(array('CRM_Api_v3_FzfdAbstractTest', 'createFinancialTypes'))
 			->install('org.project60.sepa')
       ->installMe(__DIR__)
@@ -69,6 +71,11 @@ class CRM_Api_v3_FzfdAbstractTest extends \PHPUnit_Framework_TestCase implements
   		'is_active' => 1,
   		'name' => "Spende",
 		));
+	}
+	
+	public static function configureGroupProtect() {
+		// get extension config so custom group/field are created if not exist yet
+		CRM_Groupprotect_Config::singleton();
 	}
 	
 	public function setUp() {

@@ -91,15 +91,18 @@ class CRM_Api_v3_FzfdPetitionTest extends CRM_Api_v3_FzfdAbstractTest {
 		$petitionParams['individual_addresses'] = array(
 			array(
 				'street_address' => 'Berliner Strasse 23',
+				'supplemental_address_1' => 'Supplement address non billing',
 				'postal_code' => '1234 AB',
 				'city' => 'Köln',
 				'country_iso' => 'DE',
 			),
 			array(
 				'street_address' => 'Antwerpplaz 23',
+				'supplemental_address_1' => 'Supplement address billing',
 				'postal_code' => '1234 AB',
 				'city' => 'Köln',
 				'country_iso' => 'DE',
+				'is_billing' => 1,
 			)
 		);
 		$result = $this->callAPISuccess('FzfdPetition', 'sign', $petitionParams);
@@ -109,6 +112,14 @@ class CRM_Api_v3_FzfdPetitionTest extends CRM_Api_v3_FzfdAbstractTest {
 		$this->assertEquals($this->campaign_id, $activity['campaign_id'], 'The activity is not linked to an campaign');
 		
 		$this->callAPISuccessGetCount('Address', array('contact_id' => $contact['id']), 2);
+		// Check the non billing address
+		$nonBillingAddress = $this->callAPISuccessGetSingle('Address', array('contact_id' => $contact['id'], 'is_billing' => 0));
+		$this->assertEquals('Berliner Strasse 23', $nonBillingAddress['street_address']);
+		$this->assertEquals('Supplement address non billing', $nonBillingAddress['supplemental_address_1']);
+		// Check the billing address
+		$billingAddress = $this->callAPISuccessGetSingle('Address', array('contact_id' => $contact['id'], 'is_billing' => 1));
+		$this->assertEquals('Antwerpplaz 23', $billingAddress['street_address']);
+		$this->assertEquals('Supplement address billing', $billingAddress['supplemental_address_1']);
 	}
 
 /**
@@ -126,6 +137,7 @@ class CRM_Api_v3_FzfdPetitionTest extends CRM_Api_v3_FzfdAbstractTest {
 		$petitionParams['campaign_id'] = $this->campaign_id;
 		$petitionParams['organization_name'] = 'CiviCooP';
 		$petitionParams['organization_street_address'] = 'Amsterdam Strasse 1';
+		$petitionParams['organization_supplemental_address_1'] = 'Organization Supplement address';
 		$petitionParams['organization_postal_code'] = '1234 Ab';
 		$petitionParams['organization_city'] = 'Hall';
 		$petitionParams['organization_country_iso'] = 'NL';
@@ -133,6 +145,10 @@ class CRM_Api_v3_FzfdPetitionTest extends CRM_Api_v3_FzfdAbstractTest {
 		$this->assertArraySubset($subset, $result, 'Failed test to sign a petition');
 		$contact = $this->callAPISuccessGetSingle('Contact', array('email' => $petitionParams['email']));
 		$organization = $this->callAPISuccessGetSingle('Contact', array('organization_name' => $petitionParams['organization_name'], 'contact_type' => 'Organization'));
+		// Check the organization address
+		$organizationAddress = $this->callAPISuccessGetSingle('Address', array('contact_id' => $organization['id']));
+		$this->assertEquals('Amsterdam Strasse 1', $organizationAddress['street_address']);
+		$this->assertEquals('Organization Supplement address', $organizationAddress['supplemental_address_1']);
 		$activity = $this->retrieveActivity($organization['id'], true);
 		$this->assertEquals($this->campaign_id, $activity['campaign_id'], 'The activity is not linked to an campaign');
 		// Check whether a relationship between the organization and the individual is created
