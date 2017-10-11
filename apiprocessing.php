@@ -5,7 +5,7 @@ require_once 'apiprocessing.civix.php';
 /**
  * Implementation of hook_civicrm_navigationMenu
  *
- * @link http://wiki.civicrm.org/confluence/display/CRMDOC/hook_civicrm_navigationMenu
+ * @link https://docs.civicrm.org/dev/en/master/hooks/hook_civicrm_navigationMenu/
  */
 function apiprocessing_civicrm_navigationMenu(&$menu) {
   _apiprocessing_insert_navigation_menu($menu, "Administer", array(

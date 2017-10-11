@@ -79,7 +79,9 @@ class CRM_Apiprocessing_Contribution {
         }
       }
     }
+    return;
   }
+
   /**
    * Method to create parameter list for contribution
    *

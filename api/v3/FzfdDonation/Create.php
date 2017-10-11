@@ -140,5 +140,18 @@ function _civicrm_api3_fzfd_donation_Create_spec(&$spec) {
  */
 function civicrm_api3_fzfd_donation_Create($params) {
   $contribution = new CRM_Apiprocessing_Contribution();
-  return civicrm_api3_create_success($contribution->processIncomingData($params), $params, 'FzfdDonation', 'Create');
+  $contribution->processIncomingData($params);
+  $returnValues = array(
+    'is_error' => '0',
+    'version' => '3',
+    'count' => 1,
+  );
+  // return doi_id and doi_token if in params
+  if (isset($params['doi_id'])) {
+    $returnValues['doi_id'] = $params['doi_id'];
+  }
+  if (isset($params['doi_token'])) {
+    $returnValues['doi_token'] = $params['doi_token'];
+  }
+  return $returnValues;
 }

@@ -104,6 +104,13 @@ function civicrm_api3_fzfd_petition_Sign($params) {
 	$activity = new CRM_Apiprocessing_Activity();
 	$returnValues = $activity->processApiPetitionSign($params);
   if ($returnValues['is_error'] == 0) {
+    // return doi_id and doi_token if in params
+    if (isset($params['doi_id'])) {
+      $returnValues['doi_id'] = $params['doi_id'];
+    }
+    if (isset($params['doi_token'])) {
+      $returnValues['doi_token'] = $params['doi_token'];
+    }
     return $returnValues;
   } else {
     return civicrm_api3_create_error($returnValues['error_message'], $params);
