@@ -28,7 +28,12 @@ function _civicrm_api3_fzfd_person_Get_spec(&$spec) {
  */
 function civicrm_api3_fzfd_person_Get($params) {
   if (!is_array($params['group_titles'])) {
-    $params['group_titles'] = array($params['group_titles']);
+    $groupTitles = array();
+    $parts = explode(',', $params['group_titles']);
+    foreach ($parts as $part) {
+      $groupTitles[] = trim($part);
+    }
+    $params['group_titles'] = $groupTitles;
   }
   $contact = new CRM_Apiprocessing_Contact();
   $result = $contact->getFzfdPerson($params);
