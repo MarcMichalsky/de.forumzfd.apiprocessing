@@ -41,6 +41,17 @@
     <div class="content">{$form.default_cycle_day_sepa.html}</div>
     <div class="clear"></div>
   </div>
+  <div class="crm-section">
+    <div class="label">{$form.fzfdperson_groups.label}</div>
+    <div class="content crm-select-container">{$form.fzfdperson_groups.html}</div>
+    <div class="clear"></div>
+  </div>
+  <div class="crm-section">
+    <div class="label">{$form.fzfdperson_location_type.label}</div>
+    <div class="content">{$form.fzfdperson_location_type.html}</div>
+    <div class="clear"></div>
+  </div>
+
 
   <div class="help-block" id="help">
     {ts}You can set the minimum and maximum values for each of the three donation levels below.{/ts}

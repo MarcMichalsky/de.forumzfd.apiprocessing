@@ -42,7 +42,7 @@ class CRM_Apiprocessing_Config {
 	private $_departmentDataCustomFieldId = NULL;
 	private $_registeredParticipantStatusId = NULL;
 	private $_cancelledParticipantStatusId = NULL;
-	private $_nueParticipantStatusTypeId = NULL;
+	private $_neuParticipantStatusTypeId = NULL;
 	private $_eventCustomGroup = NULL;
 	private $_trainerCustomFieldId = NULL;
 	private $_teilnahmeOrganisationCustomFieldId = NULL;
@@ -153,7 +153,7 @@ class CRM_Apiprocessing_Config {
     }
 		
 		try {
-			$this->_nueParticipantStatusTypeId = civicrm_api3('ParticipantStatusType', 'getvalue', array(
+			$this->_neuParticipantStatusTypeId = civicrm_api3('ParticipantStatusType', 'getvalue', array(
         'name' => 'neu',
         'return' => 'id',
       ));
@@ -169,7 +169,7 @@ class CRM_Apiprocessing_Config {
 	      'name' => "neu",
 	      'weight' => 0,
 	    ));
-			$this->_nueParticipantStatusTypeId = $result['id'];
+			$this->_neuParticipantStatusTypeId = $result['id'];
     }		
 
 		try {
@@ -499,7 +499,7 @@ class CRM_Apiprocessing_Config {
 	 * Getter for participant status Neu
 	 */
 	 public function getNeuParticipantStatusId() {
-	 	return $this->_nueParticipantStatusTypeId;
+	 	return $this->_neuParticipantStatusTypeId;
 	 }
 
   /**

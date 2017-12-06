@@ -12,13 +12,32 @@ class CRM_Apiprocessing_Form_Settings extends CRM_Core_Form {
   private $_employeesList = array();
   private $_groupList = array();
   private $_cycleDaysList = array();
+  private $_locationTypeList = array();
+
+  /**
+   * Method to set the location type list
+   */
+  private function setLocationTypeList() {
+    try {
+      $locationTypes = civicrm_api3('LocationType', 'get', array(
+        'is_active' => 1,
+        ));
+      foreach ($locationTypes['values'] as $locationType) {
+        $this->_locationTypeList[$locationType['id']] = $locationType['display_name'];
+      }
+    }
+    catch (CiviCRM_API3_Exception $ex) {
+    }
+  }
 
   /**
    * Method to set the cycle days list
    */
   private function setCycleDaysList() {
     try {
-      $cycleDays = civicrm_api3('Setting', 'getvalue', array('name' => 'cycledays',));
+      $cycleDays = civicrm_api3('Setting', 'getvalue', array(
+        'name' => 'cycledays',
+        ));
       if (!empty($cycleDays)) {
         $values = explode(',', $cycleDays);
         foreach ($values as $value) {
@@ -29,6 +48,7 @@ class CRM_Apiprocessing_Form_Settings extends CRM_Core_Form {
     catch (CiviCRM_API3_Exception $ex) {
     }
   }
+
   /**
    * Method to set the list of activity types
    */
@@ -118,6 +138,7 @@ class CRM_Apiprocessing_Form_Settings extends CRM_Core_Form {
     $this->setEmployeeList();
     $this->setGroupList();
     $this->setCycleDaysList();
+    $this->setLocationTypeList();
   }
 
   /**
@@ -137,6 +158,9 @@ class CRM_Apiprocessing_Form_Settings extends CRM_Core_Form {
 		$this->add('text', 'fzfd_donation_level_two_max', ts('Maximum amount donation level 2'), array(), true );
 		$this->add('text', 'fzfd_donation_level_three_min', ts('Mimimum amount donation level 3'), array(), true );
 		$this->add('text', 'fzfd_donation_level_three_max', ts('Maximum amount donation level 3'), array(), true );
+    $this->add('select', 'fzfdperson_groups', ts('Valid groups for API FzfdPerson Get'), $this->_groupList, TRUE,
+      array('id' => 'fzfdperson_groups', 'multiple' => 'multiple', 'class' => 'crm-select2'));
+    $this->add('select', 'fzfdperson_location_type', ts('Location Type for API FzfdPerson Get'), $this->_locationTypeList, TRUE);
 
     // add buttons
     $this->addButtons(array(
@@ -176,6 +200,8 @@ class CRM_Apiprocessing_Form_Settings extends CRM_Core_Form {
         'fzfd_donation_level_two_max' => $formValues['fzfd_donation_level_two_max'],
         'fzfd_donation_level_three_min' => $formValues['fzfd_donation_level_three_min'],
         'fzfd_donation_level_three_max' => $formValues['fzfd_donation_level_three_max'],
+        'fzfdperson_groups' => $formValues['fzfdperson_groups'],
+        'fzfdperson_location_type' => $formValues['fzfdperson_location_type'],
       );
       if (!empty($formValues['default_cycle_day_sepa'])) {
         $data['default_cycle_day_sepa'] = $formValues['default_cycle_day_sepa'];

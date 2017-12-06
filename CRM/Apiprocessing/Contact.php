@@ -297,6 +297,7 @@ class CRM_Apiprocessing_Contact {
 	 * If not set the contact will not be added to a group.
    *
    * @param int $contactId
+   * @throws
 	 */
 	private function addNewContactToSettingsGroup($contactId) {
 		$settings = CRM_Apiprocessing_Settings::singleton();
@@ -380,6 +381,144 @@ class CRM_Apiprocessing_Contact {
     }
     catch (CiviCRM_API3_Exception $ex) {
       throw new Exception('No contact found with the contact hash');
+    }
+    return $result;
+  }
+
+  /**
+   * Method to process the FzfdPerson Get api
+   *
+   * @param $apiParams
+   * @return array
+   */
+  public function getFzfdPerson($apiParams) {
+    $result = array();
+    // only valid if either group_titles are valid groups
+    if ($this->validFzfdPersonGet($apiParams['group_titles'])) {
+      //get array with contact_ids with group_titles
+      $contactIds = $this->getContactIdsWithGroupTitles($apiParams['group_titles']);
+      if (!empty($contactIds)) {
+      // set contact data
+      $result = $this->setFzfdPersonData($contactIds);
+      }
+    } else {
+      $result['error_message'] = 'Parameter group_titles is either empty or contains invalid group titles';
+    }
+    return $result;
+  }
+
+  /**
+   * Method to check if the parameters passed to api FzfdPerson get are valid
+   *
+   * @param $groupTitles
+   * @return bool
+   */
+  private function validFzfdPersonGet($groupTitles) {
+    // error if group_titles empty
+    if (empty($groupTitles)) {
+      return FALSE;
+    }
+    try {
+      // get valid group titles
+      $validTitles = array();
+      $validGroupIds = CRM_Apiprocessing_Settings::singleton()->get('fzfdperson_groups');
+      foreach ($validGroupIds as $validGroupId) {
+        $validTitles[] = civicrm_api3('Group', 'getvalue', array(
+          'id' => $validGroupId,
+          'return' => 'title',
+          ));
+      }
+      if (empty($validTitles)) {
+        return FALSE;
+      }
+      foreach ($groupTitles as $groupTitle) {
+        if (!in_array($groupTitle, $validTitles)) {
+          return FALSE;
+        }
+      }
+    }
+    catch (CiviCRM_API3_Exception $ex) {
+      return FALSE;
+    }
+    return TRUE;
+  }
+
+  /**
+   * Method to get all contactIds of group members based on group titles
+   *
+   * @param $groupTitles
+   * @return array
+   */
+  private function getContactIdsWithGroupTitles($groupTitles) {
+    $result = array();
+    foreach ($groupTitles as $groupTitle) {
+      try {
+        $groupId = civicrm_api3('Group', 'getvalue', array(
+          'title' => $groupTitle,
+          'return' => 'id',
+        ));
+        $groupContacts = civicrm_api3('GroupContact', 'get', array(
+          'group_id' => $groupId,
+          'status' => 'Added',
+          'options' => array('limit' => 0),
+        ));
+        foreach ($groupContacts['values'] as $groupContact) {
+          if (!in_array($groupContact['contact_id'], $result)) {
+            $result[] = $groupContact['contact_id'];
+          }
+        }
+      }
+      catch (CiviCRM_API3_Exception $ex) {
+      }
+    }
+    return $result;
+  }
+
+  /**
+   * Method to collect the data for fzfdPerson get
+   *
+   * @param $contactIds
+   * @return array
+   */
+  private function setFzfdPersonData($contactIds) {
+    $result = array();
+    foreach ($contactIds as $contactId) {
+      try {
+        $result[$contactId] = civicrm_api3('Contact', 'getsingle', array(
+          'id' => $contactId,
+          'return' => array("first_name", "last_name", "prefix_id", "formal_title"),
+        ));
+        // add email, phone and im of location type in settings
+        $locationTypeId = CRM_Apiprocessing_Settings::singleton()->get('fzfdperson_location_type');
+        $result[$contactId]['email'] = civicrm_api3('Email', 'getvalue', array(
+          'contact_id' => $contactId,
+          'location_type_id' => $locationTypeId,
+          'options' => array('limit' => 1),
+          'return' => 'email',
+        ));
+        $result[$contactId]['phone'] = civicrm_api3('Phone', 'getvalue', array(
+          'contact_id' => $contactId,
+          'location_type_id' => $locationTypeId,
+          'options' => array('limit' => 1),
+          'return' => 'phone',
+        ));
+        $imData = civicrm_api3('IM', 'getsingle', array(
+          'return' => array("provider_id", "name"),
+          'contact_id' => "user_contact_id",
+          'options' => array('limit' => 1),
+          'location_type_id' => "Arbeit",
+        ));
+        if (!empty($imData['provider_id'])) {
+          $result[$contactId]['instant_messenger']['service'] = civicrm_api3('OptionValue', 'getvalue', array(
+            'option_group_id' => 'instant_messenger_service',
+            'value' => $imData['provider_id'],
+            'return' => 'label',
+          ));
+        }
+        $result[$contactId]['instant_messenger']['id'] = $imData['name'];
+      }
+      catch (CiviCRM_API3_Exception $ex) {
+      }
     }
     return $result;
   }
