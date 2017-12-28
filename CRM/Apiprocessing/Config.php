@@ -47,14 +47,15 @@ class CRM_Apiprocessing_Config {
 	private $_trainerCustomFieldId = NULL;
 	private $_teilnahmeOrganisationCustomFieldId = NULL;
 	private $_ansprechInhaltCustomFieldId = NULL;
-	private $_bewerbungCustomFieldId = NULL;
 	private $_campaignOnLineCustomFieldId = NULL;
 	private $_protectedGroupCustomFieldId = NULL;
 	private $_goldGroupId = NULL;
 	private $_silverGroupId = NULL;
 
   /**
-   * CRM_Mafsepa_Config constructor.
+   * CRM_Apiprocessing_Config constructor.
+   * @throws CiviCRM_API3_Exception
+   * @throws Exception
    */
   function __construct() {
     $this->setActivityTypes();
@@ -473,14 +474,7 @@ class CRM_Apiprocessing_Config {
 	 public function getAnsprechInhaltCustomFieldId() {
 	 	return $this->_ansprechInhaltCustomFieldId;
 	 }
-	 
-	 /**
-	  * Getter for Bewerbung custom field id.
-	  */
-  public function getBewerbungCustomFieldId() {
-  	return $this->_bewerbungCustomFieldId;
-  }
-	
+
 	/**
 	 * Getter for participant status Registered
 	 */
@@ -504,6 +498,8 @@ class CRM_Apiprocessing_Config {
 
   /**
    * Method to set and if required create the activity types
+
+   * @throws CiviCRM_API3_Exception
    */
   private function setActivityTypes() {
     $activityTypesToFetch = array(
@@ -675,12 +671,6 @@ class CRM_Apiprocessing_Config {
       throw new Exception('Could not find custom field Ansprech Inhalt in '.__METHOD__
         .' contact your system administrator. Error from API CustomField getvalue: '.$ex->getMessage());
     }
-		try {
-			$this->_bewerbungCustomFieldId = civicrm_api3('CustomField', 'getvalue', array('name' => 'fzfd_bewerbung', 'custom_group_id' => $this->_eventCustomGroup['id'],'return' => 'id'));
-		} catch (CiviCRM_API3_Exception $ex) {
-			throw new Exception('Could not find custom field Bewerbung in '.__METHOD__
-			.' contact your system administrator. Error from API CustomField getvalue: '.$ex->getMessage());
-		}
     try {
       $this->_campaignOnLineCustomFieldId = civicrm_api3('CustomField', 'getvalue', array(
         'name' => 'fzfd_campaign_on_line',
@@ -725,6 +715,7 @@ class CRM_Apiprocessing_Config {
 
   /**
    * Method to set the groups
+   * @throws CiviCRM_API3_Exception
    */
   private function setGroups() {
     $groups = array(
@@ -752,10 +743,11 @@ class CRM_Apiprocessing_Config {
   }
 
   /**
-   * Method to create a group if required
+   *  Method to create a group if required
    *
    * @param $groupName
    * @param $groupData
+   * @throws CiviCRM_API3_Exception
    */
   private function createGroupIfNotExists($groupName, $groupData) {
     $groupCount = civicrm_api3('Group', 'getcount', array(

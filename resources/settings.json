@@ -11,6 +11,7 @@
     "fzfd_donation_level_three_min": "51",
     "fzfd_donation_level_three_max": "75",
     "fzfdperson_groups": [
+        "3",
         "2"
     ],
     "fzfdperson_location_type": "2",
