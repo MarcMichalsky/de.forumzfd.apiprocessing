@@ -14,7 +14,7 @@
       <help_post></help_post>
       <weight>20</weight>
       <is_active>1</is_active>
-      <table_name>civicrm_value_fzfd_weiterbildungs_data</table_name>
+      <table_name>civicrm_value_fzfd_weiterbildung_data</table_name>
       <is_multiple>0</is_multiple>
       <collapse_adv_display>0</collapse_adv_display>
       <created_date>2017-12-28 14:02:53</created_date>

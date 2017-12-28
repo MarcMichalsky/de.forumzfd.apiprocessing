@@ -44,9 +44,12 @@ class CRM_Apiprocessing_Config {
 	private $_cancelledParticipantStatusId = NULL;
 	private $_neuParticipantStatusTypeId = NULL;
 	private $_eventCustomGroup = NULL;
+	private $_weiterBildungCustomGroup = NULL;
+	private $_bewerbungCustomFieldId = NULL;
 	private $_trainerCustomFieldId = NULL;
 	private $_teilnahmeOrganisationCustomFieldId = NULL;
 	private $_ansprechInhaltCustomFieldId = NULL;
+	private $_ansprechOrganisationCustomFieldId = NULL;
 	private $_campaignOnLineCustomFieldId = NULL;
 	private $_protectedGroupCustomFieldId = NULL;
 	private $_goldGroupId = NULL;
@@ -475,6 +478,20 @@ class CRM_Apiprocessing_Config {
 	 	return $this->_ansprechInhaltCustomFieldId;
 	 }
 
+	 /**
+	 * Getter for Bewerbung custom field id
+	 */
+	 public function getBewerbungCustomFieldId() {
+	 	return $this->_bewerbungCustomFieldId;
+	 }
+
+	 /**
+	 * Getter for Ansprech Organisation custom field id
+	 */
+	 public function getAnsprechOrganisationCustomFieldId() {
+	 	return $this->_ansprechOrganisationCustomFieldId;
+	 }
+
 	/**
 	 * Getter for participant status Registered
 	 */
@@ -623,6 +640,12 @@ class CRM_Apiprocessing_Config {
    */
   private function setCustomGroupsAndFields() {
     try {
+      $this->_weiterBildungCustomGroup = civicrm_api3('CustomGroup', 'getsingle', array('name' => 'fzfd_weiterbildung_data'));
+    } catch (CiviCRM_API3_Exception $ex) {
+      throw new Exception('Could not find custom data set Weiterbildung in '.__METHOD__
+        .' contact your system administrator. Error from API CustomGroup getsingle: '.$ex->getMessage());
+    }
+    try {
       $this->_akademieCustomGroup = civicrm_api3('CustomGroup', 'getsingle', array('name' => 'fzfd_akademie_data'));
     } catch (CiviCRM_API3_Exception $ex) {
       throw new Exception('Could not find custom data set Akademie in '.__METHOD__
@@ -672,6 +695,12 @@ class CRM_Apiprocessing_Config {
         .' contact your system administrator. Error from API CustomField getvalue: '.$ex->getMessage());
     }
     try {
+      $this->_ansprechOrganisationCustomFieldId = civicrm_api3('CustomField', 'getvalue', array('name' => 'fzfd_ansprech_organisation', 'custom_group_id' => $this->_eventCustomGroup['id'],'return' => 'id'));
+    } catch (CiviCRM_API3_Exception $ex) {
+      throw new Exception('Could not find custom field Ansprech Organisation in '.__METHOD__
+        .' contact your system administrator. Error from API CustomField getvalue: '.$ex->getMessage());
+    }
+    try {
       $this->_campaignOnLineCustomFieldId = civicrm_api3('CustomField', 'getvalue', array(
         'name' => 'fzfd_campaign_on_line',
         'custom_group_id' => 'fzfd_campaign_data',
@@ -709,6 +738,12 @@ class CRM_Apiprocessing_Config {
 			$this->_departmentDataCustomFieldId = civicrm_api3('CustomField', 'getvalue', array('name' => 'fzfd_department', 'custom_group_id' => $this->_additionalDataCustomGroup['id'],'return' => 'id'));
 		} catch (CiviCRM_API3_Exception $ex) {
 			throw new Exception('Could not find custom field Department in '.__METHOD__
+			.' contact your system administrator. Error from API CustomField getvalue: '.$ex->getMessage());
+		}
+		try {
+			$this->_bewerbungCustomFieldId = civicrm_api3('CustomField', 'getvalue', array('name' => 'fzfd_bewerbung', 'custom_group_id' => $this->_weiterBildungCustomGroup['id'],'return' => 'id'));
+		} catch (CiviCRM_API3_Exception $ex) {
+			throw new Exception('Could not find custom field Bewerbung in '.__METHOD__
 			.' contact your system administrator. Error from API CustomField getvalue: '.$ex->getMessage());
 		}
   }
