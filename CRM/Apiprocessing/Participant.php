@@ -25,7 +25,7 @@ class CRM_Apiprocessing_Participant {
 			$participantParams = array(
 				'event_id' => $apiParams['event_id'],
 				'contact_id' => $contactId,
-				'status_id' => $config->getRegisteredParticipantStatusId(),
+				'status_id' => $this->generateParticipantStatus($apiParams['event_id']),
 			);
 			
 			// Try to find an existing registration. If so create an error activity and do not create an extra participant record.
@@ -40,7 +40,7 @@ class CRM_Apiprocessing_Participant {
 			}
 			
 			$result = civicrm_api3('Participant', 'create', $participantParams);
-			return $this->createApi3SuccessReturnArray($apiParams['event_id'], $contactId, $result['id']);
+			return $this->createApi3SuccessReturnArray($apiParams['event_id'], $contactId, $result['id'], $participantParams['status_id']);
 			
 		} catch (Exception $ex) {
 			return array(
@@ -51,6 +51,44 @@ class CRM_Apiprocessing_Participant {
 				);
 		}
 	}
+
+  /**
+   * Method to determine if participant can be registered or should be waitlisted
+   *
+   * @param $eventId
+   * @return mixed
+   * @throws
+   */
+	private function generateParticipantStatus($eventId) {
+	  $config = CRM_Apiprocessing_Config::singleton();
+	  $statusId = NULL;
+	  // retrieve event data to see if a waitlist is applicable and what the max participants is
+    try {
+      $event = civicrm_api3('Event', 'getsingle', array('id' => $eventId));
+    } catch (CiviCRM_API3_Exception $ex) {
+      throw new CiviCRM_API3_Exception('Could not find event with id '.$eventId, 0102);
+    }
+    $noRegistered = CRM_Apiprocessing_Utils::getNumberOfEventRegistrations($eventId);
+    // if no waitlist return registered if no max or error if full
+    if ($event['has_waitlist'] == 0) {
+      if (!isset($event['max_participants'])) {
+        return $config->getRegisteredParticipantStatusId();
+      } else {
+        if ($noRegistered >= $event['max_participants']) {
+          throw new CiviCRM_API3_Exception('Could not register participant, event is full and has no waitlist.', 0101);
+        } else {
+          return $config->getRegisteredParticipantStatusId();
+        }
+      }
+    } else {
+      // if waitlist
+      if ($noRegistered < $event['max_participants']) {
+        return $config->getRegisteredParticipantStatusId();
+      } else {
+        return $config->getWaitlistedParticipantStatusId();
+      }
+    }
+  }
 
 	/** 
 	 * Process an apply for an event. Apply means I want to come and is used to invest how many people are interested.
@@ -93,7 +131,7 @@ class CRM_Apiprocessing_Participant {
 			}
 			
 			$result = civicrm_api3('Participant', 'create', $participantParams);
-			return $this->createApi3SuccessReturnArray($apiParams['event_id'], $contactId, $result['id']);
+			return $this->createApi3SuccessReturnArray($apiParams['event_id'], $contactId, $result['id'], $participantParams['status_id']);
 			
 		} catch (Exception $ex) {
 			return array(
@@ -125,15 +163,16 @@ class CRM_Apiprocessing_Participant {
 	/**
  	 * Returns an Api3 success array for registering or applying successfully. 
  	 */
-	private function createApi3SuccessReturnArray($event_id, $contact_id, $participant_id) {
+	private function createApi3SuccessReturnArray($eventId, $contactId, $participantId, $participantStatusId = NULL) {
 		return array(
 				'is_error' => 0,
 				'count' => 1,
 				'values' => array(
 					array(
-						'event_id' => $event_id,
-						'contact_id' => $contact_id,
-						'participant_id' => $participant_id,
+						'event_id' => $eventId,
+						'contact_id' => $contactId,
+						'participant_id' => $participantId,
+            'participant_status_id' => $participantStatusId,
 					),
 				)
 			);

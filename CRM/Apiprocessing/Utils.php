@@ -117,4 +117,22 @@ class CRM_Apiprocessing_Utils {
     return FALSE;
   }
 
+  /**
+   * Method to count the number of registrations for an event
+   *
+   * @param $eventId
+   * @return mixed
+   */
+  public static function getNumberOfEventRegistrations($eventId) {
+    try {
+      return civicrm_api3('Participant', 'getcount', array(
+        'event_id' => $eventId,
+        'status_id' => CRM_Apiprocessing_Config::singleton()->getRegisteredParticipantStatusId(),
+        'options' => array('limit' => 0),
+      ));
+    }
+    catch (CiviCRM_API3_Exception $ex) {
+      return 0;
+    }
+  }
 }

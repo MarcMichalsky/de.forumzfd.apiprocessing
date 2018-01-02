@@ -46,16 +46,7 @@ function civicrm_api3_fzfd_event_Get($params) {
       'ansprech_organisation' => array(),
       'bewerbung' => null,
 		);
-		try {
-      $returnValue['registration_count'] = civicrm_api3('Participant', 'getcount', array(
-        'event_id' => $event['id'],
-        'status_id' => $config->getRegisteredParticipantStatusId(),
-        'options' => array('limit' => 0),
-      ));
-    }
-    catch (CiviCRM_API3_Exception $ex) {
-    }
-
+    $returnValue['registration_count'] = CRM_Apiprocessing_Utils::getNumberOfEventRegistrations($event['id']);
 		if (isset($event['custom_'.$config->getAnsprechOrganisationCustomFieldId()])) {
 		  $returnValue['ansprech_organisation'] = $event['custom_'.$config->getAnsprechOrganisationCustomFieldId()];
     }

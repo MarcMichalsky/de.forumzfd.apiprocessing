@@ -41,6 +41,7 @@ class CRM_Apiprocessing_Config {
 	private $_additionalDataCustomFieldId = NULL;
 	private $_departmentDataCustomFieldId = NULL;
 	private $_registeredParticipantStatusId = NULL;
+	private $_waitlistedParticipantStatusId = NULL;
 	private $_cancelledParticipantStatusId = NULL;
 	private $_neuParticipantStatusTypeId = NULL;
 	private $_eventCustomGroup = NULL;
@@ -179,6 +180,16 @@ class CRM_Apiprocessing_Config {
 		try {
       $this->_registeredParticipantStatusId = civicrm_api3('ParticipantStatusType', 'getvalue', array(
         'name' => 'Registered',
+        'return' => 'id',
+      ));
+    }
+    catch (CiviCRM_API3_Exception $ex) {
+      throw new Exception('Could not find the standard registered participant status in '.__METHOD__
+        .', contact your system administrator. Error from API OptionValue Type getvalue: '.$ex->getMessage());
+    }
+		try {
+      $this->_waitlistedParticipantStatusId = civicrm_api3('ParticipantStatusType', 'getvalue', array(
+        'name' => 'On waitlist',
         'return' => 'id',
       ));
     }
@@ -498,7 +509,14 @@ class CRM_Apiprocessing_Config {
 	public function getRegisteredParticipantStatusId() {
 		return $this->_registeredParticipantStatusId;
 	}
-	
+
+	/**
+	 * Getter for participant status On waitlist
+	 */
+	public function getWaitlistedParticipantStatusId() {
+		return $this->_waitlistedParticipantStatusId;
+	}
+
 	/**
 	 * Getter for participant status Cancelled
 	 */
