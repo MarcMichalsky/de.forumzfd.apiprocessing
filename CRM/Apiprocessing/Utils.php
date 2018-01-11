@@ -16,6 +16,9 @@ class CRM_Apiprocessing_Utils {
    * @return array
    */
   public static function storeNewsletterIds($newsletterIdsString) {
+    if (is_array($newsletterIdsString)) {
+      return $newsletterIdsString;
+    }
     $newsletterIds = array();
     $ids = explode(";", $newsletterIdsString);
     foreach ($ids as $key => $value) {
