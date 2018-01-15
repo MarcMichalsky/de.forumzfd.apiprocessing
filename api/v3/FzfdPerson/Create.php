@@ -94,6 +94,7 @@ function _civicrm_api3_fzfd_person_Create_spec(&$spec) {
 function civicrm_api3_fzfd_person_create($params) {
 	$contact = new CRM_Apiprocessing_Contact();
 	$contactId = $contact->processIncomingIndividual($params);
+	$returnValues = array();
   if ($contactId) {
   	$returnValues = array(
 			array(

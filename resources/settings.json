@@ -5,10 +5,13 @@
     "akademie_error_activity_assignee_id": "4",
     "fzfd_petition_signed_activity_type_id": "56",
     "fzfd_donation_level_one_min": "0",
+    "fzfd_donation_level_one_avg": "15",
     "fzfd_donation_level_one_max": "30",
     "fzfd_donation_level_two_min": "31",
+    "fzfd_donation_level_two_avg": "40",
     "fzfd_donation_level_two_max": "50",
     "fzfd_donation_level_three_min": "51",
+    "fzfd_donation_level_three_avg": "62",
     "fzfd_donation_level_three_max": "75",
     "fzfdperson_groups": [
         "3",

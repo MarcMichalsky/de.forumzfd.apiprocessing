@@ -63,6 +63,11 @@
     <div class="clear"></div>
   </div>
   <div class="crm-section">
+    <div class="label">{$form.fzfd_donation_level_one_avg.label}</div>
+    <div class="content">{$form.fzfd_donation_level_one_avg.html}</div>
+    <div class="clear"></div>
+  </div>
+  <div class="crm-section">
     <div class="label">{$form.fzfd_donation_level_one_max.label}</div>
     <div class="content">{$form.fzfd_donation_level_one_max.html}</div>
     <div class="clear"></div>
@@ -73,6 +78,11 @@
     <div class="clear"></div>
   </div>
   <div class="crm-section">
+    <div class="label">{$form.fzfd_donation_level_two_avg.label}</div>
+    <div class="content">{$form.fzfd_donation_level_two_avg.html}</div>
+    <div class="clear"></div>
+  </div>
+  <div class="crm-section">
     <div class="label">{$form.fzfd_donation_level_two_max.label}</div>
     <div class="content">{$form.fzfd_donation_level_two_max.html}</div>
     <div class="clear"></div>
@@ -80,6 +90,11 @@
   <div class="crm-section">
     <div class="label">{$form.fzfd_donation_level_three_min.label}</div>
     <div class="content">{$form.fzfd_donation_level_three_min.html}</div>
+    <div class="clear"></div>
+  </div>
+  <div class="crm-section">
+    <div class="label">{$form.fzfd_donation_level_three_avg.label}</div>
+    <div class="content">{$form.fzfd_donation_level_three_avg.html}</div>
     <div class="clear"></div>
   </div>
   <div class="crm-section">

@@ -9,9 +9,15 @@
  * @see http://wiki.civicrm.org/confluence/display/CRMDOC/API+Architecture+Standards
  */
 function _civicrm_api3_fzfd_spendengruppe_Get_spec(&$spec) {
-  $spec['contact_hash'] = array(
-    'name' => 'contact_hash',
-    'title' => 'contact_hash',
+  $spec['contact_id'] = array(
+    'name' => 'contact_id',
+    'title' => 'contact_id',
+    'type' => CRM_Utils_Type::T_INT,
+    'api.required' => 1,
+  );
+  $spec['checksum'] = array(
+    'name' => 'checksum',
+    'title' => 'checksum',
     'type' => CRM_Utils_Type::T_STRING,
     'api.required' => 1,
   );
@@ -24,7 +30,7 @@ function _civicrm_api3_fzfd_spendengruppe_Get_spec(&$spec) {
  * @return array API result descriptor
  * @see civicrm_api3_create_success
  * @see civicrm_api3_create_error
- * @throws API_Exception
+ * @throws
  */
 function civicrm_api3_fzfd_spendengruppe_Get($params) {
   $contact = new CRM_Apiprocessing_Contact();

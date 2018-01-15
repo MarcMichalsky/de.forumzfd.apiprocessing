@@ -191,9 +191,6 @@ class CRM_Apiprocessing_Contact {
    * @throws Exception when contact not created
    */
   public function processIncomingIndividual($params) {
-    if (!isset($params['email']) || empty($params['email'])) {
-      return FALSE;
-    }
 		if (isset($params['contact_hash'])) {
     	$find = $this->findIndividualIdWithHash($params['contact_hash']);
 		} else {
@@ -333,54 +330,51 @@ class CRM_Apiprocessing_Contact {
 
   /**
    * Method to return the spendengruppe of a contact. Will be called from the website
-   * with the only allowed parameter contact_hash
    *
    * @param $params
    * @return bool/array
    * @throws Exception when hash not in params or empty
    */
   public function getSpendengruppe($params) {
+    // returns error if checksum is invalid
+    if (!CRM_Contact_BAO_Contact_Utils::validChecksum($params['contact_id'], $params['checksum'])) {
+      throw new Exception(ts('Invalid contact_id & checksum combination'));
+    }
     $result = array(
       'min_value' => CRM_Apiprocessing_Settings::singleton()->get('fzfd_donation_level_one_min'),
+      'avg_value' => CRM_Apiprocessing_Settings::singleton()->get('fzfd_donation_level_one_avg'),
       'max_value' => CRM_Apiprocessing_Settings::singleton()->get('fzfd_donation_level_one_max'),
     );
-    if (!isset($params['contact_hash']) || empty($params['contact_hash'])) {
-      throw new Exception('Contact Hash has to be set and can not be empty for API Spendengruppe Get');
-    }
-    // retrieve contact id with contact hash
     try {
-      $contactId = civicrm_api3('Contact', 'getvalue', array(
-        'hash' => $params['contact_hash'],
-        'return' => 'id',
+      $goldCount = civicrm_api3('GroupContact', 'getcount', array(
+        'contact_id' => $params['contact_id'],
+        'group_id' => CRM_Apiprocessing_Config::singleton()->getGoldGroupId(),
       ));
-      // retrieve all groups that the contact is member of
-      try {
-        $goldCount = civicrm_api3('GroupContact', 'getcount', array(
-          'contact_id' => $contactId,
-          'group_id' => CRM_Apiprocessing_Config::singleton()->getGoldGroupId(),
-        ));
-        if ($goldCount > 0) {
-          $result = array(
-            'min_value' => CRM_Apiprocessing_Settings::singleton()->get('fzfd_donation_level_three_min'),
-            'max_value' => CRM_Apiprocessing_Settings::singleton()->get('fzfd_donation_level_three_max'),
-          );
-        }
-        $silverCount = civicrm_api3('GroupContact', 'getcount', array(
-          'contact_id' => $contactId,
-          'group_id' => CRM_Apiprocessing_Config::singleton()->getSilverGroupId(),
-        ));
-        if ($silverCount > 0) {
-          $result = array(
-            'min_value' => CRM_Apiprocessing_Settings::singleton()->get('fzfd_donation_level_two_min'),
-            'max_value' => CRM_Apiprocessing_Settings::singleton()->get('fzfd_donation_level_two_max'),
-          );
-        }
+      if ($goldCount > 0) {
+        $result = array(
+          'min_value' => CRM_Apiprocessing_Settings::singleton()->get('fzfd_donation_level_three_min'),
+          'avg_value' => CRM_Apiprocessing_Settings::singleton()->get('fzfd_donation_level_three_avg'),
+          'max_value' => CRM_Apiprocessing_Settings::singleton()->get('fzfd_donation_level_three_max'),
+        );
       }
-      catch (CiviCRM_API3_Exception $ex) {
+      $silverCount = civicrm_api3('GroupContact', 'getcount', array(
+        'contact_id' => $params['contact_id'],
+        'group_id' => CRM_Apiprocessing_Config::singleton()->getSilverGroupId(),
+      ));
+      if ($silverCount > 0) {
+        $result = array(
+          'min_value' => CRM_Apiprocessing_Settings::singleton()->get('fzfd_donation_level_two_min'),
+          'avg_value' => CRM_Apiprocessing_Settings::singleton()->get('fzfd_donation_level_two_avg'),
+          'max_value' => CRM_Apiprocessing_Settings::singleton()->get('fzfd_donation_level_two_max'),
+        );
       }
+      $allCount = civicrm_api3('GroupContact', 'getcount', array(
+        'contact_id' => $params['contact_id'],
+        'group_id' => CRM_Apiprocessing_Config::singleton()->getSilverGroupId(),
+      ));
     }
     catch (CiviCRM_API3_Exception $ex) {
-      throw new Exception('No contact found with the contact hash');
+      throw new Exception('No contact found with the contact id');
     }
     return $result;
   }

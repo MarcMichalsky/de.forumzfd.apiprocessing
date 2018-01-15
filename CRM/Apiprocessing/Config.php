@@ -55,6 +55,7 @@ class CRM_Apiprocessing_Config {
 	private $_protectedGroupCustomFieldId = NULL;
 	private $_goldGroupId = NULL;
 	private $_silverGroupId = NULL;
+	private $_allGroupId = NULL;
 
   /**
    * CRM_Apiprocessing_Config constructor.
@@ -207,6 +208,15 @@ class CRM_Apiprocessing_Config {
       throw new Exception('Could not find the standard cancelled participant status in '.__METHOD__
         .', contact your system administrator. Error from API OptionValue Type getvalue: '.$ex->getMessage());
     }
+  }
+
+  /**
+   * Getter for all group id
+   *
+   * @return null
+   */
+  public function getAllGroupId() {
+    return $this->_allGroupId;
   }
 
   /**
@@ -776,6 +786,7 @@ class CRM_Apiprocessing_Config {
         'title' => 'Alle Spender',
         'description' => 'Gruppe für Alle Spender (Silver und Gold sind Kinder Gruppen)',
         'parent_name' => NULL,
+        'property' => '_allGroupId',
       ),
       'fzfd_silver_donors' => array(
         'title' => 'Silver Spender',
@@ -829,10 +840,14 @@ class CRM_Apiprocessing_Config {
         $this->createGroupNesting($createdGroup['id'], $groupData['parent_name']);
       }
       // set property
-      if (isset($groupData['property'])) {
-      	$propertyName = $groupData['property'];
-      	$this->$propertyName = $createdGroup['id'];
-			}
+      $propertyName = $groupData['property'];
+      $this->$propertyName = $createdGroup['id'];
+    } else {
+      $propertyName = $groupData['property'];
+      $this->$propertyName = civicrm_api3('Group', 'getvalue', array(
+        'name' => $groupName,
+        'return' => 'id',
+      ));
     }
   }
 
