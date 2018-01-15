@@ -332,19 +332,19 @@ class CRM_Apiprocessing_Contact {
    * Method to return the spendengruppe of a contact. Will be called from the website
    *
    * @param $params
-   * @return bool/array
+   * @return bool|array
    * @throws Exception when hash not in params or empty
    */
   public function getSpendengruppe($params) {
-    // returns error if checksum is invalid
+    // returns level one if checksum is invalid
     if (!CRM_Contact_BAO_Contact_Utils::validChecksum($params['contact_id'], $params['checksum'])) {
-      throw new Exception(ts('Invalid contact_id & checksum combination'));
+      $result = array(
+        'min_value' => CRM_Apiprocessing_Settings::singleton()->get('fzfd_donation_level_one_min'),
+        'avg_value' => CRM_Apiprocessing_Settings::singleton()->get('fzfd_donation_level_one_avg'),
+        'max_value' => CRM_Apiprocessing_Settings::singleton()->get('fzfd_donation_level_one_max'),
+      );
+      return $result;
     }
-    $result = array(
-      'min_value' => CRM_Apiprocessing_Settings::singleton()->get('fzfd_donation_level_one_min'),
-      'avg_value' => CRM_Apiprocessing_Settings::singleton()->get('fzfd_donation_level_one_avg'),
-      'max_value' => CRM_Apiprocessing_Settings::singleton()->get('fzfd_donation_level_one_max'),
-    );
     try {
       $goldCount = civicrm_api3('GroupContact', 'getcount', array(
         'contact_id' => $params['contact_id'],
@@ -356,6 +356,7 @@ class CRM_Apiprocessing_Contact {
           'avg_value' => CRM_Apiprocessing_Settings::singleton()->get('fzfd_donation_level_three_avg'),
           'max_value' => CRM_Apiprocessing_Settings::singleton()->get('fzfd_donation_level_three_max'),
         );
+        return $result;
       }
       $silverCount = civicrm_api3('GroupContact', 'getcount', array(
         'contact_id' => $params['contact_id'],
@@ -367,15 +368,16 @@ class CRM_Apiprocessing_Contact {
           'avg_value' => CRM_Apiprocessing_Settings::singleton()->get('fzfd_donation_level_two_avg'),
           'max_value' => CRM_Apiprocessing_Settings::singleton()->get('fzfd_donation_level_two_max'),
         );
+        return $result;
       }
-      $allCount = civicrm_api3('GroupContact', 'getcount', array(
-        'contact_id' => $params['contact_id'],
-        'group_id' => CRM_Apiprocessing_Config::singleton()->getSilverGroupId(),
-      ));
     }
     catch (CiviCRM_API3_Exception $ex) {
-      throw new Exception('No contact found with the contact id');
     }
+    $result = array(
+      'min_value' => CRM_Apiprocessing_Settings::singleton()->get('fzfd_donation_level_one_min'),
+      'avg_value' => CRM_Apiprocessing_Settings::singleton()->get('fzfd_donation_level_one_avg'),
+      'max_value' => CRM_Apiprocessing_Settings::singleton()->get('fzfd_donation_level_one_max'),
+    );
     return $result;
   }
 
