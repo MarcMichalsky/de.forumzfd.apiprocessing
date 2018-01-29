@@ -478,26 +478,41 @@ class CRM_Apiprocessing_Contact {
    */
   private function setFzfdPersonData($contactIds) {
     $result = array();
+    $locationTypeId = CRM_Apiprocessing_Settings::singleton()->get('fzfdperson_location_type');
     foreach ($contactIds as $contactId) {
       try {
         $result[$contactId] = civicrm_api3('Contact', 'getsingle', array(
           'id' => $contactId,
           'return' => array("first_name", "last_name", "prefix_id", "formal_title"),
         ));
+      }
+      catch (CiviCRM_API3_Exception $ex) {
+      }
+      try {
         // add email, phone and im of location type in settings
-        $locationTypeId = CRM_Apiprocessing_Settings::singleton()->get('fzfdperson_location_type');
         $result[$contactId]['email'] = civicrm_api3('Email', 'getvalue', array(
           'contact_id' => $contactId,
           'location_type_id' => $locationTypeId,
           'options' => array('limit' => 1),
           'return' => 'email',
         ));
-        $result[$contactId]['phone'] = civicrm_api3('Phone', 'getvalue', array(
+      }
+      catch (CiviCRM_API3_Exception $ex) {
+      }
+      try {
+        $phoneData = civicrm_api3('Phone', 'getsingle', array(
           'contact_id' => $contactId,
           'location_type_id' => $locationTypeId,
           'options' => array('limit' => 1),
-          'return' => 'phone',
         ));
+        $result[$contactId]['phone'] = $phoneData['phone'];
+        if (isset($phoneData['phone_ext']) && !empty($phoneData['phone_ext'])) {
+          $result[$contactId]['phone'] = $phoneData['phone'].' '.$phoneData['phone_ext'];
+        }
+      }
+      catch (CiviCRM_API3_Exception $ex) {
+      }
+      try {
         $imData = civicrm_api3('IM', 'getsingle', array(
           'return' => array("provider_id", "name"),
           'contact_id' => "user_contact_id",
