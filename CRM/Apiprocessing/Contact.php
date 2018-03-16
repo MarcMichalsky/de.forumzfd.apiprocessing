@@ -191,7 +191,8 @@ class CRM_Apiprocessing_Contact {
    * @throws Exception when contact not created
    */
   public function processIncomingIndividual($params) {
-		if (isset($params['contact_hash'])) {
+    $params['contact_hash'] = trim($params['contact_hash']);
+		if (isset($params['contact_hash']) && !empty($params['contact_hash'])) {
     	$find = $this->findIndividualIdWithHash($params['contact_hash']);
 		} else {
 			$find = $this->findIndividualIdWithEmail($params['email']);
