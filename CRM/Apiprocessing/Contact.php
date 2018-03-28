@@ -201,6 +201,8 @@ class CRM_Apiprocessing_Contact {
       return FALSE;
     }
     if (isset($find['individual_id'])) {
+		  // possibly update first and last name of individual
+      $this->updateNames($find['individual_id'], $params);
       return $find['individual_id'];
     } else {
       $newIndividualParams = $this->getNewIndividualParams($params);
@@ -533,5 +535,37 @@ class CRM_Apiprocessing_Contact {
       }
     }
     return $result;
+  }
+
+  /**
+   * Method to update the first and/or last name of the contact with the values from the params
+   * (only if the contact does not have a first and/or last name yet)
+   *
+   * @param $contactId
+   * @param $params
+   */
+  private function updateNames($contactId, $params) {
+    $nameParams = [];
+    try {
+      $contact = civicrm_api3(' Contact', ' getsingle', ['id' => $contactId]);
+      if (!isset($contact['first_name']) || empty($contact['first_name'])) {
+        if (isset($params['first_name']) && !empty($params['first_name'])) {
+          $nameParams['first_name'] = $params['first_name'];
+        }
+      }
+      if (!isset($contact['last_name']) || empty($contact['last_name'])) {
+        if (isset($params['last_name']) && !empty($params['last_name'])) {
+          $nameParams['last_name'] = $params['last_name'];
+        }
+      }
+      if (!empty($nameParams)) {
+        $nameParams['id'] = $contactId;
+        civicrm_api3('Contact', 'create', $nameParams);
+      }
+    }
+    catch (CiviCRM_API3_Exception $ex) {
+      CRM_Core_Error::debug_log_message(ts(' Could not find or update contact with id ' . $contactId . ' in '. __METHOD__
+        . ' when trying check if names need to be updated'));
+    }
   }
 }
