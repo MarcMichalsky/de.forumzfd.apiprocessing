@@ -164,6 +164,7 @@ class CRM_Apiprocessing_Form_Settings extends CRM_Core_Form {
     $this->add('select', 'fzfdperson_groups', ts('Valid groups for API FzfdPerson Get'), $this->_groupList, TRUE,
       array('id' => 'fzfdperson_groups', 'multiple' => 'multiple', 'class' => 'crm-select2'));
     $this->add('select', 'fzfdperson_location_type', ts('Location Type for API FzfdPerson Get'), $this->_locationTypeList, TRUE);
+    $this->add('select', 'fzfd_address_location_type', ts('Location Type for address with API'), $this->_locationTypeList, TRUE);
 
     // add buttons
     $this->addButtons(array(
@@ -208,6 +209,7 @@ class CRM_Apiprocessing_Form_Settings extends CRM_Core_Form {
         'fzfd_donation_level_three_max' => $formValues['fzfd_donation_level_three_max'],
         'fzfdperson_groups' => $formValues['fzfdperson_groups'],
         'fzfdperson_location_type' => $formValues['fzfdperson_location_type'],
+        'fzfd_address_location_type' => $formValues['fzfd_address_location_type'],
       );
       if (!empty($formValues['default_cycle_day_sepa'])) {
         $data['default_cycle_day_sepa'] = $formValues['default_cycle_day_sepa'];

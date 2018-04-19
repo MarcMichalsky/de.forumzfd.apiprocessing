@@ -21,15 +21,20 @@ class CRM_Apiprocessing_Address {
     if (isset($params['country_iso'])) {
       $addressParams['country_id'] = CRM_Apiprocessing_Utils::getCountryIdWithIso($params['country_iso']);
     }
-    // location type id is required so use default if not set
-    if (!isset($addressParams['location_type_id']) || empty($addressParams['location_type_id'])) {
-      $addressParams['location_type_id'] = CRM_Apiprocessing_Config::singleton()->getDefaultLocationTypeId();
-    }
+    // always location type API Eingabe
+    $addressParams['location_type_id'] = CRM_Apiprocessing_Config::singleton()->getApiEingabeLocationTypeId();
 
     if (!empty($addressParams) && isset($addressParams['contact_id'])) {
       try {
         $newAddress = civicrm_api3('Address', 'create', $addressParams);
         $result = $newAddress['values'];
+        // always create API activity for new address
+        $activity = new CRM_Apiprocessing_Activity();
+        $errorMessage = ts('New address created in API');
+        $activity->createNewErrorActivity('forumzfd', $errorMessage, array(
+          'contact_id' => $addressParams['contact_id'],
+          'addressArray' => $addressParams
+        ), $addressParams['contact_id']);
       }
       catch (CiviCRM_API3_Exception $ex) {
         CRM_Core_Error::debug_log_message('Could not create new address in '.__METHOD__.', error message from API Address create: '.$ex->getMessage());

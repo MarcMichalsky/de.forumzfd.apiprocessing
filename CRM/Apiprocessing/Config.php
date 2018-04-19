@@ -19,6 +19,7 @@ class CRM_Apiprocessing_Config {
   private $_scheduledActivityStatusId = NULL;
 	private $_completedActivityStatusId = NULL;
 	private $_completedContributionStatusId = NULL;
+	private $_apiEingabeLocationTypeId = NULL;
   private $_defaultLocationTypeId = NULL;
   private $_defaultPhoneTypeId = NULL;
   private $_defaultCountryId = NULL;
@@ -70,6 +71,7 @@ class CRM_Apiprocessing_Config {
     $this->_sepaRcurMandateType = "RCUR";
     $this->_defaultCurrency = "EUR";
 
+    $this->createApiEingabeLocationType();
     $this->setSepaPaymentInstrumentIds();
     $this->setFinancialTypeIds();
     $this->setCustomGroupsAndFields();
@@ -124,9 +126,12 @@ class CRM_Apiprocessing_Config {
       $this->_defaultLocationTypeId = civicrm_api3('LocationType', 'getvalue', array(
         'is_default' => 1,
         'return' => 'id'));
+      $this->_apiEingabeLocationTypeId = civicrm_api3('LocationType', 'getvalue', array(
+        'name' => 'fzfd_api_eingabe',
+        'return' => 'id'));
     }
     catch (CiviCRM_API3_Exception $ex) {
-      throw new Exception('Could not find a default location type id in '.__METHOD__
+      throw new Exception('Could not find a default or API-Eingabe location type id in '.__METHOD__
         .', contact your system administrator. Error from API LocationType getvalue: '.$ex->getMessage());
     }
     try {
@@ -374,6 +379,15 @@ class CRM_Apiprocessing_Config {
    */
   public function getDefaultLocationTypeId() {
     return $this->_defaultLocationTypeId;
+  }
+
+  /**
+   * Getter for api eingabe location type id
+   *
+   * @return null
+   */
+  public function getApiEingabeLocationTypeId() {
+    return $this->_apiEingabeLocationTypeId;
   }
 
   /**
@@ -871,6 +885,32 @@ class CRM_Apiprocessing_Config {
     catch (CiviCRM_API3_Exception $ex) {
       CRM_Core_Error::debug_log_message('Could not create group nesting between child group with id '
         .$childId.' and parent group with name '.$parentName.', error from API GroupNesting Create: '.$ex->getMessage());
+    }
+  }
+
+  /**
+   * Method to create location type for API Eingabe
+   */
+  private function createApiEingabeLocationType() {
+    $apiEingabeName = 'fzfd_api_eingabe';
+    try {
+      $count = civicrm_api3('LocationType', 'getcount', array('name' => $apiEingabeName));
+      if ($count == 0) {
+        try {
+          civicrm_api3('LocationType', 'create', array(
+            'name' => $apiEingabeName,
+            'display_name' => 'API-Eingabe',
+            'is_active' => 1,
+            'is_reserved' => 1,
+          ));
+        }
+        catch (CiviCRM_API3_Exception $ex) {
+          CRM_Core_Error::debug_log_message(ts('Could not create location type API-Eingabe, error message from API LocationType create: ' . $ex->getMessage()));
+        }
+      }
+    }
+    catch (CiviCRM_API3_Exception $ex) {
+      CRM_Core_Error::debug_log_message(ts('Unexpected problem using API LocationType getcount, error message: ' . $ex->getMessage()));
     }
   }
 
