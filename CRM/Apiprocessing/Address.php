@@ -23,6 +23,10 @@ class CRM_Apiprocessing_Address {
     }
     // always location type API Eingabe
     $addressParams['location_type_id'] = CRM_Apiprocessing_Config::singleton()->getApiEingabeLocationTypeId();
+    // if supplemental_address, set as supplemental_address_1
+    if (isset($params['supplemental_address'])) {
+      $addressParams['supplemental_address_1'] = $params['supplemental_address'];
+    }
 
     if (!empty($addressParams) && isset($addressParams['contact_id'])) {
       try {
@@ -59,8 +63,17 @@ class CRM_Apiprocessing_Address {
         'addressArray' => $addressArray,));
     } else {
       foreach ($addressArray as $addressKey => $newAddress) {
-        $newAddress['contact_id'] = $contactId;
-        $this->createNewAddress($newAddress);
+        // if newAddress is not an array, assume the addressArray contains just 1 address
+        if (!is_array($newAddress)) {
+            $newAddress = $addressArray;
+          $newAddress['contact_id'] = $contactId;
+          $this->createNewAddress($newAddress);
+          break;
+        }
+        else {
+          $newAddress['contact_id'] = $contactId;
+          $this->createNewAddress($newAddress);
+        }
       }
     }
   }
