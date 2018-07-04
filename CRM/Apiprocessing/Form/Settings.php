@@ -7,7 +7,7 @@
  */
 class CRM_Apiprocessing_Form_Settings extends CRM_Core_Form {
 
-	private $apiSettings;
+	private $_apiSettings;
   private $_activityTypesList = array();
   private $_employeesList = array();
   private $_groupList = array();
@@ -132,7 +132,7 @@ class CRM_Apiprocessing_Form_Settings extends CRM_Core_Form {
    * @access public
    */
   function preProcess() {
-  	$this->apiSettings = CRM_Apiprocessing_Settings::singleton();
+    $this->_apiSettings = CRM_Apiprocessing_Settings::singleton();
     CRM_Utils_System::setTitle(ts('Settings for ForumZFD API processing between website and CiviCRM'));
     $this->setActivityTypeList();
     $this->setEmployeeList();
@@ -243,7 +243,7 @@ class CRM_Apiprocessing_Form_Settings extends CRM_Core_Form {
    */
   public function setDefaultValues() {
     $defaults = array();
-    $apiSettings = $this->apiSettings->get();
+    $apiSettings = $this->_apiSettings->get();
     foreach ($apiSettings as $key => $value) {
       $defaults[$key] = $value;
     }
