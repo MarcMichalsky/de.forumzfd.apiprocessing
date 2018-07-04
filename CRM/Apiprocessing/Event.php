@@ -72,6 +72,7 @@ class CRM_Apiprocessing_Event {
       'registration_is_online' => $event['is_online_registration'],
       'maximum_participants' => $event['max_participants'],
       'registration_count' => 0,
+      'has_waitlist' => $event['has_waitlist'],
       'start_date' => $event['start_date'],
       'end_date' => $event['end_date'],
       'registration_start_date' => $event['registration_start_date'],
