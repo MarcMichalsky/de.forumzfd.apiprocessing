@@ -11,6 +11,7 @@ class CRM_Apiprocessing_Upgrader extends CRM_Apiprocessing_Upgrader_Base {
 		$this->executeCustomDataFile('xml/Campaign.xml');
 		$this->executeCustomDataFile('xml/WeitereInformation.xml');
 		$this->executeCustomDataFile('xml/Weiterbildung.xml');
+		$this->executeCustomDataFile('xml/EventNew.xml');
   }
 
   /**
@@ -23,6 +24,17 @@ class CRM_Apiprocessing_Upgrader extends CRM_Apiprocessing_Upgrader_Base {
    */
   public function postInstall() {
     CRM_Apiprocessing_Config::singleton();
+  }
+
+  /**
+   * Add new custom data on update 1001
+   *
+   * @return TRUE on success
+   */
+  public function upgrade_1001() {
+    $this->ctx->log->info('Applying update 1001');
+    $this->executeCustomDataFile('xml/EventNew.xml');
+    return TRUE;
   }
 
   /**
