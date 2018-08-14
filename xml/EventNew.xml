@@ -1,5 +1,4 @@
 <?xml version="1.0" encoding="iso-8859-1" ?>
-
 <CustomData>
   <CustomGroups>
     <CustomGroup>
@@ -22,8 +21,8 @@
   </CustomGroups>
   <CustomFields>
     <CustomField>
-      <name>fzfd_trainers_new</name>
-      <label>Trainer(in)</label>
+      <name>fzfd_trainers_1_new</name>
+      <label>Trainer(in) 1</label>
       <data_type>ContactReference</data_type>
       <html_type>Autocomplete-Select</html_type>
       <is_required>0</is_required>
@@ -35,7 +34,61 @@
       <text_length>255</text_length>
       <note_columns>60</note_columns>
       <note_rows>4</note_rows>
-      <column_name>fzfd_trainers_new</column_name>
+      <column_name>fzfd_trainers_1_new</column_name>
+      <in_selector>0</in_selector>
+      <custom_group_name>fzfd_event_data_new</custom_group_name>
+    </CustomField>
+    <CustomField>
+      <name>fzfd_trainers_2_new</name>
+      <label>Trainer(in) 2</label>
+      <data_type>ContactReference</data_type>
+      <html_type>Autocomplete-Select</html_type>
+      <is_required>0</is_required>
+      <is_searchable>1</is_searchable>
+      <is_search_range>0</is_search_range>
+      <weight>1</weight>
+      <is_active>1</is_active>
+      <is_view>0</is_view>
+      <text_length>255</text_length>
+      <note_columns>60</note_columns>
+      <note_rows>4</note_rows>
+      <column_name>fzfd_trainers_2_new</column_name>
+      <in_selector>0</in_selector>
+      <custom_group_name>fzfd_event_data_new</custom_group_name>
+    </CustomField>
+    <CustomField>
+      <name>fzfd_trainers_3_new</name>
+      <label>Trainer(in) 3</label>
+      <data_type>ContactReference</data_type>
+      <html_type>Autocomplete-Select</html_type>
+      <is_required>0</is_required>
+      <is_searchable>1</is_searchable>
+      <is_search_range>0</is_search_range>
+      <weight>1</weight>
+      <is_active>1</is_active>
+      <is_view>0</is_view>
+      <text_length>255</text_length>
+      <note_columns>60</note_columns>
+      <note_rows>4</note_rows>
+      <column_name>fzfd_trainers_3_new</column_name>
+      <in_selector>0</in_selector>
+      <custom_group_name>fzfd_event_data_new</custom_group_name>
+    </CustomField>
+    <CustomField>
+      <name>fzfd_trainers_4_new</name>
+      <label>Trainer(in) 4</label>
+      <data_type>ContactReference</data_type>
+      <html_type>Autocomplete-Select</html_type>
+      <is_required>0</is_required>
+      <is_searchable>1</is_searchable>
+      <is_search_range>0</is_search_range>
+      <weight>1</weight>
+      <is_active>1</is_active>
+      <is_view>0</is_view>
+      <text_length>255</text_length>
+      <note_columns>60</note_columns>
+      <note_rows>4</note_rows>
+      <column_name>fzfd_trainers_4_new</column_name>
       <in_selector>0</in_selector>
       <custom_group_name>fzfd_event_data_new</custom_group_name>
     </CustomField>
@@ -60,7 +113,7 @@
     </CustomField>
     <CustomField>
       <name>fzfd_event_venue_new</name>
-      <label>event venue</label>
+      <label>Event venue</label>
       <data_type>String</data_type>
       <html_type>Text</html_type>
       <is_required>0</is_required>
@@ -77,8 +130,8 @@
       <custom_group_name>fzfd_event_data_new</custom_group_name>
     </CustomField>
     <CustomField>
-      <name>fzfd_contacts_org_new</name>
-      <label>Contactpeople Organisatorisch</label>
+      <name>fzfd_contacts_org_1_new</name>
+      <label>Contactperson Organisatorisch 1</label>
       <data_type>ContactReference</data_type>
       <html_type>Autocomplete-Select</html_type>
       <is_required>0</is_required>
@@ -90,13 +143,31 @@
       <text_length>255</text_length>
       <note_columns>60</note_columns>
       <note_rows>4</note_rows>
-      <column_name>fzfd_contacts_org_new</column_name>
+      <column_name>fzfd_contacts_org_1_new</column_name>
       <in_selector>0</in_selector>
       <custom_group_name>fzfd_event_data_new</custom_group_name>
     </CustomField>
     <CustomField>
-      <name>fzfd_contacts_content_new</name>
-      <label>Contactpeople Inhaltlich</label>
+      <name>fzfd_contacts_org_2_new</name>
+      <label>Contactperson Organisatorisch 2</label>
+      <data_type>ContactReference</data_type>
+      <html_type>Autocomplete-Select</html_type>
+      <is_required>0</is_required>
+      <is_searchable>1</is_searchable>
+      <is_search_range>0</is_search_range>
+      <weight>4</weight>
+      <is_active>1</is_active>
+      <is_view>0</is_view>
+      <text_length>255</text_length>
+      <note_columns>60</note_columns>
+      <note_rows>4</note_rows>
+      <column_name>fzfd_contacts_org_2_new</column_name>
+      <in_selector>0</in_selector>
+      <custom_group_name>fzfd_event_data_new</custom_group_name>
+    </CustomField>
+    <CustomField>
+      <name>fzfd_contacts_content_1_new</name>
+      <label>Contactperson Inhaltlich 1</label>
       <data_type>ContactReference</data_type>
       <html_type>Autocomplete-Select</html_type>
       <is_required>0</is_required>
@@ -108,60 +179,25 @@
       <text_length>255</text_length>
       <note_columns>60</note_columns>
       <note_rows>4</note_rows>
-      <column_name>fzfd_contacts_content_new</column_name>
+      <column_name>fzfd_contacts_content_1_new</column_name>
       <in_selector>0</in_selector>
       <custom_group_name>fzfd_event_data_new</custom_group_name>
     </CustomField>
     <CustomField>
-      <name>fzfd_bewerbung_file_new</name>
-      <label>Bewerbungsschreiben</label>
-      <data_type>File</data_type>
-      <html_type>File</html_type>
+      <name>fzfd_contacts_content_2_new</name>
+      <label>Contactperson Inhaltlich 2</label>
+      <data_type>ContactReference</data_type>
+      <html_type>Autocomplete-Select</html_type>
       <is_required>0</is_required>
-      <is_searchable>0</is_searchable>
+      <is_searchable>1</is_searchable>
       <is_search_range>0</is_search_range>
-      <weight>6</weight>
+      <weight>5</weight>
       <is_active>1</is_active>
       <is_view>0</is_view>
       <text_length>255</text_length>
       <note_columns>60</note_columns>
       <note_rows>4</note_rows>
-      <column_name>fzfd_bewerbung_file_new</column_name>
-      <in_selector>0</in_selector>
-      <custom_group_name>fzfd_event_data_new</custom_group_name>
-    </CustomField>
-    <CustomField>
-      <name>fzfd_life_file_new</name>
-      <label>Lebenslauf</label>
-      <data_type>File</data_type>
-      <html_type>File</html_type>
-      <is_required>0</is_required>
-      <is_searchable>0</is_searchable>
-      <is_search_range>0</is_search_range>
-      <weight>7</weight>
-      <is_active>1</is_active>
-      <is_view>0</is_view>
-      <text_length>255</text_length>
-      <note_columns>60</note_columns>
-      <note_rows>4</note_rows>
-      <column_name>fzfd_life_file_new</column_name>
-      <in_selector>0</in_selector>
-      <custom_group_name>fzfd_event_data_new</custom_group_name>
-    </CustomField>
-    <CustomField>
-      <name>fzfd_how_did_hear_new</name>
-      <label>How did you hear about us?</label>
-      <data_type>Memo</data_type>
-      <html_type>RichTextEditor</html_type>
-      <is_required>0</is_required>
-      <is_searchable>0</is_searchable>
-      <is_search_range>0</is_search_range>
-      <weight>8</weight>
-      <is_active>1</is_active>
-      <is_view>0</is_view>
-      <note_columns>60</note_columns>
-      <note_rows>4</note_rows>
-      <column_name>fzfd_how_did_hear_new</column_name>
+      <column_name>fzfd_contacts_content_2_new</column_name>
       <in_selector>0</in_selector>
       <custom_group_name>fzfd_event_data_new</custom_group_name>
     </CustomField>

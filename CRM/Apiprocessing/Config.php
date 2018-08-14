@@ -47,16 +47,25 @@ class CRM_Apiprocessing_Config {
 	private $_neuParticipantStatusTypeId = NULL;
 	private $_eventCustomGroup = NULL;
 	private $_weiterBildungCustomGroup = NULL;
-	private $_bewerbungCustomFieldId = NULL;
-	private $_trainerCustomFieldId = NULL;
 	private $_teilnahmeOrganisationCustomFieldId = NULL;
-	private $_ansprechInhaltCustomFieldId = NULL;
-	private $_ansprechOrganisationCustomFieldId = NULL;
 	private $_campaignOnLineCustomFieldId = NULL;
 	private $_protectedGroupCustomFieldId = NULL;
 	private $_goldGroupId = NULL;
 	private $_silverGroupId = NULL;
 	private $_allGroupId = NULL;
+
+	// new event data
+  private $_newEventCustomGroup = NULL;
+  private $_newTrainer1CustomFieldId = NULL;
+  private $_newTrainer2CustomFieldId = NULL;
+  private $_newTrainer3CustomFieldId = NULL;
+  private $_newTrainer4CustomFieldId = NULL;
+  private $_newAnsprechOrg1CustomFieldId = NULL;
+  private $_newAnsprechOrg2CustomFieldId = NULL;
+  private $_newAnsprechInhalt1CustomFieldId = NULL;
+  private $_newAnsprechInhalt2CustomFieldId = NULL;
+  private $_newEventLanguageCustomFieldId  = NULL;
+  private $_newEventVenueCustomFieldId = NULL;
 
   /**
    * CRM_Apiprocessing_Config constructor.
@@ -443,10 +452,6 @@ class CRM_Apiprocessing_Config {
   public function getForumzfdApiProblemActivityTypeId() {
     return $this->_forumzfdApiProblemActivityTypeId;
   }
-	
-	public function getFzfdPetitionSignedActivityTypeId() {
-		return $this->_fzfdPetitionSignedActivityTypeId;
-	}
 
   /**
    * Getter for employee relationship type id
@@ -491,14 +496,7 @@ class CRM_Apiprocessing_Config {
 	public function getDepartmentCustomFieldId() {
 		return $this->_departmentDataCustomFieldId;
 	}
-	
-	/**
-	 * Getter for trainer custom field id
-	 */
-	 public function getTrainerCustomFieldId() {
-	 	return $this->_trainerCustomFieldId;
-	 }
-	 
+
 	 /**
 	 * Getter for Teilnahme für Organisation custom field id
 	 */
@@ -506,27 +504,6 @@ class CRM_Apiprocessing_Config {
 	 	return $this->_teilnahmeOrganisationCustomFieldId;
 	 }
 	 
-	 /**
-	 * Getter for Ansprech Inhalt custom field id
-	 */
-	 public function getAnsprechInhaltCustomFieldId() {
-	 	return $this->_ansprechInhaltCustomFieldId;
-	 }
-
-	 /**
-	 * Getter for Bewerbung custom field id
-	 */
-	 public function getBewerbungCustomFieldId() {
-	 	return $this->_bewerbungCustomFieldId;
-	 }
-
-	 /**
-	 * Getter for Ansprech Organisation custom field id
-	 */
-	 public function getAnsprechOrganisationCustomFieldId() {
-	 	return $this->_ansprechOrganisationCustomFieldId;
-	 }
-
 	/**
 	 * Getter for participant status Registered
 	 */
@@ -551,9 +528,79 @@ class CRM_Apiprocessing_Config {
 	/**
 	 * Getter for participant status Neu
 	 */
-	 public function getNeuParticipantStatusId() {
-	 	return $this->_neuParticipantStatusTypeId;
-	 }
+	public function getNeuParticipantStatusId() {
+	  return $this->_neuParticipantStatusTypeId;
+	}
+
+  /**
+   * Getter for trainer 1 custom field id
+   */
+	public function getNewTrainer1CustomFieldId() {
+	  return $this->_newTrainer1CustomFieldId;
+  }
+
+  /**
+   * Getter for trainer 2 custom field id
+   */
+	public function getNewTrainer2CustomFieldId() {
+	  return $this->_newTrainer2CustomFieldId;
+  }
+
+  /**
+   * Getter for trainer 3 custom field id
+   */
+	public function getNewTrainer3CustomFieldId() {
+	  return $this->_newTrainer3CustomFieldId;
+  }
+
+  /**
+   * Getter for trainer 4 custom field id
+   */
+	public function getNewTrainer4CustomFieldId() {
+	  return $this->_newTrainer4CustomFieldId;
+  }
+
+  /**
+   * Getter for ansprech organisation 1 custom field id
+   */
+	public function getNewAnsprechOrg1CustomFieldId() {
+	  return $this->_newAnsprechOrg1CustomFieldId;
+  }
+
+  /**
+   * Getter for ansprech organisation 2 custom field id
+   */
+	public function getNewAnsprechOrg2CustomFieldId() {
+	  return $this->_newAnsprechOrg2CustomFieldId;
+  }
+
+  /**
+   * Getter for ansprech inhalt 1 custom field id
+   */
+  public function getNewAnsprechInhalt1CustomFieldId() {
+    return $this->_newAnsprechInhalt1CustomFieldId;
+  }
+
+  /**
+   * Getter for ansprech inhalt 2 custom field id
+   */
+  public function getNewAnsprechInhalt2CustomFieldId() {
+    return $this->_newAnsprechInhalt2CustomFieldId;
+  }
+
+  /**
+   * Getter for event sprache custom field id
+   */
+  public function getNewEventLanguageCustomFieldId() {
+    return $this->_newEventLanguageCustomFieldId;
+  }
+
+  /**
+   * Getter for event venue custom field id
+   */
+  public function getNewEventVenueCustomFieldId() {
+    return $this->_newEventVenueCustomFieldId;
+  }
 
   /**
    * Method to set and if required create the activity types
@@ -719,27 +766,76 @@ class CRM_Apiprocessing_Config {
         .' contact your system administrator. Error from API CustomGroup getsingle: '.$ex->getMessage());
     }
     try {
-      $this->_trainerCustomFieldId = civicrm_api3('CustomField', 'getvalue', array('name' => 'fzfd_trainer', 'custom_group_id' => $this->_eventCustomGroup['id'],'return' => 'id'));
-    } catch (CiviCRM_API3_Exception $ex) {
-      throw new Exception('Could not find custom field Trainer in '.__METHOD__
-        .' contact your system administrator. Error from API CustomField getvalue: '.$ex->getMessage());
-    }
-    try {
       $this->_teilnahmeOrganisationCustomFieldId = civicrm_api3('CustomField', 'getvalue', array('name' => 'fzfd_teilnahme_organisation', 'custom_group_id' => $this->_eventCustomGroup['id'],'return' => 'id'));
     } catch (CiviCRM_API3_Exception $ex) {
       throw new Exception('Could not find custom field Teilnahme für Organisation in '.__METHOD__
         .' contact your system administrator. Error from API CustomField getvalue: '.$ex->getMessage());
     }
+    // new event custom group and custom fields
     try {
-      $this->_ansprechInhaltCustomFieldId = civicrm_api3('CustomField', 'getvalue', array('name' => 'fzfd_ansprech_inhalt', 'custom_group_id' => $this->_eventCustomGroup['id'],'return' => 'id'));
+      $this->_newEventCustomGroup = civicrm_api3('CustomGroup', 'getsingle', array('name' => 'fzfd_event_data_new'));
     } catch (CiviCRM_API3_Exception $ex) {
-      throw new Exception('Could not find custom field Ansprech Inhalt in '.__METHOD__
+      throw new Exception('Could not find custom data set EventNew in '.__METHOD__
+        .' contact your system administrator. Error from API CustomGroup getsingle: '.$ex->getMessage());
+    }
+    try {
+      $this->_newTrainer1CustomFieldId = civicrm_api3('CustomField', 'getvalue', array('name' => 'fzfd_trainers_1_new', 'custom_group_id' => $this->_newEventCustomGroup['id'],'return' => 'id'));
+    } catch (CiviCRM_API3_Exception $ex) {
+      throw new Exception('Could not find custom field Trainer 1 in '.__METHOD__
         .' contact your system administrator. Error from API CustomField getvalue: '.$ex->getMessage());
     }
     try {
-      $this->_ansprechOrganisationCustomFieldId = civicrm_api3('CustomField', 'getvalue', array('name' => 'fzfd_ansprech_organisation', 'custom_group_id' => $this->_eventCustomGroup['id'],'return' => 'id'));
+      $this->_newTrainer2CustomFieldId = civicrm_api3('CustomField', 'getvalue', array('name' => 'fzfd_trainers_2_new', 'custom_group_id' => $this->_newEventCustomGroup['id'],'return' => 'id'));
     } catch (CiviCRM_API3_Exception $ex) {
-      throw new Exception('Could not find custom field Ansprech Organisation in '.__METHOD__
+      throw new Exception('Could not find custom field Trainer 2 in '.__METHOD__
+        .' contact your system administrator. Error from API CustomField getvalue: '.$ex->getMessage());
+    }
+    try {
+      $this->_newTrainer3CustomFieldId = civicrm_api3('CustomField', 'getvalue', array('name' => 'fzfd_trainers_3_new', 'custom_group_id' => $this->_newEventCustomGroup['id'],'return' => 'id'));
+    } catch (CiviCRM_API3_Exception $ex) {
+      throw new Exception('Could not find custom field Trainer 3 in '.__METHOD__
+        .' contact your system administrator. Error from API CustomField getvalue: '.$ex->getMessage());
+    }
+    try {
+      $this->_newTrainer4CustomFieldId = civicrm_api3('CustomField', 'getvalue', array('name' => 'fzfd_trainers_4_new', 'custom_group_id' => $this->_newEventCustomGroup['id'],'return' => 'id'));
+    } catch (CiviCRM_API3_Exception $ex) {
+      throw new Exception('Could not find custom field Trainer 4 in '.__METHOD__
+        .' contact your system administrator. Error from API CustomField getvalue: '.$ex->getMessage());
+    }
+    try {
+      $this->_newAnsprechOrg1CustomFieldId = civicrm_api3('CustomField', 'getvalue', array('name' => 'fzfd_contacts_org_1_new', 'custom_group_id' => $this->_newEventCustomGroup['id'],'return' => 'id'));
+    } catch (CiviCRM_API3_Exception $ex) {
+      throw new Exception('Could not find custom field Ansprech Organisation 1 in '.__METHOD__
+        .' contact your system administrator. Error from API CustomField getvalue: '.$ex->getMessage());
+    }
+    try {
+      $this->_newAnsprechOrg2CustomFieldId = civicrm_api3('CustomField', 'getvalue', array('name' => 'fzfd_contacts_org_2_new', 'custom_group_id' => $this->_newEventCustomGroup['id'],'return' => 'id'));
+    } catch (CiviCRM_API3_Exception $ex) {
+      throw new Exception('Could not find custom field Ansprech Organisation 2 in '.__METHOD__
+        .' contact your system administrator. Error from API CustomField getvalue: '.$ex->getMessage());
+    }
+    try {
+      $this->_newAnsprechInhalt1CustomFieldId = civicrm_api3('CustomField', 'getvalue', array('name' => 'fzfd_contacts_content_1_new', 'custom_group_id' => $this->_newEventCustomGroup['id'],'return' => 'id'));
+    } catch (CiviCRM_API3_Exception $ex) {
+      throw new Exception('Could not find custom field Ansprech Inhalt 1 in '.__METHOD__
+        .' contact your system administrator. Error from API CustomField getvalue: '.$ex->getMessage());
+    }
+    try {
+      $this->_newAnsprechInhalt2CustomFieldId = civicrm_api3('CustomField', 'getvalue', array('name' => 'fzfd_contacts_content_2_new', 'custom_group_id' => $this->_newEventCustomGroup['id'],'return' => 'id'));
+    } catch (CiviCRM_API3_Exception $ex) {
+      throw new Exception('Could not find custom field Ansprech Inhalt 2 in '.__METHOD__
+        .' contact your system administrator. Error from API CustomField getvalue: '.$ex->getMessage());
+    }
+    try {
+      $this->_newEventLanguageCustomFieldId = civicrm_api3('CustomField', 'getvalue', array('name' => 'fzfd_sprache_new', 'custom_group_id' => $this->_newEventCustomGroup['id'],'return' => 'id'));
+    } catch (CiviCRM_API3_Exception $ex) {
+      throw new Exception('Could not find custom field Event Sprache in '.__METHOD__
+        .' contact your system administrator. Error from API CustomField getvalue: '.$ex->getMessage());
+    }
+    try {
+      $this->_newEventVenueCustomFieldId = civicrm_api3('CustomField', 'getvalue', array('name' => 'fzfd_event_venue_new', 'custom_group_id' => $this->_newEventCustomGroup['id'],'return' => 'id'));
+    } catch (CiviCRM_API3_Exception $ex) {
+      throw new Exception('Could not find custom field Event Venue in '.__METHOD__
         .' contact your system administrator. Error from API CustomField getvalue: '.$ex->getMessage());
     }
     try {

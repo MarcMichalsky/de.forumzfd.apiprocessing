@@ -66,27 +66,38 @@ class CRM_Apiprocessing_Event {
   private function prepareFzfdEvent($event) {
     $result = array(
       'event_id' => $event['id'],
+      'event_title' => $event['title'],
       'event_type_id' => $event['event_type_id'],
       'event_type_name' => '',
-      'event_title' => $event['title'],
       'registration_is_online' => $event['is_online_registration'],
-      'maximum_participants' => $event['max_participants'],
-      'registration_count' => 0,
       'has_waitlist' => $event['has_waitlist'],
+      'trainer_id' => array(),
+      'teilnahme_fuer_organisation' => '',
+      'ansprech_organisation_id' => array(),
+      'ansprech_inhalt_id' => array(),
       'start_date' => $event['start_date'],
       'end_date' => $event['end_date'],
-      'registration_start_date' => $event['registration_start_date'],
-      'registration_end_date' => $event['registration_end_date'],
-      'trainer' => array(),
-      'teilnahme_organisation_id' => '',
-      'teilnahme_organisation_name' => '',
-      'ansprech_inhalt' => array(),
-      'ansprech_organisation' => array(),
-      'bewerbung' => '',
+      'event_language' => '',
+      'meeting_venue' => '',
+      'price' => array(),
+      'maximum_participants' => $event['max_participants'],
+      'registration_count' => 0,
     );
+    if (isset($event['registration_start_date'])) {
+      $result['registration_start_date'] = $event['registration_start_date'];
+    }
+    else {
+      $result['registration_start_date'] = "";
+    }
+    if (isset($event['registration_end_date'])) {
+      $result['registration_end_date'] = $event['registration_end_date'];
+    }
+    else {
+      $result['registration_end_date'] = "";
+    }
     $result['registration_count'] = CRM_Apiprocessing_Utils::getNumberOfEventRegistrations($event['id']);
     $this->addFzfdCustomFields($event, $result);
-
+    $this->addPriceData($event, $result);
     if (!empty($event['event_type_id'])) {
       try {
         $result['event_type_name'] = civicrm_api3('OptionValue', 'getvalue', array(
@@ -100,6 +111,91 @@ class CRM_Apiprocessing_Event {
     }
     return $result;
   }
+  /**
+   * Method to collect the fees and discounts for the event
+   *
+   * @param $event
+   * @param $result
+   */
+  private function addPriceData($event, &$result) {
+    // only if there is a price set or discount for the event
+    $queryParams = array(
+      1 => array($event['id'], 'Integer'),
+      2 => array('civicrm_event', 'String'),
+    );
+    $query = 'SELECT COUNT(*) FROM civicrm_price_set_entity WHERE entity_id = %1 AND entity_table = %2';
+    $countPriceSet = CRM_Core_DAO::singleValueQuery($query, $queryParams);
+    $query = 'SELECT COUNT(*) FROM civicrm_discount WHERE entity_id = %1 AND entity_table = %2';
+    $countDiscount = CRM_Core_DAO::singleValueQuery($query, $queryParams);
+    if ($countPriceSet != 0 || $countDiscount != 0) {
+      $result['price'] = $this->getPriceSetData($event['id']);
+    }
+  }
+
+  /**
+   * Method to get prices
+   *
+   * @param $eventId
+   * @return array
+   */
+  private function getPriceSetData($eventId) {
+    $prices = array();
+    // first see if there are any discounts, if so use these
+    $query = "SELECT pse.price_set_id AS price_set_id FROM civicrm_price_set_entity AS pse
+      JOIN civicrm_price_set AS ps ON pse.entity_id = ps.id
+      WHERE pse.entity_table = %1 AND pse.entity_id = %2 AND ps.is_active = %3";
+    $daoPriceSet = CRM_Core_DAO::executeQuery($query, array(
+      1 => array('civicrm_event', 'String'),
+      2 => array($eventId, 'Integer'),
+      3 => array(1, 'Integer'),
+    ));
+    while ($daoPriceSet->fetch()) {
+      $this->getPriceFieldData($daoPriceSet->price_set_id, 0, "", "", $prices);
+    }
+    // now add discounts
+    $query = "SELECT dis.* FROM civicrm_discount AS dis
+      JOIN civicrm_price_set AS ps ON dis.entity_id = ps.id
+      WHERE dis.entity_table = %1 AND dis.entity_id = %2";
+    $daoDisSet = CRM_Core_DAO::executeQuery($query, array(
+      1 => array('civicrm_event', 'String'),
+      2 => array($eventId, 'Integer'),
+    ));
+    while ($daoDisSet->fetch()) {
+      $this->getPriceFieldData($daoDisSet->price_set_id, 1, $daoDisSet->start_date, $daoDisSet->end_date, $prices);
+    }
+    return $prices;
+  }
+
+  /**
+   * Method to get price field values
+   *
+   * @param $priceSetId
+   * @param $discount
+   * @param $startDate
+   * @param $endDate
+   * @param $result
+   */
+  private function getPriceFieldData($priceSetId, $discount, $startDate, $endDate, &$result) {
+    // first get relevant price fields
+    $queryFields = "SELECT id AS price_field_id FROM civicrm_price_field WHERE price_set_id = %1";
+    $daoPriceFields = CRM_Core_DAO::executeQuery($queryFields, array(1 => array($priceSetId, 'Integer')));
+    while ($daoPriceFields->fetch()) {
+      // now get all the related price field values
+      $queryValues = "SELECT label, amount FROM civicrm_price_field_value WHERE price_field_id = %1";
+      $daoPriceValues = CRM_Core_DAO::executeQuery($queryValues, array(1 => array($daoPriceFields->price_field_id, 'Integer')));
+      while ($daoPriceValues->fetch()) {
+        $result[] = array(
+          'price_set_id' => $priceSetId,
+          'price_field_id' => $daoPriceFields->price_field_id,
+          'price_field_label' => $daoPriceValues->label,
+          'amount' => $daoPriceValues->amount,
+          'discount' => $discount,
+          'start_date' => $startDate,
+          'end_date' => $endDate,
+        );
+      }
+    }
+  }
 
   /**
    * Method to add the forumZfd Custom Fields to the event result
@@ -110,51 +206,83 @@ class CRM_Apiprocessing_Event {
    */
   private function addFzfdCustomFields($event, &$result) {
     $config = CRM_Apiprocessing_Config::singleton();
-    if (isset($event['custom_'.$config->getAnsprechOrganisationCustomFieldId()])) {
-      $result['ansprech_organisation'] = $event['custom_' . $config->getAnsprechOrganisationCustomFieldId()];
-    }
-    if (isset($event['custom_'.$config->getBewerbungCustomFieldId()])) {
-      $result['bewerbung'] = $event['custom_' . $config->getBewerbungCustomFieldId()];
-    }
-    if (isset($event['custom_' . $config->getTrainerCustomFieldId()])) {
-      $trainers = explode(';', $event['custom_' . $config->getTrainerCustomFieldId()]);
-      foreach($trainers as $trainerId) {
-        try {
-          $trainerName = civicrm_api3('Contact', 'getvalue', array(
-            'return' => 'display_name',
-            'id' => $trainerId,
-            ));
-          $result['trainer'][] = array(
-            'contact_id' => $trainerId,
-            'contact_name' => $trainerName,
-          );
-        }
-        catch (CiviCRM_API3_Exception $ex) {
-          CRM_Core_Error::createError('Could not find a display name for contact ' . $trainerId . ' in '. __METHOD__);
-        }
-      }
-    }
+    $this->getAnsprechOrganisation($event, $result);
+    $this->getTrainers($event, $result);
+    $this->getAnsprechInhalt($event, $result);
     if (isset($event['custom_' . $config->getTeilnahmeOrganisationCustomFieldId() . '_id'])) {
-      $result['teilnahme_organisation_id'] = $event['custom_' . $config->getTeilnahmeOrganisationCustomFieldId() . '_id'];
-      $result['teilnahme_organisation_name'] = $event['custom_' . $config->getTeilnahmeOrganisationCustomFieldId()];
+      $result['teilnahme_fuer_organisation'] = $event['custom_' . $config->getTeilnahmeOrganisationCustomFieldId()];
     }
-    if (isset($event['custom_' . $config->getAnsprechInhaltCustomFieldId()])) {
-      $ansprechers = explode(';', $event['custom_' . $config->getAnsprechInhaltCustomFieldId()]);
-      foreach($ansprechers as $ansprecherId) {
-        try {
-          $ansprecherName = civicrm_api3('Contact', 'getvalue', array(
-            'return' => 'display_name',
-            'id' => $ansprecherId,
-            ));
-          $result['ansprech_inhalt'][] = array(
-            'ansprech_inhalt_id' => $ansprecherId,
-            'ansprech_inhalt_name' => $ansprecherName,
-          );
-        }
-        catch (CiviCRM_API3_Exception $ex) {
-          CRM_Core_Error::createError('Could not find a display name for contact ' . $ansprecherId . ' in '. __METHOD__);
-        }
+    if (isset($event['custom_' . $config->getNewEventVenueCustomFieldId()])) {
+      $result['meeting_venue'] = $event['custom_' . $config->getNewEventVenueCustomFieldId()];
+    }
+    if (isset($event['custom_' . $config->getNewEventLanguageCustomFieldId()])) {
+      try {
+        $result['event_language'] = civicrm_api3('OptionValue', 'getvalue', array(
+          'return' => 'label',
+          'value' => $event['custom_' . $config->getNewEventLanguageCustomFieldId()],
+          'option_group_id' => 'fzfd_sprache',
+        ));
+      }
+      catch (CiviCRM_API3_Exception $ex) {
+        $result['event_language'] = "no language label found";
       }
     }
+  }
+
+  /**
+   * Method to get the ansprech organisation contactIds
+   * @param $event
+   * @param $result
+   */
+  private function getAnsprechOrganisation($event, &$result) {
+    $config = CRM_Apiprocessing_Config::singleton();
+    $contactIds = array();
+    if (isset($event['custom_' . $config->getNewAnsprechOrg1CustomFieldId() . '_id'])) {
+      $contactIds[] = $event['custom_' . $config->getNewAnsprechOrg1CustomFieldId() . '_id'];
+    }
+    if (isset($event['custom_' . $config->getNewAnsprechOrg2CustomFieldId() . '_id'])) {
+      $contactIds[] = $event['custom_' . $config->getNewAnsprechOrg2CustomFieldId() . '_id'];
+    }
+    $result['ansprech_organisation_id'] = $contactIds;
+  }
+
+  /**
+   * Method to get the ansprech inhalt contactIds
+   * @param $event
+   * @param $result
+   */
+  private function getAnsprechInhalt($event, &$result) {
+    $config = CRM_Apiprocessing_Config::singleton();
+    $contactIds = array();
+    if (isset($event['custom_' . $config->getNewAnsprechInhalt1CustomFieldId() . '_id'])) {
+      $contactIds[] = $event['custom_' . $config->getNewAnsprechInhalt1CustomFieldId() . '_id'];
+    }
+    if (isset($event['custom_' . $config->getNewAnsprechInhalt2CustomFieldId() . '_id'])) {
+      $contactIds[] = $event['custom_' . $config->getNewAnsprechInhalt2CustomFieldId() . '_id'];
+    }
+    $result['ansprech_inhalt_id'] = $contactIds;
+  }
+
+  /**
+   * Method to get the trainer contactIds
+   * @param $event
+   * @param $result
+   */
+  private function getTrainers($event, &$result) {
+    $config = CRM_Apiprocessing_Config::singleton();
+    $contactIds = array();
+    if (isset($event['custom_' . $config->getNewTrainer1CustomFieldId() . '_id'])) {
+      $contactIds[] = $event['custom_' . $config->getNewTrainer1CustomFieldId() . '_id'];
+    }
+    if (isset($event['custom_' . $config->getNewTrainer2CustomFieldId() . '_id'])) {
+      $contactIds[] = $event['custom_' . $config->getNewTrainer2CustomFieldId() . '_id'];
+    }
+    if (isset($event['custom_' . $config->getNewTrainer3CustomFieldId() . '_id'])) {
+      $contactIds[] = $event['custom_' . $config->getNewTrainer3CustomFieldId() . '_id'];
+    }
+    if (isset($event['custom_' . $config->getNewTrainer4CustomFieldId() . '_id'])) {
+      $contactIds[] = $event['custom_' . $config->getNewTrainer4CustomFieldId() . '_id'];
+    }
+    $result['trainer_id'] = $contactIds;
   }
 }
