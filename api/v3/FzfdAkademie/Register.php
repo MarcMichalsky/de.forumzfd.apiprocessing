@@ -119,6 +119,18 @@ function _civicrm_api3_fzfd_akademie_Register_spec(&$spec) {
     'type' => CRM_Utils_Type::T_STRING,
     'api.required' => 0,
 	);
+	$spec['skype'] = array(
+    'name' => 'skype',
+    'title' => 'skype',
+    'type' => CRM_Utils_Type::T_STRING,
+    'api.required' => 0,
+	);
+	$spec['how_did_you_hear_about_us'] = array(
+    'name' => 'how_did_you_hear_about_us',
+    'title' => 'how did you hear about us',
+    'type' => CRM_Utils_Type::T_LONGTEXT,
+    'api.required' => 0,
+	);
 	$spec['newsletter_ids'] = array(
     'name' => 'newsletter_ids',
     'title' => 'newsletter_ids',

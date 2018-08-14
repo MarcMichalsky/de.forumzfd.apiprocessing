@@ -12,6 +12,7 @@ class CRM_Apiprocessing_Upgrader extends CRM_Apiprocessing_Upgrader_Base {
 		$this->executeCustomDataFile('xml/WeitereInformation.xml');
 		$this->executeCustomDataFile('xml/Weiterbildung.xml');
 		$this->executeCustomDataFile('xml/EventNew.xml');
+    $this->executeCustomDataFile('xml/ParticipantNew.xml');
   }
 
   /**
@@ -35,7 +36,11 @@ class CRM_Apiprocessing_Upgrader extends CRM_Apiprocessing_Upgrader_Base {
     $this->ctx->log->info('Applying update 1001');
     if (!CRM_Core_DAO::checkTableExists('civicrm_value_forumzfd_event_data_new')) {
       $this->executeCustomDataFile('xml/EventNew.xml');
-    }    return TRUE;
+    }
+    if (!CRM_Core_DAO::checkTableExists('civicrm_value_fzfd_participant_data_new')) {
+      $this->executeCustomDataFile('xml/ParticipantNew.xml');
+    }
+    return TRUE;
   }
 
   /**

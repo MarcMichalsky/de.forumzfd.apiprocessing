@@ -13,6 +13,11 @@ class CRM_Apiprocessing_Config {
   static private $_singleton = NULL;
 
   // configuration properties
+  private $_weiterBerufsEventTypeId = NULL;
+  private $_weiterVollzeitEventTypeId = NULL;
+  private $_seminarEventTypeId = NULL;
+  private $_onlineSeminarEventTypeId = NULL;
+  private $_skypeProviderId = NULL;
   private $_employeeRelationshipTypeId = NULL;
   private $_forumzfdApiProblemActivityTypeId = NULL;
   private $_akademieApiProblemActivityTypeId = NULL;
@@ -67,6 +72,10 @@ class CRM_Apiprocessing_Config {
   private $_newEventLanguageCustomFieldId  = NULL;
   private $_newEventVenueCustomFieldId = NULL;
 
+  //new participant data
+  private $_newParticipantCustomGroup = NULL;
+  private $_newHowDidCustomFieldId = NULL;
+
   /**
    * CRM_Apiprocessing_Config constructor.
    * @throws CiviCRM_API3_Exception
@@ -81,6 +90,7 @@ class CRM_Apiprocessing_Config {
     $this->_defaultCurrency = "EUR";
 
     $this->createApiEingabeLocationType();
+    $this->setEventTypes();
     $this->setSepaPaymentInstrumentIds();
     $this->setFinancialTypeIds();
     $this->setCustomGroupsAndFields();
@@ -200,7 +210,7 @@ class CRM_Apiprocessing_Config {
     }
     catch (CiviCRM_API3_Exception $ex) {
       throw new Exception('Could not find the standard registered participant status in '.__METHOD__
-        .', contact your system administrator. Error from API OptionValue Type getvalue: '.$ex->getMessage());
+        .', contact your system administrator. Error from API ParticipantStatusType Type getvalue: '.$ex->getMessage());
     }
 		try {
       $this->_waitlistedParticipantStatusId = civicrm_api3('ParticipantStatusType', 'getvalue', array(
@@ -210,7 +220,7 @@ class CRM_Apiprocessing_Config {
     }
     catch (CiviCRM_API3_Exception $ex) {
       throw new Exception('Could not find the standard registered participant status in '.__METHOD__
-        .', contact your system administrator. Error from API OptionValue Type getvalue: '.$ex->getMessage());
+        .', contact your system administrator. Error from API ParticipantStatusType Type getvalue: '.$ex->getMessage());
     }
 		try {
       $this->_cancelledParticipantStatusId = civicrm_api3('ParticipantStatusType', 'getvalue', array(
@@ -220,8 +230,64 @@ class CRM_Apiprocessing_Config {
     }
     catch (CiviCRM_API3_Exception $ex) {
       throw new Exception('Could not find the standard cancelled participant status in '.__METHOD__
+        .', contact your system administrator. Error from API ParticipantStatusType Type getvalue: '.$ex->getMessage());
+    }
+    try {
+      $this->_skypeProviderId = civicrm_api3('OptionValue', 'getvalue', array(
+        'option_group_id' => 'instant_messenger_service',
+        'name' => 'Skype',
+        'return' => 'label',
+      ));
+    }
+    catch (CiviCRM_API3_Exception $ex) {
+      throw new Exception('Could not find an instant messenger service with the name Skype in ' . __METHOD__
         .', contact your system administrator. Error from API OptionValue Type getvalue: '.$ex->getMessage());
     }
+  }
+
+  /**
+   * Getter for weiterbildung vollzeit event type id
+   *
+   * @return null
+   */
+  public function getWeiterVollzeitEventTypeId() {
+    return $this->_weiterVollzeitEventTypeId;
+  }
+
+  /**
+   * Getter for weiterbildung berufsbegleitend event type id
+   *
+   * @return null
+   */
+  public function getWeiterBerufsEventTypeId() {
+    return $this->_weiterBerufsEventTypeId;
+  }
+
+  /**
+   * Getter for online seminar event type id
+   *
+   * @return null
+   */
+  public function getOnlineSeminarEventTypeId() {
+    return $this->_onlineSeminarEventTypeId;
+  }
+
+  /**
+   * Getter for seminar event type id
+   *
+   * @return null
+   */
+  public function getSeminarEventTypeId() {
+    return $this->_seminarEventTypeId;
+  }
+
+  /**
+   * Getter for skype provider id
+   *
+   * @return null
+   */
+  public function getSkypeProviderId() {
+    return $this->_skypeProviderId;
   }
 
   /**
@@ -603,6 +669,13 @@ class CRM_Apiprocessing_Config {
   }
 
   /**
+   * Getter for participant how did you hear about us custom field id
+   */
+  public function getNewHowDidCustomFieldId() {
+    return $this->_newHowDidCustomFieldId;
+  }
+
+  /**
    * Method to set and if required create the activity types
 
    * @throws CiviCRM_API3_Exception
@@ -838,6 +911,20 @@ class CRM_Apiprocessing_Config {
       throw new Exception('Could not find custom field Event Venue in '.__METHOD__
         .' contact your system administrator. Error from API CustomField getvalue: '.$ex->getMessage());
     }
+    // new participant custom group and custom fields
+    try {
+      $this->_newParticipantCustomGroup = civicrm_api3('CustomGroup', 'getsingle', array('name' => 'fzfd_participant_data_new'));
+    } catch (CiviCRM_API3_Exception $ex) {
+      throw new Exception('Could not find custom data set ParticipantNew in '.__METHOD__
+        .' contact your system administrator. Error from API CustomGroup getsingle: '.$ex->getMessage());
+    }
+    try {
+      $this->_newHowDidCustomFieldId = civicrm_api3('CustomField', 'getvalue', array('name' => 'fzfd_where_did_you_hear', 'custom_group_id' => $this->_newParticipantCustomGroup['id'],'return' => 'id'));
+    } catch (CiviCRM_API3_Exception $ex) {
+      throw new Exception('Could not find custom field How did you hear about us in '.__METHOD__
+        .' contact your system administrator. Error from API CustomField getvalue: '.$ex->getMessage());
+    }
+
     try {
       $this->_campaignOnLineCustomFieldId = civicrm_api3('CustomField', 'getvalue', array(
         'name' => 'fzfd_campaign_on_line',
@@ -1007,6 +1094,37 @@ class CRM_Apiprocessing_Config {
     }
     catch (CiviCRM_API3_Exception $ex) {
       CRM_Core_Error::debug_log_message(ts('Unexpected problem using API LocationType getcount, error message: ' . $ex->getMessage()));
+    }
+  }
+
+  /**
+   * Method to set the event types
+   */
+  private function setEventTypes() {
+    try {
+      $apiResult = civicrm_api3('OptionValue', 'get', array(
+        'option_group_id' => 'event_type',
+        'options' => array('limit' => 0),
+      ));
+      foreach ($apiResult['values'] as $apiOptionValue) {
+        switch ($apiOptionValue['name']) {
+          case 'Berufsbegleitende Weiterbildung Friedens- und Konfliktarbeit':
+            $this->_weiterBerufsEventTypeId = $apiOptionValue['value'];
+            break;
+          case 'Weiterbildung Friedens- und Konfliktarbeit in Vollzeit':
+            $this->_weiterVollzeitEventTypeId = $apiOptionValue['value'];
+            break;
+          case 'Seminar':
+            $this->_seminarEventTypeId = $apiOptionValue['value'];
+            break;
+          case 'Online-Seminar':
+            $this->_onlineSeminarEventTypeId = $apiOptionValue['value'];
+            break;
+        }
+      }
+    }
+    catch (CiviCRM_API3_Exception $ex) {
+      CRM_Core_Error::debug_log_message(ts('Unexpected problem using API OptionValue get for event types, error message: ' . $ex->getMessage()));
     }
   }
 

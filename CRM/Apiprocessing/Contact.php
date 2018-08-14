@@ -220,6 +220,10 @@ class CRM_Apiprocessing_Contact {
           $phone = new CRM_Apiprocessing_Phone();
           $phone->createIncomingPhone($params, $newIndividual['id']);
         }
+        // create skype if applicable
+        if (isset($params['skype']) && !empty($params['skype'])) {
+          $this->createIncomingSkype($newIndividual['id'], $params['skype']);
+        }
 				$this->addNewContactToSettingsGroup($newIndividual['id']);
         // if more than one individual found with email, create error activity
         if (isset($find['count']) && $find['count'] > 1) {
@@ -232,6 +236,28 @@ class CRM_Apiprocessing_Contact {
         throw new Exception('Could not create a new individual in '.__METHOD__
           .', contact your system administrator. Error message from API Contact create '.$ex->getMessage());
       }
+    }
+  }
+
+  /**
+   * Method to add Skype to contact
+   *
+   * @param $contactId
+   * @param $skypeName
+   */
+  private function createIncomingSkype($contactId, $skypeName) {
+    $config = CRM_Apiprocessing_Config::singleton();
+    try {
+      civicrm_api3('IM', 'create', array(
+        'contact_id' => $contactId,
+        'provider_id' => $config->getSkypeProviderId(),
+        'location_type_id' => $config->getDefaultLocationTypeId(),
+        'name' => $skypeName,
+      ));
+    }
+    catch (CiviCRM_API3_Exception $ex) {
+      CRM_Core_Error::debug_log_message(ts('Could not add skype name ') . $skypeName . ts(' to contact ')
+        . $contactId . ts(' in ') . __METHOD__ . ts(', error from API IM Create: ' . $ex->getMessage()));
     }
   }
 
