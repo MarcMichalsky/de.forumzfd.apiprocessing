@@ -140,9 +140,9 @@ class CRM_Apiprocessing_Event {
    */
   private function getPriceSetData($eventId) {
     $prices = array();
-    // first see if there are any discounts, if so use these
+    // first get the base prices
     $query = "SELECT pse.price_set_id AS price_set_id FROM civicrm_price_set_entity AS pse
-      JOIN civicrm_price_set AS ps ON pse.entity_id = ps.id
+      JOIN civicrm_price_set AS ps ON pse.price_set_id = ps.id
       WHERE pse.entity_table = %1 AND pse.entity_id = %2 AND ps.is_active = %3";
     $daoPriceSet = CRM_Core_DAO::executeQuery($query, array(
       1 => array('civicrm_event', 'String'),
@@ -154,7 +154,7 @@ class CRM_Apiprocessing_Event {
     }
     // now add discounts
     $query = "SELECT dis.* FROM civicrm_discount AS dis
-      JOIN civicrm_price_set AS ps ON dis.entity_id = ps.id
+      JOIN civicrm_price_set AS ps ON dis.price_set_id = ps.id
       WHERE dis.entity_table = %1 AND dis.entity_id = %2";
     $daoDisSet = CRM_Core_DAO::executeQuery($query, array(
       1 => array('civicrm_event', 'String'),
