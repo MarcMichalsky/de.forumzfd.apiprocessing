@@ -44,6 +44,55 @@ class CRM_Apiprocessing_Upgrader extends CRM_Apiprocessing_Upgrader_Base {
   }
 
   /**
+   * Move custom group Akademie from Contact to Participant
+   *
+   * @return TRUE on success
+   */
+  public function upgrade_1002() {
+    $this->ctx->log->info('Applying update 1002');
+    // no action required if custom group akademie already on participant
+    $queryGroup = 'SELECT COUNT(*) FROM civicrm_custom_group WHERE name = %1 AND table_name = %2 AND extends = %3';
+    $count = CRM_Core_DAO::singleValueQuery($queryGroup, array(
+      1 => array('fzfd_akademie_data', 'String'),
+      2 => array('civicrm_value_fzfd_akademie_data', 'String'),
+      3 => array('Participant', 'String'),
+    ));
+    if ($count == 0) {
+      // remove existing custom group Akademie if necessary
+      if (CRM_Core_DAO::checkTableExists('civicrm_value_fzfd_akademie_data')) {
+        $queryGroupId = 'SELECT id FROM civicrm_custom_group WHERE name = %1 AND table_name = %2';
+        $customGroupId = CRM_Core_DAO::singleValueQuery($queryGroupId, array(
+          1 => array('fzfd_akademie_data', 'String'),
+          2 => array('civicrm_value_fzfd_akademie_data', 'String'),
+        ));
+        // delete all fields
+        $queryCustomFields = "SELECT id FROM civicrm_custom_field WHERE custom_group_id = %1";
+        $daoCustomFields = CRM_Core_DAO::executeQuery($queryCustomFields, array(1 => array($customGroupId, 'Integer')));
+        while ($daoCustomFields->fetch()) {
+          try {
+            civicrm_api3('CustomField', 'delete', array('id' => $daoCustomFields->id));
+                      }
+          catch (CiviCRM_API3_Exception $ex) {
+            CRM_Core_Error::debug_log_message(ts('Could not remove custom field with id ') . $daoCustomFields->id
+              . ts(' in ') . __METHOD__ . ts(', error from CustomField delete API: ') . $ex->getMessage());
+          }
+        }
+        // finally remove custom group
+        try {
+          civicrm_api3('CustomGroup', 'delete', array('id' => $customGroupId));
+        }
+        catch (CiviCRM_API3_Exception $ex) {
+          CRM_Core_Error::debug_log_message(ts('Could not remove custom roup with id ') . $customGroupId
+            . ts(' in ') . __METHOD__ . ts(', error from CustomGroup delete API: ') . $ex->getMessage());
+        }
+      }
+      // create new one
+      $this->executeCustomDataFile('xml/Akademie.xml');
+    }
+    return TRUE;
+  }
+
+  /**
    * Example: Run an external SQL script when the module is uninstalled.
    *
   public function uninstall() {

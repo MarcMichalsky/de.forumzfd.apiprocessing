@@ -3,27 +3,27 @@
 <CustomData>
   <CustomGroups>
     <CustomGroup>
-      <name>fzfd_additional_data</name>
-      <title>Weitere Information</title>
-      <extends>Individual</extends>
+      <name>fzfd_akademie_data</name>
+      <title>Akademie</title>
+      <extends>Participant</extends>
       <style>Inline</style>
-      <collapse_display>0</collapse_display>
+      <collapse_display>1</collapse_display>
       <help_pre></help_pre>
       <help_post></help_post>
-      <weight>2</weight>
+      <weight>23</weight>
       <is_active>1</is_active>
-      <table_name>civicrm_value_fzfd_additional_data</table_name>
+      <table_name>civicrm_value_fzfd_akademie_data</table_name>
       <is_multiple>0</is_multiple>
       <collapse_adv_display>0</collapse_adv_display>
-      <created_date>20170912 105740</created_date>
+      <created_date>2018-08-28 12:01:27</created_date>
       <is_reserved>1</is_reserved>
       <is_public>1</is_public>
     </CustomGroup>
   </CustomGroups>
   <CustomFields>
     <CustomField>
-      <name>fzfd_additional_data</name>
-      <label>Weitere Information</label>
+      <name>fzfd_experience</name>
+      <label>Experience</label>
       <data_type>String</data_type>
       <html_type>Text</html_type>
       <is_required>0</is_required>
@@ -35,13 +35,13 @@
       <text_length>255</text_length>
       <note_columns>60</note_columns>
       <note_rows>4</note_rows>
-      <column_name>fzfd_additional_data</column_name>
+      <column_name>fzfd_experience</column_name>
       <in_selector>0</in_selector>
-      <custom_group_name>fzfd_additional_data</custom_group_name>
+      <custom_group_name>fzfd_akademie_data</custom_group_name>
     </CustomField>
     <CustomField>
-      <name>fzfd_department</name>
-      <label>Abteilung</label>
+      <name>fzfd_wishes</name>
+      <label>Wishes</label>
       <data_type>String</data_type>
       <html_type>Text</html_type>
       <is_required>0</is_required>
@@ -53,9 +53,27 @@
       <text_length>255</text_length>
       <note_columns>60</note_columns>
       <note_rows>4</note_rows>
-      <column_name>fzfd_department</column_name>
+      <column_name>fzfd_wishes</column_name>
       <in_selector>0</in_selector>
-      <custom_group_name>fzfd_additional_data</custom_group_name>
+      <custom_group_name>fzfd_akademie_data</custom_group_name>
+    </CustomField>
+    <CustomField>
+      <name>fzfd_employer</name>
+      <label>Employer</label>
+      <data_type>String</data_type>
+      <html_type>Text</html_type>
+      <is_required>0</is_required>
+      <is_searchable>1</is_searchable>
+      <is_search_range>0</is_search_range>
+      <weight>3</weight>
+      <is_active>1</is_active>
+      <is_view>0</is_view>
+      <text_length>255</text_length>
+      <note_columns>60</note_columns>
+      <note_rows>4</note_rows>
+      <column_name>fzfd_employer</column_name>
+      <in_selector>0</in_selector>
+      <custom_group_name>fzfd_akademie_data</custom_group_name>
     </CustomField>
   </CustomFields>
 </CustomData>

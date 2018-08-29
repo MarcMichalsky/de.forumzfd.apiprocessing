@@ -122,6 +122,15 @@ class CRM_Apiprocessing_Contact {
       return FALSE;
     }
     if (isset($find['organization_id'])) {
+      // update organization name if it makes sense
+      $this->updateOrganizationNames($find['organization_id'], $params);
+      // possibly add or update address
+      $addressParams = $this->getOrganizationAddressParams($params);
+      if (!empty($addressParams)) {
+        $addressParams['contact_id'] = $find['organization_id'];
+        $address = new CRM_Apiprocessing_Address();
+        $address->createNewAddress($addressParams);
+      }
       return $find['organization_id'];
     } else {
       $newOrganizationParams = $this->getNewOrganizationParams($params);
@@ -204,7 +213,12 @@ class CRM_Apiprocessing_Contact {
     }
     if (isset($find['individual_id'])) {
 		  // possibly update first and last name of individual
-      $this->updateNames($find['individual_id'], $params);
+      $this->updateIndividualNames($find['individual_id'], $params);
+      // possibly add or update address
+      if (isset($params['individual_addresses']) && !empty($params['individual_addresses'])) {
+        $address = new CRM_Apiprocessing_Address();
+        $address->processIncomingAddressArray($params['individual_addresses'], $find['individual_id']);
+      }
       return $find['individual_id'];
     } else {
       $newIndividualParams = $this->getNewIndividualParams($params);
@@ -568,11 +582,12 @@ class CRM_Apiprocessing_Contact {
   /**
    * Method to update the first and/or last name of the contact with the values from the params
    * (only if the contact does not have a first and/or last name yet)
+   * If contact does have a first/last name, if incoming is different -> generate activity
    *
    * @param $contactId
    * @param $params
    */
-  private function updateNames($contactId, $params) {
+  private function updateIndividualNames($contactId, $params) {
     $nameParams = [];
     try {
       $contact = civicrm_api3(' Contact', ' getsingle', ['id' => $contactId]);
@@ -589,11 +604,64 @@ class CRM_Apiprocessing_Contact {
       if (!empty($nameParams)) {
         $nameParams['id'] = $contactId;
         civicrm_api3('Contact', 'create', $nameParams);
+      } else {
+        $this->compareIndividualNames($contact, $params);
       }
     }
     catch (CiviCRM_API3_Exception $ex) {
       CRM_Core_Error::debug_log_message(ts(' Could not find or update contact with id ' . $contactId . ' in '. __METHOD__
         . ' when trying check if names need to be updated'));
+    }
+  }
+
+  /**
+   * Method to update the organization name of the contact with the values from the params
+   *
+   * @param $contactId
+   * @param $params
+   */
+  private function updateOrganizationNames($contactId, $params) {
+    $nameParams = [];
+    try {
+      $contact = civicrm_api3(' Contact', ' getsingle', ['id' => $contactId]);
+      if (isset($contact['organization_name']) && !empty($contact['organization_name'])) {
+        if ($contact['organization_name'] != $params['organization_name']) {
+          $nameParams['organization_name'] = $params['organization_name'];
+        }
+      }
+      else {
+        $nameParams['organization_name'] = $params['organization_name'];
+      }
+      if (!empty($nameParams)) {
+        $nameParams['id'] = $contactId;
+        civicrm_api3('Contact', 'create', $nameParams);
+      }
+    }
+    catch (CiviCRM_API3_Exception $ex) {
+      CRM_Core_Error::debug_log_message(ts(' Could not find or update contact with id ' . $contactId . ' in '. __METHOD__
+        . ' when trying check if organization name needs to be updated'));
+    }
+  }
+
+  /**
+   * Method to compare incoming and current names on a contact and create error activity if different
+   *
+   * @param $contact
+   * @param $params
+   */
+  private function compareIndividualNames($contact, $params) {
+    $details = [];
+    if ($contact['first_name'] != $params['first_name']) {
+      $details[ts('Current first name')] = $contact['first_name'];
+      $details[ts('Incoming first name')] = $params['first_name'];
+    }
+    if ($contact['last_name'] != $params['last_name']) {
+      $details[ts('Current last name')] = $contact['last_name'];
+      $details[ts('Incoming last name')] = $params['last_name'];
+    }
+    if (!empty($details)) {
+      $errorActivity = new CRM_Apiprocessing_Activity();
+      $errorActivity->createNewErrorActivity('forumzfd', 'Different incoming name', $details, $contact['id']);
     }
   }
 }

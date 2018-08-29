@@ -15,7 +15,7 @@ class CRM_Apiprocessing_Event {
    */
   public function __construct() {
     $this->_defaultEventParams = array(
-      'is_online_registration' => 1,
+      'is_active' => 1,
       'is_template' => '0',
       'options' => array('limit' => 0),
     );
