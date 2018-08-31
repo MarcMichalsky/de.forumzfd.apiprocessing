@@ -14,9 +14,12 @@ class CRM_Apiprocessing_Event {
    * CRM_Apiprocessing_Event constructor.
    */
   public function __construct() {
+    $startDate = new DateTime('now');
+    $startDate->modify('-1 year');
     $this->_defaultEventParams = array(
       'is_active' => 1,
       'is_template' => '0',
+      'start_date' => array('>=' => $startDate->format('Ymd')),
       'options' => array('limit' => 0),
     );
   }
