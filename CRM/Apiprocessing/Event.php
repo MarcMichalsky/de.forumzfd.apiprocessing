@@ -85,6 +85,13 @@ class CRM_Apiprocessing_Event {
       'price' => array(),
       'maximum_participants' => $event['max_participants'],
       'registration_count' => 0,
+      'registered_count' => 0,
+      'partially_paid_count' => 0,
+      'rechnung_zugesandt_count' => 0,
+      'incomplete_count' => 0,
+      'komplette_zahlung_count' => 0,
+      'zertifikat_count' => 0,
+      'zertifikat_nicht_count' => 0,
     );
     if (isset($event['registration_start_date'])) {
       $result['registration_start_date'] = $event['registration_start_date'];
@@ -98,7 +105,7 @@ class CRM_Apiprocessing_Event {
     else {
       $result['registration_end_date'] = "";
     }
-    $result['registration_count'] = CRM_Apiprocessing_Utils::getNumberOfEventRegistrations($event['id']);
+    $this->getParticipantStatusCount($event['id'], $result);
     $this->addFzfdCustomFields($event, $result);
     $this->addPriceData($event, $result);
     if (!empty($event['event_type_id'])) {
@@ -114,6 +121,63 @@ class CRM_Apiprocessing_Event {
     }
     return $result;
   }
+
+  /**
+   * Method to count participants of various statusses
+   *
+   * @param $eventId
+   * @param $result
+   */
+  private function getParticipantStatusCount($eventId, &$result) {
+    // get statusIds from config
+    $registered = CRM_Apiprocessing_Config::singleton()->getRegisteredParticipantStatusId();
+    $rechnungZugestandt = CRM_Apiprocessing_Config::singleton()->getRechnungZuParticipantStatusId();
+    $partiallyPaid = CRM_Apiprocessing_Config::singleton()->getPartiallyPaidParticipantStatusId();
+    $incomplete = CRM_Apiprocessing_Config::singleton()->getIncompleteParticipantStatusId();
+    $kompletteZahlung = CRM_Apiprocessing_Config::singleton()->getKompletteZahlungParticipantStatusId();
+    $zertifikat = CRM_Apiprocessing_Config::singleton()->getZertifikatParticipantStatusId();
+    $zertifikatNicht = CRM_Apiprocessing_Config::singleton()->getZertifikatNichtParticipantStatusId();
+    // retrieve all registered participants
+    $query = "SELECT status_id FROM civicrm_participant WHERE event_id = %1 AND is_test = %2";
+    $dao = CRM_Core_DAO::executeQuery($query, [
+      1 => [$eventId, 'Integer'],
+      2 => [0, 'Integer'],
+    ]);
+    // count each status
+    while ($dao->fetch()) {
+      switch ($dao->status_id) {
+        case $registered:
+          $result['registration_count']++;
+          $result['registered_count']++;
+          break;
+        case $rechnungZugestandt:
+          $result['registration_count']++;
+          $result['rechnung_zugesandt_count']++;
+          break;
+        case $partiallyPaid:
+          $result['registration_count']++;
+          $result['partially_paid_count']++;
+          break;
+        case $incomplete:
+          $result['registration_count']++;
+          $result['incomplete_count']++;
+          break;
+        case $kompletteZahlung:
+          $result['registration_count']++;
+          $result['komplette_zahlung_count']++;
+          break;
+        case $zertifikat:
+          $result['registration_count']++;
+          $result['zertifikat_count']++;
+          break;
+        case $zertifikatNicht:
+          $result['registration_count']++;
+          $result['zertifikat_nicht_count']++;
+          break;
+      }
+    }
+  }
+
   /**
    * Method to collect the fees and discounts for the event
    *

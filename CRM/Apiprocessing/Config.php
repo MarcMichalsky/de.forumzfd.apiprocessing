@@ -49,6 +49,12 @@ class CRM_Apiprocessing_Config {
 	private $_registeredParticipantStatusId = NULL;
 	private $_waitlistedParticipantStatusId = NULL;
 	private $_cancelledParticipantStatusId = NULL;
+	private $_rechnungZuParticipantStatusId = NULL;
+	private $_partiallyPaidParticipantStatusId = NULL;
+	private $_incompleteParticipantStatusId = NULL;
+	private $_kompletteZahlungParticipantStatusId = NULL;
+	private $_zertifikatParticipantStatusId = NULL;
+	private $_zertifikatNichtParticipantStatusId = NULL;
 	private $_neuParticipantStatusTypeId = NULL;
 	private $_eventCustomGroup = NULL;
 	private $_weiterBildungCustomGroup = NULL;
@@ -93,6 +99,7 @@ class CRM_Apiprocessing_Config {
     $this->setEventTypes();
     $this->setSepaPaymentInstrumentIds();
     $this->setFinancialTypeIds();
+    $this->setParticipantStatusIds();
     $this->setCustomGroupsAndFields();
     // careful, the groups have to be done after the custom groups and fields
     // because it uses one custom field property (protectGroupCustomFieldId)!
@@ -180,57 +187,6 @@ class CRM_Apiprocessing_Config {
       ));
     }
     catch (CiviCRM_API3_Exception $ex) {
-    }
-		
-		try {
-			$this->_neuParticipantStatusTypeId = civicrm_api3('ParticipantStatusType', 'getvalue', array(
-        'name' => 'neu',
-        'return' => 'id',
-      ));
-    }
-    catch (CiviCRM_API3_Exception $ex) {
-      $result = civicrm_api3('ParticipantStatusType', 'create', array(
-	      'sequential' => 1,
-	      'class' => "Positive",
-	      'label' => "Neu",
-	      'is_active' => 1,
-	      'is_reserved' => 1,
-	      'is_counted' => 0,
-	      'name' => "neu",
-	      'weight' => 0,
-	    ));
-			$this->_neuParticipantStatusTypeId = $result['id'];
-    }		
-
-		try {
-      $this->_registeredParticipantStatusId = civicrm_api3('ParticipantStatusType', 'getvalue', array(
-        'name' => 'Registered',
-        'return' => 'id',
-      ));
-    }
-    catch (CiviCRM_API3_Exception $ex) {
-      throw new Exception('Could not find the standard registered participant status in '.__METHOD__
-        .', contact your system administrator. Error from API ParticipantStatusType Type getvalue: '.$ex->getMessage());
-    }
-		try {
-      $this->_waitlistedParticipantStatusId = civicrm_api3('ParticipantStatusType', 'getvalue', array(
-        'name' => 'On waitlist',
-        'return' => 'id',
-      ));
-    }
-    catch (CiviCRM_API3_Exception $ex) {
-      throw new Exception('Could not find the standard registered participant status in '.__METHOD__
-        .', contact your system administrator. Error from API ParticipantStatusType Type getvalue: '.$ex->getMessage());
-    }
-		try {
-      $this->_cancelledParticipantStatusId = civicrm_api3('ParticipantStatusType', 'getvalue', array(
-        'name' => 'Cancelled',
-        'return' => 'id',
-      ));
-    }
-    catch (CiviCRM_API3_Exception $ex) {
-      throw new Exception('Could not find the standard cancelled participant status in '.__METHOD__
-        .', contact your system administrator. Error from API ParticipantStatusType Type getvalue: '.$ex->getMessage());
     }
     try {
       $this->_skypeProviderId = civicrm_api3('OptionValue', 'getvalue', array(
@@ -590,7 +546,49 @@ class CRM_Apiprocessing_Config {
 	public function getCancelledParticipantStatusId() {
 		return $this->_cancelledParticipantStatusId;
 	}
-	
+
+	/**
+	 * Getter for participant status Partially paid
+	 */
+	public function getPartiallyPaidParticipantStatusId() {
+		return $this->_partiallyPaidParticipantStatusId;
+	}
+
+	/**
+	 * Getter for participant status Pending from incomplete transaction
+	 */
+	public function getIncompleteParticipantStatusId() {
+		return $this->_incompleteParticipantStatusId;
+	}
+
+	/**
+	 * Getter for participant status Komplette Zahlung Eingegangen
+	 */
+	public function getKompletteZahlungParticipantStatusId() {
+		return $this->_kompletteZahlungParticipantStatusId;
+	}
+
+	/**
+	 * Getter for participant status Zertifikat Ausgehändigt
+	 */
+	public function getZertifikatParticipantStatusId() {
+		return $this->_zertifikatParticipantStatusId;
+	}
+
+	/**
+	 * Getter for participant status Zertifikat Nicht Ausgehändigt
+	 */
+	public function getZertifikatNichtParticipantStatusId() {
+		return $this->_zertifikatNichtParticipantStatusId;
+	}
+
+	/**
+	 * Getter for participant status Rechnung Zugesandt
+	 */
+	public function getRechnungZuParticipantStatusId() {
+		return $this->_rechnungZuParticipantStatusId;
+	}
+
 	/**
 	 * Getter for participant status Neu
 	 */
@@ -1125,6 +1123,84 @@ class CRM_Apiprocessing_Config {
     }
     catch (CiviCRM_API3_Exception $ex) {
       CRM_Core_Error::debug_log_message(ts('Unexpected problem using API OptionValue get for event types, error message: ' . $ex->getMessage()));
+    }
+  }
+
+  /**
+   * Method to set the participant status ids
+   *
+   * @throws CiviCRM_API3_Exception
+   */
+  private function setParticipantStatusIds() {
+    // create new if required
+    try {
+      $count = civicrm_api3('ParticipantStatusType', 'getcount', ['name' => 'neu']);
+      if ($count == 0) {
+        civicrm_api3('ParticipantStatusType', 'create', [
+          'sequential' => 1,
+          'class' => "Positive",
+          'label' => "Neu",
+          'is_active' => 1,
+          'is_reserved' => 1,
+          'is_counted' => 0,
+          'name' => "neu",
+          'weight' => 0,
+          ]);
+      }
+    }
+    catch (CiviCRM_API3_Exception $ex) {
+      civicrm_api3('ParticipantStatusType', 'create', [
+        'sequential' => 1,
+        'class' => "Positive",
+        'label' => "Neu",
+        'is_active' => 1,
+        'is_reserved' => 1,
+        'is_counted' => 0,
+        'name' => "neu",
+        'weight' => 0,
+          ]);
+    }
+    try {
+      $apiResults = civicrm_api3('ParticipantStatusType', 'get', [
+        'options' => ['limit' => 0],
+      ]);
+      foreach ($apiResults['values'] as $participantStatusId => $participantStatus) {
+        switch ($participantStatus['name']) {
+          case "neu":
+            $this->_neuParticipantStatusTypeId = $participantStatusId;
+            break;
+          case "Registered":
+            $this->_registeredParticipantStatusId = $participantStatusId;
+            break;
+          case "On waitlist":
+            $this->_waitlistedParticipantStatusId = $participantStatusId;
+            break;
+          case "Cancelled":
+            $this->_cancelledParticipantStatusId = $participantStatusId;
+            break;
+          case "2.1 Rechnung zugesandt":
+            $this->_rechnungZuParticipantStatusId = $participantStatusId;
+            break;
+          case "Partially paid":
+            $this->_partiallyPaidParticipantStatusId = $participantStatusId;
+            break;
+          case "Pending from incomplete transaction":
+            $this->_incompleteParticipantStatusId = $participantStatusId;
+            break;
+          case "3 Komplette Zahlung eingegangen":
+            $this->_kompletteZahlungParticipantStatusId = $participantStatusId;
+            break;
+          case "6 Zertifikat ausgehändigt":
+            $this->_zertifikatParticipantStatusId = $participantStatusId;
+            break;
+          case "6.1 Zertifikat nicht ausgestellt":
+            $this->_zertifikatNichtParticipantStatusId = $participantStatusId;
+            break;
+        }
+      }
+    }
+    catch (CiviCRM_API3_Exception $ex) {
+      Civi::log()->error(ts('Could not find any participant statusses using API ParticipantStatusType get in ' . __METHOD__));
     }
   }
 
