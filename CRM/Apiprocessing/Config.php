@@ -56,6 +56,7 @@ class CRM_Apiprocessing_Config {
 	private $_zertifikatParticipantStatusId = NULL;
 	private $_zertifikatNichtParticipantStatusId = NULL;
 	private $_neuParticipantStatusTypeId = NULL;
+	private $_attendeeParticipantRoleId = NULL;
 	private $_eventCustomGroup = NULL;
 	private $_weiterBildungCustomGroup = NULL;
 	private $_teilnahmeOrganisationCustomFieldId = NULL;
@@ -100,6 +101,7 @@ class CRM_Apiprocessing_Config {
     $this->setSepaPaymentInstrumentIds();
     $this->setFinancialTypeIds();
     $this->setParticipantStatusIds();
+    $this->setParticipantRoleIds();
     $this->setCustomGroupsAndFields();
     // careful, the groups have to be done after the custom groups and fields
     // because it uses one custom field property (protectGroupCustomFieldId)!
@@ -217,6 +219,15 @@ class CRM_Apiprocessing_Config {
    */
   public function getWeiterBerufsEventTypeId() {
     return $this->_weiterBerufsEventTypeId;
+  }
+
+  /**
+   * Getter for attendee participant role id
+   *
+   * @return null
+   */
+  public function getAttendeeParticipantRoleId() {
+    return $this->_attendeeParticipantRoleId;
   }
 
   /**
@@ -1201,6 +1212,25 @@ class CRM_Apiprocessing_Config {
     }
     catch (CiviCRM_API3_Exception $ex) {
       Civi::log()->error(ts('Could not find any participant statusses using API ParticipantStatusType get in ' . __METHOD__));
+    }
+  }
+
+  /**
+   * Method to set the participant role ids
+   *
+   * @throws CiviCRM_API3_Exception
+   */
+  private function setParticipantRoleIds() {
+    try {
+      $this->_attendeeParticipantRoleId = civicrm_api3('OptionValue', 'getvalue', [
+        'option_group_id' => 'participant_role',
+        'name' => 'Attendee',
+        'return' => 'value',
+      ]);
+    }
+    catch (CiviCRM_API3_Exception $ex) {
+      Civi::log()->error(ts('Could not find participant role with name Attendee using API OptionValue getvalue in ')
+        . __METHOD__ . ts(', error message from API: ') . $ex->getMessage());
     }
   }
 

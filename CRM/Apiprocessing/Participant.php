@@ -42,6 +42,8 @@ class CRM_Apiprocessing_Participant {
       if (isset($apiParams['how_did_you_hear_about_us'])) {
         $participantParams['custom_'.$config->getNewHowDidCustomFieldId()] = $apiParams['how_did_you_hear_about_us'];
       }
+      // always use role teilnehmer
+      $participantParams['role_id'] = CRM_Apiprocessing_Config::singleton()->getAttendeeParticipantRoleId();
 			$result = civicrm_api3('Participant', 'create', $participantParams);
 			return $this->createApi3SuccessReturnArray($apiParams['event_id'], $contactId, $result['id'], $participantParams['status_id']);
 			
