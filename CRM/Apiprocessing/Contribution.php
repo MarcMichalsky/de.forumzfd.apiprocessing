@@ -36,7 +36,7 @@ class CRM_Apiprocessing_Contribution {
       civicrm_api3('SepaMandate', 'createfull', $sepaData);
     }
     catch (CiviCRM_API3_Exception $ex) {
-      CRM_Core_Error::debug_log_message('Could not create a SEPA mandate, error from API SepaMandate createfull: '.$ex->getMessage());
+      throw new API_Exception(ts('Could not create a SEPA mandate, error from API SepaMandate createfull: ').$ex->getMessage(), 1006);
       $errorMessage = 'Could not create a SEPA payment, please check and correct!';
       $activity = new CRM_Apiprocessing_Activity();
       $activity->createNewErrorActivity('forumzfd', $errorMessage, $sepaData);
