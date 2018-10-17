@@ -13,6 +13,7 @@ class CRM_Apiprocessing_Config {
   static private $_singleton = NULL;
 
   // configuration properties
+  private $_bankAccountReferenceType = NULL;
   private $_weiterBerufsEventTypeId = NULL;
   private $_weiterVollzeitEventTypeId = NULL;
   private $_seminarEventTypeId = NULL;
@@ -97,6 +98,7 @@ class CRM_Apiprocessing_Config {
     $this->_defaultCurrency = "EUR";
 
     $this->createApiEingabeLocationType();
+    $this->setBankAccountReferenceType();
     $this->setEventTypes();
     $this->setSepaPaymentInstrumentIds();
     $this->setFinancialTypeIds();
@@ -201,6 +203,15 @@ class CRM_Apiprocessing_Config {
       throw new Exception('Could not find an instant messenger service with the name Skype in ' . __METHOD__
         .', contact your system administrator. Error from API OptionValue Type getvalue: '.$ex->getMessage());
     }
+  }
+
+  /**
+   * Getter for bank account reference type
+   *
+   * @return null
+   */
+  public function getBankAccountReferenceType() {
+    return $this->_bankAccountReferenceType;
   }
 
   /**
@@ -1231,6 +1242,23 @@ class CRM_Apiprocessing_Config {
     catch (CiviCRM_API3_Exception $ex) {
       Civi::log()->error(ts('Could not find participant role with name Attendee using API OptionValue getvalue in ')
         . __METHOD__ . ts(', error message from API: ') . $ex->getMessage());
+    }
+  }
+
+  /**
+   * Method to set the bank account
+   */
+  private function setBankAccountReferenceType() {
+    try {
+      $this->_bankAccountReferenceType = civicrm_api3('OptionValue', 'getvalue', [
+        'option_group_id' => 'civicrm_banking.reference_types',
+        'name' => 'IBAN',
+        'return' => 'value',
+      ]);
+    }
+    catch (CiviCRM_API3_Exception $ex) {
+      Civi::log()->error(ts('Could not find IBAN banking account reference type in ') .__METHOD__
+        . ts(', error from API OptionValue getvalue: ') . $ex->getMessage());
     }
   }
 

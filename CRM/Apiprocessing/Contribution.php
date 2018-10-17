@@ -63,10 +63,15 @@ class CRM_Apiprocessing_Contribution {
         // process contribution based on payment_instrument_id
         switch ($params['payment_instrument_id']) {
           case CRM_Apiprocessing_Config::singleton()->getSepaFrstPaymentInstrumentId():
+            // first check if iban and bic are correct
+            $this->validateIbanBic($params);
+            $this->processBankAccount($donorContactId, $params['iban'], $params['bic']);
             $sepaFrstParams = $this->createSepaFrstParams($params, $donorContactId);
             $this->createSepaMandate($sepaFrstParams);
             break;
           case CRM_Apiprocessing_Config::singleton()->getSepaOoffPaymentInstrumentId():
+            $this->validateIbanBic($params);
+            $this->processBankAccount($donorContactId, $params['iban'], $params['bic']);
             $sepaOoffParams = $this->createSepaOoffParams($params, $donorContactId);
             if (!empty($sepaOoffParams)) {
               $this->createSepaMandate($sepaOoffParams);
@@ -369,6 +374,51 @@ class CRM_Apiprocessing_Contribution {
   }
 
   /**
+   * Method to validate or find bic with iban
+   *
+   * @param $params
+   * @throws API_Exception
+   */
+  private function validateIbanBic(&$params) {
+    // first check if Little Bic extension is installed. If not, create error as we can not check the BIC
+    $query = 'SELECT COUNT(*) FROM civicrm_extension WHERE full_name = %1 AND is_active = %2';
+    $count = CRM_Core_DAO::singleValueQuery($query, array(
+      1 => array('org.project60.bic', 'String'),
+      2 => array(1, 'Integer'),
+    ));
+    if ($count == 0) {
+      throw new API_Exception(ts('Extension Little Bic does not seem to be installed so BIC can not be validated in ')
+        . __METHOD__, 1001);
+    }
+    // iban has to be set!
+    if (!isset($params['iban']) || empty($params['iban'])) {
+      throw new API_Exception(ts('Mandatory parameter iban is not set or empty in ') . __METHOD__, 1002);
+    }
+    // remove spaces from iban
+    $params['iban'] = str_replace(" ", "", $params['iban']);
+    // find BIC with IBAN. Required for checking or defaulting
+    try {
+      $found = civicrm_api3('Bic', 'getfromiban', array('iban' => $params['iban']));
+      if ($found['bic'] == "NAP") {
+        throw new API_Exception(ts('Could not find a valid bic with iban'), 1005);
+      }
+    }
+    catch (CiviCRM_API3_Exception $ex) {
+      throw new API_Exception(ts('Could not find a BIC in ') . __METHOD__ . ts(', error message from API Bic getfromiban: ') . $ex->getMessage(), 1003);
+    }
+    // if BIC is set, check if correct. If not, return error
+    if (isset($params['bic']) && !empty($params['bic'])) {
+      if ($params['bic'] != $found['bic']) {
+        throw new API_Exception(ts('Parameter bic is not valid with iban'), 1004);
+      }
+    }
+    // now lookup BIC if BIC is empty in params. Return error if not found
+    else {
+      $params['bic'] = $found['bic'];
+    }
+  }
+
+  /**
    * Method to check if incoming parameters are valid
    *
    * @param array $params
@@ -421,6 +471,58 @@ class CRM_Apiprocessing_Contribution {
       }
     }
     return TRUE;
+  }
+
+  /**
+   * Method to process bank account (and create if it does not exist yet)
+   *
+   * @param $contactId
+   * @param $iban
+   * @param $bic
+   */
+  private function processBankAccount($contactId, $iban, $bic) {
+    // first check if bank account exists
+    try {
+      $count = civicrm_api3('BankingAccount', 'getcount', array(
+        'iban' => $iban,
+        'bic' => $bic,
+        'contact_id' => $contactId,
+      ));
+      // if it does not exist, create
+      if ($count == 0) {
+        try {
+          $createdBankAccount = civicrm_api3('BankingAccount', 'create', [
+            'contact_id' => $contactId,
+            'data_parsed' => '{}',
+          ]);
+          $bankAccountId = $createdBankAccount['id'];
+          $bankData = [];
+          if (!empty($bic)) {
+            $bankData['BIC'] = trim($bic);
+          }
+          if (!empty($bankData)) {
+            $bankBao = new CRM_Banking_BAO_BankAccount();
+            $bankBao->get('id', $bankAccountId);
+            $bankBao->setDataParsed($bankData);
+            $bankBao->save();
+          }
+          // update/create bank reference
+          $referenceParams = [
+            'reference' => trim($iban),
+            'reference_type_id' => CRM_Apiprocessing_Config::singleton()->getBankAccountReferenceType(),
+            'ba_id' => $bankAccountId,
+          ];
+          civicrm_api3('BankingAccountReference', 'create', $referenceParams);
+        }
+        catch (CiviCRM_API3_Exception $ex) {
+          Civi::log()->warning(ts('Could not add a bank account for iban ' .$iban . ' and contact ' . $contactId . 'in ') . __METHOD__);
+        }
+      }
+    }
+    catch (CiviCRM_API3_Exception $ex) {
+      Civi::log()->warning(ts('Strange error trying from API BankingAccount getcount in ')
+        . __METHOD__ . ts(', error message from API: ') . $ex->getMessage());
+    }
   }
 
 }
