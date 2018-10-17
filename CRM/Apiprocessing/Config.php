@@ -58,9 +58,7 @@ class CRM_Apiprocessing_Config {
 	private $_zertifikatNichtParticipantStatusId = NULL;
 	private $_neuParticipantStatusTypeId = NULL;
 	private $_attendeeParticipantRoleId = NULL;
-	private $_eventCustomGroup = NULL;
 	private $_weiterBildungCustomGroup = NULL;
-	private $_teilnahmeOrganisationCustomFieldId = NULL;
 	private $_campaignOnLineCustomFieldId = NULL;
 	private $_protectedGroupCustomFieldId = NULL;
 	private $_goldGroupId = NULL;
@@ -541,13 +539,6 @@ class CRM_Apiprocessing_Config {
 		return $this->_departmentDataCustomFieldId;
 	}
 
-	 /**
-	 * Getter for Teilnahme für Organisation custom field id
-	 */
-	 public function getTeilnahmeOrganisationCustomFieldId() {
-	 	return $this->_teilnahmeOrganisationCustomFieldId;
-	 }
-	 
 	/**
 	 * Getter for participant status Registered
 	 */
@@ -849,19 +840,6 @@ class CRM_Apiprocessing_Config {
       $this->_employerCustomFieldId = civicrm_api3('CustomField', 'getvalue', array('name' => 'fzfd_employer', 'custom_group_id' => $this->_akademieCustomGroup['id'],'return' => 'id'));
     } catch (CiviCRM_API3_Exception $ex) {
       throw new Exception('Could not find custom field Employer in '.__METHOD__
-        .' contact your system administrator. Error from API CustomField getvalue: '.$ex->getMessage());
-    }
-
-    try {
-      $this->_eventCustomGroup = civicrm_api3('CustomGroup', 'getsingle', array('name' => 'fzfd_event_data'));
-    } catch (CiviCRM_API3_Exception $ex) {
-      throw new Exception('Could not find custom data set Event in '.__METHOD__
-        .' contact your system administrator. Error from API CustomGroup getsingle: '.$ex->getMessage());
-    }
-    try {
-      $this->_teilnahmeOrganisationCustomFieldId = civicrm_api3('CustomField', 'getvalue', array('name' => 'fzfd_teilnahme_organisation', 'custom_group_id' => $this->_eventCustomGroup['id'],'return' => 'id'));
-    } catch (CiviCRM_API3_Exception $ex) {
-      throw new Exception('Could not find custom field Teilnahme für Organisation in '.__METHOD__
         .' contact your system administrator. Error from API CustomField getvalue: '.$ex->getMessage());
     }
     // new event custom group and custom fields

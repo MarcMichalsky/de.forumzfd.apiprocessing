@@ -276,9 +276,6 @@ class CRM_Apiprocessing_Event {
     $this->getAnsprechOrganisation($event, $result);
     $this->getTrainers($event, $result);
     $this->getAnsprechInhalt($event, $result);
-    if (isset($event['custom_' . $config->getTeilnahmeOrganisationCustomFieldId() . '_id'])) {
-      $result['teilnahme_fuer_organisation'] = $event['custom_' . $config->getTeilnahmeOrganisationCustomFieldId()];
-    }
     if (isset($event['custom_' . $config->getNewEventVenueCustomFieldId()])) {
       $result['meeting_venue'] = $event['custom_' . $config->getNewEventVenueCustomFieldId()];
     }
