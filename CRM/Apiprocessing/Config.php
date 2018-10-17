@@ -1253,7 +1253,7 @@ class CRM_Apiprocessing_Config {
       $this->_bankAccountReferenceType = civicrm_api3('OptionValue', 'getvalue', [
         'option_group_id' => 'civicrm_banking.reference_types',
         'name' => 'IBAN',
-        'return' => 'value',
+        'return' => 'id',
       ]);
     }
     catch (CiviCRM_API3_Exception $ex) {
