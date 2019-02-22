@@ -127,12 +127,18 @@ class CRM_Apiprocessing_Utils {
    * @return mixed
    */
   public static function getNumberOfEventRegistrations($eventId) {
+    // retrieve setting that determines which participant status is considered as registered
+    $registeredStatusIds = CRM_Apiprocessing_Settings::singleton()->get('fzfd_participant_status_id');
+    if (!is_array($registeredStatusIds)) {
+      Civi::log()->error(ts('Expected but did not recognize array of participant status ids to be counted as registered in ') . __METHOD__);
+      return 0;
+    }
     try {
-      return civicrm_api3('Participant', 'getcount', array(
+      return civicrm_api3('Participant', 'getcount', [
         'event_id' => $eventId,
-        'status_id' => CRM_Apiprocessing_Config::singleton()->getRegisteredParticipantStatusId(),
+        'status_id' => array('IN' => $registeredStatusIds),
         'options' => array('limit' => 0),
-      ));
+      ]);
     }
     catch (CiviCRM_API3_Exception $ex) {
       return 0;

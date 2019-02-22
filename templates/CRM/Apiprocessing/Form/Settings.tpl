@@ -56,6 +56,11 @@
     <div class="content">{$form.fzfd_address_location_type.html}</div>
     <div class="clear"></div>
   </div>
+  <div class="crm-section">
+    <div class="label">{$form.fzfd_participant_status_id.label}</div>
+    <div class="content">{$form.fzfd_participant_status_id.html}</div>
+    <div class="clear"></div>
+  </div>
 
 
   <div class="help-block" id="help">

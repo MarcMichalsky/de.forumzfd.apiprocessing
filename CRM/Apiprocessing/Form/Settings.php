@@ -13,6 +13,24 @@ class CRM_Apiprocessing_Form_Settings extends CRM_Core_Form {
   private $_groupList = array();
   private $_cycleDaysList = array();
   private $_locationTypeList = array();
+  private $_participantStatusList = [];
+
+  /**
+   * Method to set the participant status list
+   */
+  private function setParticipantStatusList() {
+    try {
+      $participantStatuses = civicrm_api3('ParticipantStatusType', 'get', [
+        'is_active' => 1,
+        'options' => ['limit' => 0,]
+      ]);
+      foreach ($participantStatuses['values'] as $participantStatusId => $participantStatus) {
+        $this->_participantStatusList[$participantStatusId] = $participantStatus['label'];
+      }
+    }
+    catch (CiviCRM_API3_Exception $ex) {
+    }
+  }
 
   /**
    * Method to set the location type list
@@ -139,6 +157,7 @@ class CRM_Apiprocessing_Form_Settings extends CRM_Core_Form {
     $this->setGroupList();
     $this->setCycleDaysList();
     $this->setLocationTypeList();
+    $this->setParticipantStatusList();
   }
 
   /**
@@ -163,6 +182,8 @@ class CRM_Apiprocessing_Form_Settings extends CRM_Core_Form {
 		$this->add('text', 'fzfd_donation_level_three_max', ts('Maximum amount donation level 3'), array(), true );
     $this->add('select', 'fzfdperson_groups', ts('Valid groups for API FzfdPerson Get'), $this->_groupList, TRUE,
       array('id' => 'fzfdperson_groups', 'multiple' => 'multiple', 'class' => 'crm-select2'));
+    $this->add('select', 'fzfd_participant_status_id', ts('Participant Statuses to be counted as Registered'), $this->_participantStatusList, TRUE,
+      ['id' => 'fzfd_participant_status_id', 'multiple' => 'multiple', 'class' => 'crm-select2']);
     $this->add('select', 'fzfdperson_location_type', ts('Location Type for API FzfdPerson Get'), $this->_locationTypeList, TRUE);
     $this->add('select', 'fzfd_address_location_type', ts('Location Type for address with API'), $this->_locationTypeList, TRUE);
 
@@ -210,6 +231,7 @@ class CRM_Apiprocessing_Form_Settings extends CRM_Core_Form {
         'fzfdperson_groups' => $formValues['fzfdperson_groups'],
         'fzfdperson_location_type' => $formValues['fzfdperson_location_type'],
         'fzfd_address_location_type' => $formValues['fzfd_address_location_type'],
+        'fzfd_participant_status_id' => $formValues['fzfd_participant_status_id'],
       );
       if (!empty($formValues['default_cycle_day_sepa'])) {
         $data['default_cycle_day_sepa'] = $formValues['default_cycle_day_sepa'];
