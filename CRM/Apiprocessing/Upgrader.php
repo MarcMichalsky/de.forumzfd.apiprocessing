@@ -92,6 +92,48 @@ class CRM_Apiprocessing_Upgrader extends CRM_Apiprocessing_Upgrader_Base {
   }
 
   /**
+   * Create custom group privacy options with website consent cusom field
+   *
+   * @return TRUE on success
+   */
+  public function upgrade_1003() {
+    $this->ctx->log->info('Applying update 1003');
+    // check if custom group exists and create if not
+    try {
+      $groupCount = civicrm_api3('CustomGroup', 'getcount', [
+        'name' => 'fzfd_privacy_options',
+        'extends' => 'Contact',
+      ]);
+      if ($groupCount == 0) {
+        CRM_Apiprocessing_CustomData::createPrivacyCustomGroup();
+      }
+    }
+    catch (CiviCRM_API3_Exception $ex) {
+      Civi::log()->error(ts('Unexpected error in ') . __METHOD__ . ts('API CustomGroup getcount: ') . $ex->getMessage());
+    }
+    // check if web consent custom field exists and create if not
+    try {
+      $fieldCount = civicrm_api3('CustomField', 'getcount', [
+        'custom_group_id' => 'fzfd_privacy_options',
+        'name' => 'fzfd_website_consent',
+      ]);
+      if ($fieldCount == 0) {
+        $result = CRM_Apiprocessing_CustomData::createWebsiteDataConsentCustomField();
+        // now populate fields for all contacts
+        if ($result) {
+          $query = "INSERT INTO civicrm_value_contact_privacy_options 
+            (entity_id, fzfd_website_consent) SELECT DISTINCT id, 1 FROM civicrm_contact";
+          CRM_Core_DAO::executeQuery($query);
+        }
+      }
+    }
+    catch (CiviCRM_API3_Exception $ex) {
+      Civi::log()->error(ts('Unexpected error in ') . __METHOD__ . ts('API CustomField getcount: ') . $ex->getMessage());
+    }
+    return TRUE;
+  }
+
+  /**
    * Example: Run an external SQL script when the module is uninstalled.
    *
   public function uninstall() {

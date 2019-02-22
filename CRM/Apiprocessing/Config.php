@@ -64,6 +64,8 @@ class CRM_Apiprocessing_Config {
 	private $_goldGroupId = NULL;
 	private $_silverGroupId = NULL;
 	private $_allGroupId = NULL;
+	private $_privacyOptionsCustomGroup = [];
+	private $_websiteConsentCustomFieldId = NULL;
 
 	// new event data
   private $_newEventCustomGroup = NULL;
@@ -968,6 +970,22 @@ class CRM_Apiprocessing_Config {
 		} catch (CiviCRM_API3_Exception $ex) {
 			throw new Exception('Could not find custom field Bewerbung in '.__METHOD__
 			.' contact your system administrator. Error from API CustomField getvalue: '.$ex->getMessage());
+		}
+		try {
+			$this->_privacyOptionsCustomGroup = civicrm_api3('CustomGroup', 'getsingle', array('name' => 'fzfd_privacy_options'));
+		} catch (CiviCRM_API3_Exception $ex) {
+      $customGroup = CRM_Apiprocessing_CustomData::createPrivacyCustomGroup();
+      if ($customGroup) {
+        $this->_privacyOptionsCustomGroup = $customGroup;
+      }
+		}
+		try {
+			$this->_websiteConsentCustomFieldId = civicrm_api3('CustomField', 'getvalue', array('name' => 'fzfd_website_consent', 'custom_group_id' => $this->_additionalDataCustomGroup['id'],'return' => 'id'));
+		} catch (CiviCRM_API3_Exception $ex) {
+      $customField = CRM_Apiprocessing_CustomData::createWebsiteDataConsentCustomField();
+      if ($customField) {
+        $this->_websiteConsentCustomFieldId = $customField['id'];
+      }
 		}
   }
 
