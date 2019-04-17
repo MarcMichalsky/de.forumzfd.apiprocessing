@@ -144,4 +144,22 @@ class CRM_Apiprocessing_Utils {
       return 0;
     }
   }
+
+  /**
+   * Method to get option group id with name
+   *
+   * @param $optionGroupName
+   * @return array|bool
+   */
+  public static function getOptionGroupIdWithName($optionGroupName) {
+    try {
+      return civicrm_api3('OptionGroup', 'getvalue', [
+        'return' => 'id',
+        'name' => $optionGroupName,
+      ]);
+    }
+    catch (CiviCRM_API3_Exception $ex) {
+      return FALSE;
+    }
+  }
 }

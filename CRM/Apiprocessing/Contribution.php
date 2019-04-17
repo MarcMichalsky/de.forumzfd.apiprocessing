@@ -12,6 +12,55 @@ class CRM_Apiprocessing_Contribution {
   private $_tempId = NULL;
 
   /**
+   * Method to get temp data (anonym)
+   *
+   * @param int $tempId
+   * @return array
+   * @throws API_Exception
+   */
+  public function getTempData($tempId) {
+    if (empty($tempId)) {
+      throw new API_Exception(ts('Empty temp ID, could not get data'), 3041);
+    }
+    $paymentOptionGroupId = CRM_Apiprocessing_Utils::getOptionGroupIdWithName('payment_instrument');
+    if ($paymentOptionGroupId) {
+      $tempData = [];
+      $query = "SELECT cfm.status, cfm.iban, cfm.bic, cfm.amount, cfm.frequency_unit, cfc.payment_instrument_id, 
+      cfc.total_amount, ov.label AS payment_instrument
+      FROM civicrm_fzfd_temp AS cft
+      LEFT JOIN civicrm_fzfd_sdd_mandate AS cfm ON cft.id = cfm.temp_id
+      LEFT JOIN civicrm_fzfd_contribution AS cfc ON cft.id = cfc.temp_id
+      LEFT JOIN civicrm_option_value AS ov ON cfc.payment_instrument_id = ov.value AND ov.option_group_id = %1
+      WHERE cft.id = %2";
+      $dao = CRM_Core_DAO::executeQuery($query, [
+        1 => [$paymentOptionGroupId, 'Integer'],
+        2 => [$tempId, 'Integer'],
+      ]);
+      if ($dao->fetch()) {
+        if (!empty($dao->status)) {
+          $tempData[$tempId] = [
+            'type' => $dao->status,
+            'bic' => $dao->bic,
+            'iban' => substr($dao->iban,0,3) . '**********' . substr($dao->iban, -4),
+            'amount' => $dao->amount,
+            'frequency' => $dao->frequency_unit
+          ];
+        }
+        else {
+          $tempData[$tempId] = [
+            'payment_instrument' => $dao->payment_instrument,
+            'amount' => $dao->total_amount,
+          ];
+        }
+      }
+    }
+    else {
+      throw new API_Exception(ts('No option group for payment instruments found.'), 3091);
+    }
+    return $tempData;
+  }
+
+  /**
    * Method to create a contribution
    *
    * @param $contributionData

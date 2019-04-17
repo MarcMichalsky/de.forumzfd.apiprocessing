@@ -196,13 +196,8 @@ function _apiprocessing_required_extensions_installed() {
   $installedExtensions = civicrm_api3('Extension', 'get', array(
     'option' => array('limit' => 0,),));
   foreach ($installedExtensions['values'] as $installedExtension) {
-    if (isset($required[$installedExtension['key']]) && $installedExtension['status'] == 'installed') {
-      $required[$installedExtension['key']] = TRUE;
-    }
-  }
-  foreach ($required as $requiredExtension => $installed) {
-    if (!$installed) {
-      throw new Exception('Required extension '.$requiredExtension.' is not installed, can not install or enable 
+    if (isset($required[$installedExtension['key']]) && $installedExtension['status'] =! 'installed') {
+      throw new Exception('Required extension ' . $installedExtension['key'] . ' is not installed, can not install or enable 
       de.forumzfd.apiprocessing. Please install the extension and then retry installing or enabling 
       de.forumzfd.apiprocessing');
     }
