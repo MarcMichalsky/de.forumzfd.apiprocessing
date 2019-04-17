@@ -1,0 +1,51 @@
+<?xml version="1.0" encoding="iso-8859-1" ?>
+
+<table>
+  <base>CRM/Apiprocessing</base>
+  <class>FzfdTemp</class>
+  <name>civicrm_fzfd_temp</name>
+  <comment>Table with FzfdDonations not confirmed yet</comment>
+  <add>4.4</add>
+  <log>true</log>
+
+  <field>
+    <name>id</name>
+    <type>int unsigned</type>
+    <required>true</required>
+    <comment>Unique FzfdTemp ID</comment>
+    <add>4.4</add>
+  </field>
+  <primaryKey>
+    <name>id</name>
+    <autoincrement>true</autoincrement>
+  </primaryKey>
+
+  <field>
+    <name>contact_id</name>
+    <type>int unsigned</type>
+    <comment>FK to Contact</comment>
+    <add>4.4</add>
+  </field>
+  <foreignKey>
+    <name>contact_id</name>
+    <table>civicrm_contact</table>
+    <key>id</key>
+    <add>4.4</add>
+    <onDelete>CASCADE</onDelete>
+  </foreignKey>
+
+  <field>
+    <name>payment_instrument_id</name>
+    <title>payment instrument</title>
+    <type>int unsigned</type>
+    <add>4.4</add>
+  </field>
+
+  <field>
+    <name>date_created</name>
+    <title>date created</title>
+    <type>datetime</type>
+    <add>4.4</add>
+  </field>
+
+</table>

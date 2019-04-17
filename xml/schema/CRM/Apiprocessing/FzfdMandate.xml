@@ -1,0 +1,153 @@
+<?xml version="1.0" encoding="iso-8859-1" ?>
+
+<table>
+  <base>CRM/Apiprocessing</base>
+  <class>FzfdMandate</class>
+  <name>civicrm_fzfd_sdd_mandate</name>
+  <comment>Table to hold mandates that have not been confirmed yet</comment>
+  <add>4.4</add>
+  <log>true</log>
+
+  <field>
+    <name>id</name>
+    <type>int unsigned</type>
+    <required>true</required>
+    <comment>Unique FzfdMandate ID (temp_id)</comment>
+    <add>4.4</add>
+  </field>
+  <primaryKey>
+    <name>id</name>
+    <autoincrement>true</autoincrement>
+  </primaryKey>
+
+  <field>
+    <name>temp_id</name>
+    <type>int unsigned</type>
+    <comment>FK to FzfdTemp</comment>
+    <add>4.4</add>
+  </field>
+  <foreignKey>
+    <name>temp_id</name>
+    <table>civicrm_fzfd_temp</table>
+    <key>id</key>
+    <add>4.4</add>
+    <onDelete>CASCADE</onDelete>
+  </foreignKey>
+
+  <field>
+    <name>source</name>
+    <type>varchar</type>
+    <length>64</length>
+    <comment>Information about the source of registration of the mandate</comment>
+    <add>4.4</add>
+  </field>
+
+  <field>
+    <name>iban</name>
+    <type>varchar</type>
+    <length>42</length>
+    <required>false</required>
+    <comment>Iban of the debtor</comment>
+    <add>4.4</add>
+  </field>
+
+  <field>
+    <name>bic</name>
+    <type>varchar</type>
+    <length>11</length>
+    <comment>BIC of the debtor</comment>
+    <add>4.4</add>
+  </field>
+
+  <field>
+    <name>type</name>
+    <type>varchar</type>
+    <length>4</length>
+    <required>true</required>
+    <default>"RCUR"</default>
+    <add>4.4</add>
+    <comment>RCUR for recurrent (default), OOFF for one-shot</comment>
+  </field>
+
+  <field>
+    <name>status</name>
+    <type>varchar</type>
+    <length>8</length>
+    <required>true</required>
+    <default>"INIT"</default>
+    <add>4.4</add>
+    <comment>Status of the mandate (OOFF, FRST, RCUR)</comment>
+  </field>
+
+  <field>
+    <name>financial_type_id</name>
+    <type>int unsigned</type>
+    <comment>Financial Type ID</comment>
+    <add>4.4</add>
+  </field>
+
+  <field>
+    <name>amount</name>
+    <type>decimal</type>
+    <comment>Amount</comment>
+    <add>4.4</add>
+  </field>
+
+  <field>
+    <name>currency</name>
+    <type>varchar</type>
+    <length>3</length>
+    <comment>3 character string for currency</comment>
+    <add>4.4</add>
+  </field>
+
+  <field>
+    <name>source</name>
+    <title>Contribution Source</title>
+    <type>varchar</type>
+    <length>255</length>
+    <comment>Origin of this Contribution.</comment>
+    <add>4.4</add>
+  </field>
+
+  <field>
+    <name>campaign_id</name>
+    <type>int unsigned</type>
+    <title>Campaign</title>
+    <comment>The campaign for which this contribution has been triggered.</comment>
+  </field>
+
+  <field>
+    <name>cycle_day</name>
+    <title>Number of Cycle Day</title>
+    <type>int unsigned</type>
+    <comment>Day in the period when the payment should be charged e.g. 1st of month, 15th etc.</comment>
+    <add>4.4</add>
+  </field>
+
+  <field>
+    <name>frequency_unit</name>
+    <title>Frequency Unit</title>
+    <type>varchar</type>
+    <length>8</length>
+    <comment>Time units for recurrence of payment.</comment>
+    <add>4.4</add>
+  </field>
+
+  <field>
+    <name>frequency_interval</name>
+    <title>Interval (number of units)</title>
+    <type>int unsigned</type>
+    <comment>Number of time units for recurrence of payment.</comment>
+    <add>4.4</add>
+  </field>
+
+  <field>
+    <name>start_date</name>
+    <title>Recurring Contribution Started Date</title>
+    <type>datetime</type>
+    <comment>The date the first scheduled recurring contribution occurs.</comment>
+    <add>4.4</add>
+  </field>
+
+</table>

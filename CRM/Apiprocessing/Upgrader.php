@@ -12,6 +12,7 @@ class CRM_Apiprocessing_Upgrader extends CRM_Apiprocessing_Upgrader_Base {
 		$this->executeCustomDataFile('xml/Weiterbildung.xml');
 		$this->executeCustomDataFile('xml/EventNew.xml');
     $this->executeCustomDataFile('xml/ParticipantNew.xml');
+    new CRM_Apiprocessing_Initialize();
   }
 
   /**
@@ -130,6 +131,18 @@ class CRM_Apiprocessing_Upgrader extends CRM_Apiprocessing_Upgrader_Base {
     catch (CiviCRM_API3_Exception $ex) {
       Civi::log()->error(ts('Unexpected error in ') . __METHOD__ . ts('API CustomField getcount: ') . $ex->getMessage());
     }
+    return TRUE;
+  }
+
+  /**
+   * Create new tables for temporary processing
+   *
+   * @return TRUE on success
+   */
+  public function upgrade_1010() {
+    $this->ctx->log->info('Applying update 1010 - temporary tables');
+    $this->executeSqlFile('sql/auto_install.sql');
+    new CRM_Apiprocessing_Initialize();
     return TRUE;
   }
 

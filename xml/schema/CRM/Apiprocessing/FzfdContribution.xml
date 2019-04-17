@@ -1,0 +1,82 @@
+<?xml version="1.0" encoding="iso-8859-1" ?>
+
+<table>
+  <base>CRM/Apiprocessing</base>
+  <class>FzfdContribution</class>
+  <name>civicrm_fzfd_contribution</name>
+  <comment>Table to hold contributions that have not been confirmed yet</comment>
+  <add>4.4</add>
+  <log>true</log>
+
+  <field>
+    <name>id</name>
+    <type>int unsigned</type>
+    <required>true</required>
+    <comment>Unique FzfdContribution ID</comment>
+    <add>4.4</add>
+  </field>
+  <primaryKey>
+    <name>id</name>
+    <autoincrement>true</autoincrement>
+  </primaryKey>
+
+  <field>
+    <name>temp_id</name>
+    <type>int unsigned</type>
+    <comment>FK to FzfdTemp</comment>
+    <add>4.4</add>
+  </field>
+  <foreignKey>
+    <name>temp_id</name>
+    <table>civicrm_fzfd_temp</table>
+    <key>id</key>
+    <add>4.4</add>
+    <onDelete>CASCADE</onDelete>
+  </foreignKey>
+
+  <field>
+    <name>financial_type_id</name>
+    <type>int unsigned</type>
+    <comment>Financial Type ID</comment>
+    <add>4.4</add>
+  </field>
+
+  <field>
+    <name>payment_instrument_id</name>
+    <type>int unsigned</type>
+    <comment>Payment Instrument ID</comment>
+    <add>4.4</add>
+  </field>
+
+  <field>
+    <name>total_amount</name>
+    <type>decimal</type>
+    <comment>Total amount of this contribution</comment>
+    <add>4.4</add>
+  </field>
+
+  <field>
+    <name>currency</name>
+    <type>varchar</type>
+    <length>3</length>
+    <comment>3 character string for currency</comment>
+    <add>4.4</add>
+  </field>
+
+  <field>
+    <name>source</name>
+    <title>Contribution Source</title>
+    <type>varchar</type>
+    <length>255</length>
+    <comment>Origin of this Contribution.</comment>
+    <add>4.4</add>
+  </field>
+
+  <field>
+    <name>campaign_id</name>
+    <type>int unsigned</type>
+    <title>Campaign</title>
+    <comment>The campaign for which this contribution has been triggered.</comment>
+  </field>
+
+</table>

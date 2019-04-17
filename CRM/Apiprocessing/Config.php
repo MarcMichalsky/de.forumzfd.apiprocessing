@@ -25,6 +25,7 @@ class CRM_Apiprocessing_Config {
   private $_scheduledActivityStatusId = NULL;
 	private $_completedActivityStatusId = NULL;
 	private $_completedContributionStatusId = NULL;
+	private $_pendingContributionStatusId = NULL;
 	private $_apiEingabeLocationTypeId = NULL;
   private $_defaultLocationTypeId = NULL;
   private $_defaultPhoneTypeId = NULL;
@@ -66,6 +67,8 @@ class CRM_Apiprocessing_Config {
 	private $_allGroupId = NULL;
 	private $_privacyOptionsCustomGroup = [];
 	private $_websiteConsentCustomFieldId = NULL;
+	private $_temporaryTagId = NULL;
+	private $_payDirektPaymentInstrumentId = NULL;
 
 	// new event data
   private $_newEventCustomGroup = NULL;
@@ -90,6 +93,9 @@ class CRM_Apiprocessing_Config {
    * @throws Exception
    */
   function __construct() {
+    new CRM_Apiprocessing_Initialize();
+
+
     $this->setActivityTypes();
     $this->_sepaOoffMandateStatus = "OOFF";
     $this->_sepaOoffMandateType = "OOFF";
@@ -100,11 +106,12 @@ class CRM_Apiprocessing_Config {
     $this->createApiEingabeLocationType();
     $this->setBankAccountReferenceType();
     $this->setEventTypes();
-    $this->setSepaPaymentInstrumentIds();
+    $this->setPaymentInstrumentIds();
     $this->setFinancialTypeIds();
     $this->setParticipantStatusIds();
     $this->setParticipantRoleIds();
     $this->setCustomGroupsAndFields();
+    $this->setContributionStatusIds();
     // careful, the groups have to be done after the custom groups and fields
     // because it uses one custom field property (protectGroupCustomFieldId)!
     $this->setGroups();
@@ -139,17 +146,6 @@ class CRM_Apiprocessing_Config {
     }
     catch (CiviCRM_API3_Exception $ex) {
       throw new Exception('Could not find the standard completed activity status in '.__METHOD__
-        .', contact your system administrator. Error from API OptionValue Type getvalue: '.$ex->getMessage());
-    }
-		try {
-      $this->_completedContributionStatusId = civicrm_api3('OptionValue', 'getvalue', array(
-        'option_group_id' => 'contribution_status',
-        'name' => 'Completed',
-        'return' => 'value',
-      ));
-    }
-    catch (CiviCRM_API3_Exception $ex) {
-      throw new Exception('Could not find the standard completed contribution status in '.__METHOD__
         .', contact your system administrator. Error from API OptionValue Type getvalue: '.$ex->getMessage());
     }
     try {
@@ -202,6 +198,15 @@ class CRM_Apiprocessing_Config {
     catch (CiviCRM_API3_Exception $ex) {
       throw new Exception('Could not find an instant messenger service with the name Skype in ' . __METHOD__
         .', contact your system administrator. Error from API OptionValue Type getvalue: '.$ex->getMessage());
+    }
+    try {
+      $this->_temporaryTagId = civicrm_api3('Tag', 'getvalue', [
+        'return' => 'id',
+        'name' => 'Temporär Zahlung angekündigt',
+      ]);
+    }
+    catch (CiviCRM_API3_Exception $ex) {
+      Civi::log()->error(ts('Could not find a tag Temporär Zahlung angekündigt in ') . __METHOD__);
     }
   }
 
@@ -408,6 +413,24 @@ class CRM_Apiprocessing_Config {
   }
 
   /**
+   * Getter for pay direkt payment instrument id
+   *
+   * @return null
+   */
+  public function getPayDirektPaymentInstrumentId() {
+    return $this->_payDirektPaymentInstrumentId;
+  }
+
+  /**
+   * Getter for temporary tag
+   *
+   *@return null
+   */
+  public function getTemporaryTagId() {
+    return $this->_temporaryTagId;
+  }
+
+  /**
    * Getter for default currency
    *
    * @return null
@@ -477,6 +500,15 @@ class CRM_Apiprocessing_Config {
    */
   public function getCompletedContributionStatusId() {
     return $this->_completedContributionStatusId;
+  }
+
+	/**
+   * Getter for pending contribution status id
+   *
+   * @return null
+   */
+  public function getPendingContributionStatusId() {
+    return $this->_pendingContributionStatusId;
   }
 
   /**
@@ -743,7 +775,7 @@ class CRM_Apiprocessing_Config {
    *
    * @throws Exception when error from api
    */
-  private function setSepaPaymentInstrumentIds() {
+  private function setPaymentInstrumentIds() {
     try {
       $this->_sepaFrstPaymentInstrumentId = civicrm_api3('OptionValue', 'getvalue', array(
         'return' => "value",
@@ -759,6 +791,11 @@ class CRM_Apiprocessing_Config {
         'return' => "value",
         'option_group_id' => "payment_instrument",
         'name' => "RCUR",
+      ));
+      $this->_payDirektPaymentInstrumentId = civicrm_api3('OptionValue', 'getvalue', array(
+        'return' => "value",
+        'option_group_id' => "payment_instrument",
+        'name' => "fzfd_pay_direkt",
       ));
     }
     catch (CiviCRM_API3_Exception $ex) {
@@ -980,7 +1017,7 @@ class CRM_Apiprocessing_Config {
       }
 		}
 		try {
-			$this->_websiteConsentCustomFieldId = civicrm_api3('CustomField', 'getvalue', array('name' => 'fzfd_website_consent', 'custom_group_id' => $this->_additionalDataCustomGroup['id'],'return' => 'id'));
+			$this->_websiteConsentCustomFieldId = civicrm_api3('CustomField', 'getvalue', array('name' => 'fzfd_website_consent', 'custom_group_id' => $this->_privacyOptionsCustomGroup['id'],'return' => 'id'));
 		} catch (CiviCRM_API3_Exception $ex) {
       $customField = CRM_Apiprocessing_CustomData::createWebsiteDataConsentCustomField();
       if ($customField) {
@@ -1256,6 +1293,25 @@ class CRM_Apiprocessing_Config {
       Civi::log()->error(ts('Could not find IBAN banking account reference type in ') .__METHOD__
         . ts(', error from API OptionValue getvalue: ') . $ex->getMessage());
     }
+  }
+  private function setContributionStatusIds() {
+    try {
+      $this->_completedContributionStatusId = civicrm_api3('OptionValue', 'getvalue', array(
+        'option_group_id' => 'contribution_status',
+        'name' => 'Completed',
+        'return' => 'value',
+      ));
+      $this->_pendingContributionStatusId = civicrm_api3('OptionValue', 'getvalue', array(
+        'option_group_id' => 'contribution_status',
+        'name' => 'Pending',
+        'return' => 'value',
+      ));
+    }
+    catch (CiviCRM_API3_Exception $ex) {
+      throw new Exception('Could not find the standard completed or pending contribution status in '.__METHOD__
+        .', contact your system administrator. Error from API OptionValue Type getvalue: '.$ex->getMessage());
+    }
+
   }
 
   /**

@@ -456,5 +456,23 @@ function _apiprocessing_civix_civicrm_alterSettingsFolders(&$metaDataFolders = N
 
 function _apiprocessing_civix_civicrm_entityTypes(&$entityTypes) {
   $entityTypes = array_merge($entityTypes, array (
+    'CRM_Apiprocessing_DAO_FzfdContribution' => 
+    array (
+      'name' => 'FzfdContribution',
+      'class' => 'CRM_Apiprocessing_DAO_FzfdContribution',
+      'table' => 'civicrm_fzfd_contribution',
+    ),
+    'CRM_Apiprocessing_DAO_FzfdMandate' => 
+    array (
+      'name' => 'FzfdMandate',
+      'class' => 'CRM_Apiprocessing_DAO_FzfdMandate',
+      'table' => 'civicrm_fzfd_mandate',
+    ),
+    'CRM_Apiprocessing_DAO_FzfdTemp' => 
+    array (
+      'name' => 'FzfdTemp',
+      'class' => 'CRM_Apiprocessing_DAO_FzfdTemp',
+      'table' => 'civicrm_fzfd_temp',
+    ),
   ));
 }

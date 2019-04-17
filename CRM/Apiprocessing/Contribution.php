@@ -9,6 +9,8 @@
  */
 class CRM_Apiprocessing_Contribution {
 
+  private $_tempId = NULL;
+
   /**
    * Method to create a contribution
    *
@@ -27,9 +29,38 @@ class CRM_Apiprocessing_Contribution {
   }
 
   /**
+   * Method to create a temporary contribution
+   *
+   * @param $contributionData
+   */
+  public function createTempContribution($contributionData) {
+    try {
+      civicrm_api3('FzfdContribution', 'create', $contributionData);
+    }
+    catch (CiviCRM_API3_Exception $ex) {
+      Civi::log()->error('Could not create a temporary contribution, error from API FzfdContribution Create: '.$ex->getMessage());
+    }
+  }
+
+  /**
+   * Method to create a temp SEPA mandate
+   *
+   * @param array $sepaData
+   * @throws API_Exception
+   */
+  public function createTempMandate($sepaData) {
+    try {
+      civicrm_api3('FzfdMandate', 'create', $sepaData);
+    }
+    catch (CiviCRM_API3_Exception $ex) {
+      throw new API_Exception(ts('Could not create a temporary First, error from API : ').$ex->getMessage(), 3009);
+    }
+  }
+  /**
    * Method to create a SEPA mandate and log any errors in activity
    *
    * @param array $sepaData
+   * @throws API_Exception
    */
   public function createSepaMandate($sepaData) {
     try {
@@ -47,11 +78,15 @@ class CRM_Apiprocessing_Contribution {
    * Method to process the data coming in from the website
    *
    * @param array $params
+   * @return int
+   * @throws API_Exception when no temp id
    */
   public function processIncomingData($params) {
     if ($this->validIncomingParams($params) == TRUE) {
       // process donor (find contact id or create if required)
       $donorContactId = $this->processIndividual($params);
+      // create temporary ID for request
+      $this->createTemporaryId($donorContactId, $params['payment_instrument_id']);
       if ($donorContactId) {
         // process organization if required
         if (isset($params['organization_name']) && !empty($params['organization_name'])) {
@@ -66,43 +101,123 @@ class CRM_Apiprocessing_Contribution {
             // first check if iban and bic are correct
             $this->validateIbanBic($params);
             $this->processBankAccount($donorContactId, $params['iban'], $params['bic']);
-            $sepaFrstParams = $this->createSepaFrstParams($params, $donorContactId);
-            $this->createSepaMandate($sepaFrstParams);
+            $tempSddData = $this->createTempFrstData($params, $donorContactId);
+            if (!empty($tempSddData)) {
+              $this->createTempMandate($tempSddData);
+            }
             break;
+
           case CRM_Apiprocessing_Config::singleton()->getSepaOoffPaymentInstrumentId():
             $this->validateIbanBic($params);
             $this->processBankAccount($donorContactId, $params['iban'], $params['bic']);
-            $sepaOoffParams = $this->createSepaOoffParams($params, $donorContactId);
-            if (!empty($sepaOoffParams)) {
-              $this->createSepaMandate($sepaOoffParams);
+            $tempSddData = $this->createTempOoffData($params, $donorContactId);
+            if (!empty($tempSddData)) {
+              $this->createTempMandate($tempSddData);
             }
             break;
+
           default:
-            $contributionData = $this->createContributionParams($params, $donorContactId);
-            $this->createNonSepa($contributionData);
+            $contributionData = $this->createTempContributionData($params, $donorContactId);
+            $this->createTempContribution($contributionData);
             break;
         }
       }
     }
-    return;
+    if ($this->_tempId) {
+      return $this->_tempId;
+    }
+    else {
+      throw new API_Exception(ts('Could not generate a temporary ID for Donation'), 3001);
+    }
+  }
+
+  /**
+   * Method to generate the temporary donation id
+   *
+   * @param int $contactId
+   * @param int $paymentInstrumentId
+   * @throws API_Exception
+   */
+  private function createTemporaryId($contactId, $paymentInstrumentId) {
+    $dateCreated = new DateTime();
+    try {
+      $temp = civicrm_api3('FzfdTemp', 'create', [
+        'contact_id' => $contactId,
+        'payment_instrument_id' => $paymentInstrumentId,
+        'date_created' => $dateCreated->format('YmdHis'),
+      ]);
+      if ($temp['values']->id) {
+        $this->_tempId = (int) $temp['values']->id;
+      }
+      else {
+        throw new API_Exception('Could not create a temporary ID for Donation', 3001);
+      }
+    }
+    catch (CiviCRM_API3_Exception $ex) {
+      throw new API_Exception('Could not create a temporary ID for Donation', 3001);
+    }
   }
 
   /**
    * Method to create parameter list for contribution
    *
+   * @param int $contactId
+   * @return array
+   * @throws
+   */
+  public function createContributionParams($contactId) {
+    // retrieve temp contribution data
+    $contributionParams = $this->retrieveTempData('contribution');
+    if (!empty($contributionParams)) {
+      $contributionParams['contact_id'] = $contactId;
+      $contributionParams['contribution_status_id'] = CRM_Apiprocessing_Config::singleton()->getPendingContributionStatusId();
+      $receiveDate = new DateTime();
+      $contributionParams['receive_date'] = $receiveDate->format('Ymd');
+
+    }
+    return $contributionParams;
+  }
+
+  /**
+   * Method to retrieve temporary data
+   *
+   * @param string $entity
+   * @return array
+   * @throws API_Exception
+   */
+  private function retrieveTempData($entity) {
+    $apiEntity = 'Fzfd' . ucfirst($entity);
+    $tempData = [];
+    if ($this->_tempId) {
+      try {
+        $tempData = civicrm_api3($apiEntity, 'getsingle', ['temp_id' => $this->_tempId]);
+        if ($tempData) {
+          unset($tempData['id']);
+          unset($tempData['temp_id']);
+          return $tempData;
+        }
+      }
+      catch (CiviCRM_API3_Exception $ex) {
+        throw new API_Exception(ts('Could not find temporary ') . $entity . ts(' with id ') . $this->_tempId, 3031);
+      }
+    }
+    return $tempData;
+  }
+
+  /**
+   * Method to create parameter list for temp contribution
+   *
    * @param array $params
    * @param int $donorContactId
    * @return array
    */
-  public function createContributionParams($params, $donorContactId) {
+  public function createTempContributionData($params, $donorContactId) {
     $contributionParams = array(
       'total_amount' => $params['amount'],
       'financial_type_id' => CRM_Apiprocessing_Config::singleton()->getContributionFinancialTypeId(),
       'payment_instrument_id' => $params['payment_instrument_id'],
-      'contact_id' => $donorContactId,
+      'temp_id' => $this->_tempId,
       'currency' => CRM_Apiprocessing_Config::singleton()->getDefaultCurrency(),
-      'contribution_status_id' => CRM_Apiprocessing_Config::singleton()->getCompletedContributionStatusId(),
-      'receive_date' => $this->setContributionReceiveDate($params),
       'source' => $this->setSource($params),
     );
     // add campaign_id if in parameters
@@ -154,6 +269,39 @@ class CRM_Apiprocessing_Contribution {
   }
 
   /**
+   * Method to create parameter list for temp one off sepa
+   *
+   * @param array $params
+   * @param int $donorContactId
+   * @return array
+   */
+  public function createTempOoffData($params, $donorContactId) {
+    $sepaParams = [];
+    if (!empty($donorContactId)) {
+      $sepaParams = [
+        'temp_id' => $this->_tempId,
+        'financial_type_id' => CRM_Apiprocessing_Config::singleton()->getSepaOoffFinancialTypeId(),
+        'status' => CRM_Apiprocessing_Config::singleton()->getSepaOoffMandateStatus(),
+        'type' => CRM_Apiprocessing_Config::singleton()->getSepaOoffMandateType(),
+        'currency' => CRM_Apiprocessing_Config::singleton()->getDefaultCurrency(),
+        'amount' => $params['amount'],
+        'iban' => $params['iban'],
+        'start_date' => $this->setSepaStartDate($params),
+        'source' => $this->setSource($params),
+      ];
+      // set campaign if entered
+      if (isset($params['campaign_id']) && !empty($params['campaign_id'])) {
+        $sepaParams['campaign_id'] = $params['campaign_id'];
+      }
+      // set bic if entered
+      if (isset($params['bic']) && !empty($params['bic'])) {
+        $sepaParams['bic'] = $params['bic'];
+      }
+    }
+    return $sepaParams;
+  }
+
+  /**
    * Method to set the passed source or the default one
    *
    * @param array $params
@@ -183,22 +331,6 @@ class CRM_Apiprocessing_Contribution {
       return date('YmdHis');
     }
 
-  }
-
-  /**
-   * Method to set the receive date for contribution
-   *
-   * @param array $params
-   * @return false|string
-   */
-  private function setContributionReceiveDate($params) {
-    // default receive date to system date if not set
-    if (isset($params['receive_date']) && !empty($params['receive_date'])) {
-      $receiveDate = new DateTime($params['receive_date']);
-      return $receiveDate->format('YmdHis');
-    } else {
-      return date('YmdHis');
-    }
   }
 
   /**
@@ -249,47 +381,64 @@ class CRM_Apiprocessing_Contribution {
   }
 
   /**
-   * Method to set the parameters for a sepa recurring mandate
+   * Method to set the parameters for a sepa recurring mandate from a temporary record
+   *
+   * @param int $contactId
+   * @return array
+   * @throws API_Exception in retrieveTempMandate
+   */
+  public function createSepaParams($contactId) {
+    // retrieve temp mandata data
+    $sepaParams = $this->retrieveTempData('mandate');
+    if (!empty($sepaParams)) {
+      $creditor = CRM_Sepa_Logic_Settings::defaultCreditor();
+      if (empty($creditor)) {
+        $activity = new CRM_Apiprocessing_Activity();
+        $activity->createNewErrorActivity('forumzfd', 'Could not find a default creditor for SEPA in '
+          .__METHOD__.', create one in your CiviSepa Settings. Donation has not been processed!', $sepaParams);
+      } else {
+        $sepaParams['creditor_id'] = $creditor->id;
+        $sepaParams['contact_id'] = $contactId;
+        $sepaParams['creation_date'] = date('YmdHis');
+      }
+    }
+    return $sepaParams;
+  }
+
+  /**
+   * Method to set the parameters for a temp sepa recurring mandate
    *
    * @param array $params
    * @param int $donorContactId
    * @return array
    */
-  public function createSepaFrstParams($params, $donorContactId) {
-    $sepaParams = array();
-    $creditor = CRM_Sepa_Logic_Settings::defaultCreditor();
-    if (empty($creditor)) {
-      $activity = new CRM_Apiprocessing_Activity();
-      $activity->createNewErrorActivity('forumzfd', 'Could not find a default creditor for SEPA in '
-        .__METHOD__.', create one in your CiviSepa Settings. Donation has not been processed!', $params);
-    } else {
-      $sepaParams = array(
-        'creditor_id' => $creditor->id,
-        'contact_id' => $donorContactId,
+  public function createTempFrstData($params, $donorContactId) {
+    $tempFrstParams = [];
+    if (!empty($donorContactId)) {
+      $tempFrstParams = [
         'financial_type_id' => CRM_Apiprocessing_Config::singleton()->getSepaRcurFinancialTypeId(),
         'status' => CRM_Apiprocessing_Config::singleton()->getSepaFrstMandateStatus(),
         'type' => CRM_Apiprocessing_Config::singleton()->getSepaRcurMandateType(),
         'currency' => CRM_Apiprocessing_Config::singleton()->getDefaultCurrency(),
-        // todo 'reference' =>
         'amount' => $params['amount'],
-        'creation_date' => date('YmdHis'),
         'start_date' => $this->setSepaStartDate($params),
         'frequency_interval' => $this->setFrequencyInterval($params),
         'cycle_day' => $this->setCycleDay($params),
         'frequency_unit' => $params['frequency_unit'],
         'source' => $this->setSource($params),
         'iban' => $params['iban'],
-      );
+        'temp_id' => $this->_tempId,
+      ];
       // set campaign if entered
       if (isset($params['campaign_id']) && !empty($params['campaign_id'])) {
-        $sepaParams['campaign_id'] = $params['campaign_id'];
+        $tempFrstParams['campaign_id'] = $params['campaign_id'];
       }
       // set bic if entered
       if (isset($params['bic']) && !empty($params['bic'])) {
-        $sepaParams['bic'] = $params['bic'];
+        $tempFrstParams['bic'] = $params['bic'];
       }
     }
-    return $sepaParams;
+    return $tempFrstParams;
   }
 
   /**
@@ -335,7 +484,7 @@ class CRM_Apiprocessing_Contribution {
         $individualParams['gender_id'] = $genderId;
       }
     }
-    return $individual->processIncomingIndividual($individualParams);
+    return $individual->processIncomingIndividual($individualParams, 'donation');
   }
 
   /**
@@ -343,6 +492,7 @@ class CRM_Apiprocessing_Contribution {
    *
    * @param array $params
    * @param int $individualId
+   * @param string $context
    * @return bool|int
    */
   public function processOrganization($params, $individualId) {
@@ -366,7 +516,7 @@ class CRM_Apiprocessing_Contribution {
       }
     }
     $organization = new CRM_Apiprocessing_Contact();
-    $organizationId = $organization->processIncomingOrganization($organizationParams);
+    $organizationId = $organization->processIncomingOrganization($organizationParams, 'donation');
     // now process relationship between organization and individual
     $relationship = new CRM_Apiprocessing_Relationship();
     $relationship->processEmployerRelationship($organizationId, $individualId);
@@ -430,12 +580,12 @@ class CRM_Apiprocessing_Contribution {
     $mandatories = array('payment_instrument_id', 'email', 'amount');
     foreach ($mandatories as $mandatory) {
       if (!isset($params[$mandatory]) || empty($params[$mandatory])) {
-        throw new Exception('Could not find mandatory parameter '.$mandatory.' when trying to add a donation in '.__METHOD__);
+        throw new API_Exception('Could not find mandatory parameter '.$mandatory.' when trying to add a donation in '.__METHOD__, 3002);
       }
     }
     // check if payment instrument is valid
     if ($params['payment_instrument_id'] == CRM_Apiprocessing_Config::singleton()->getSepaRcurPaymentInstrumentId()) {
-      throw new Exception('Payment instrument for SEPA Recurring not allowed in '.__METHOD__);
+      throw new API_Exception('Payment instrument for SEPA Recurring not allowed in '.__METHOD__, 3003);
     }
     try {
       civicrm_api3('OptionValue', 'getsingle', array(
@@ -444,14 +594,14 @@ class CRM_Apiprocessing_Contribution {
       ));
     }
     catch (CiviCRM_API3_Exception $ex) {
-      throw new Exception('Could not find a CiviCRM payment instrument with id '.$params['payment_instrument_id'].'in '.__METHOD__);
+      throw new API_Exception('Could not find a CiviCRM payment instrument with id '.$params['payment_instrument_id'].'in '.__METHOD__, 3004);
     }
     // check if the payment instrument dependent mandatory params are present
     if ($params['payment_instrument_id'] == CRM_Apiprocessing_Config::singleton()->getSepaFrstPaymentInstrumentId()) {
       $mandatories = array('iban', 'frequency_unit');
       foreach ($mandatories as $mandatory) {
         if (!isset($params[$mandatory]) || empty($params[$mandatory])) {
-          throw new Exception('Could not find mandatory parameter '.$mandatory.' for SEPA First when trying to add a donation in '.__METHOD__);
+          throw new API_Exception('Could not find mandatory parameter '.$mandatory.' for SEPA First when trying to add a donation in '.__METHOD__, 3005);
         }
       }
       // check if frequency unit is valid
@@ -462,12 +612,12 @@ class CRM_Apiprocessing_Contribution {
         ));
       }
       catch (CiviCRM_API3_Exception $ex) {
-        throw new Exception('Invalid frequency unit '.$params['frequency_unit'].' used for SEPA First when trying to add a donation in '.__METHOD__);
+        throw new API_Exception('Invalid frequency unit '.$params['frequency_unit'].' used for SEPA First when trying to add a donation in '.__METHOD__, 3006);
       }
     }
     if ($params['payment_instrument_id'] == CRM_Apiprocessing_Config::singleton()->getSepaOoffPaymentInstrumentId()) {
       if (!isset($params['iban']) || empty($params['iban'])) {
-        throw new Exception('Could not find mandatory parameter iban for SEPA One Off when trying to add a donation in '.__METHOD__);
+        throw new API_Exception('Could not find mandatory parameter iban for SEPA One Off when trying to add a donation in '.__METHOD__, 3007);
       }
     }
     return TRUE;
@@ -523,6 +673,80 @@ class CRM_Apiprocessing_Contribution {
       Civi::log()->warning(ts('Strange error trying from API BankingAccount getcount in ')
         . __METHOD__ . ts(', error message from API: ') . $ex->getMessage());
     }
+  }
+
+  /**
+   * Method to process the confirm of a temp sdd mandate/contribution
+   *
+   * @param $tempId
+   * @return mixed
+   * @throws API_Exception
+   */
+  public function processConfirm($tempId) {
+    // check if temp ID is still in database, error if not
+    try {
+      $temp = civicrm_api3('FzfdTemp', 'getsingle', ['id' => $tempId]);
+      $this->_tempId = $tempId;
+      if ($this->isValidTempData($temp)) {
+        // remove temporary tag from contact
+        $contact = new CRM_Apiprocessing_Contact();
+        $contact->removeTemporaryTag($temp['contact_id']);
+        // process depending on payment_instrument
+        $frstType = CRM_Apiprocessing_Config::singleton()->getSepaFrstPaymentInstrumentId();
+        $ooffType = CRM_Apiprocessing_Config::singleton()->getSepaOoffPaymentInstrumentId();
+        if ($temp['payment_instrument_id'] == $frstType || $temp['payment_instrument_id'] == $ooffType) {
+          $sepaParams = $this->createSepaParams($temp['contact_id']);
+          // ugly hack because sepa ooff uses total_amount and rcur amount....
+          if ($temp['payment_instrument_id'] == $ooffType) {
+            $sepaParams['total_amount'] = $sepaParams['amount'];
+            unset($sepaParams['amount']);
+          }
+          $this->createSepaMandate($sepaParams);
+          $this->removeTempData();
+        }
+        else {
+          $contributionParams = $this->createContributionParams($temp['contact_id']);
+          $this->createNonSepa($contributionParams);
+          $this->removeTempData();
+        }
+      }
+    }
+    catch (CiviCRM_API3_Exception $ex) {
+      throw new API_Exception(ts('Could not find a temporary donation with ID ') . $tempId, 3010);
+    }
+    return $tempId;
+  }
+
+  /**
+   * Method to remove temporary data upon successfull processing
+   */
+  private function removeTempData() {
+    if ($this->_tempId) {
+      $params = [1 => [$this->_tempId, 'Integer']];
+      $query = "DELETE FROM civicrm_fzfd_contribution WHERE temp_id = %1";
+      CRM_Core_DAO::executeQuery($query, $params);
+      $query = "DELETE FROM civicrm_fzfd_sdd_mandate WHERE temp_id = %1";
+      CRM_Core_DAO::executeQuery($query, $params);
+      $query = "DELETE FROM civicrm_fzfd_temp WHERE id = %1";
+      CRM_Core_DAO::executeQuery($query, $params);
+    }
+  }
+
+  /**
+   * Method to check if valid temp data
+   *
+   * @param $temp
+   * @return bool
+   * @throws API_Exception
+   */
+  private function isValidTempData($temp) {
+    $mandatories = ['contact_id', 'payment_instrument_id'];
+    foreach ($mandatories as $mandatory) {
+      if (!isset($temp[$mandatory]) || empty($temp[$mandatory])) {
+        throw new API_Exception(ts('No ') . $mandatory . ts(' in temporary data'), 3021);
+      }
+    }
+    return TRUE;
   }
 
 }

@@ -164,6 +164,18 @@ class CRM_Apiprocessing_Form_Settings extends CRM_Core_Form {
    * Overridden parent method to build form
    */
   public function buildQuickForm() {
+    $result = civicrm_api3('FzfdDonation', 'create', [
+      'email' => 'test2@example.org',
+      'first_name' => 'Test',
+      'last_name' => 'Twee',
+      'payment_instrument_id' => 8,
+      'amount' => 15,
+      'iban' => 'BE53979123456753',
+    ]);
+    CRM_Core_Error::debug('result', $result);
+    exit();
+
+
     $this->add('select', 'forumzfd_error_activity_type_id', ts('Activity Type for ForumZFD Errors'), $this->_activityTypesList, TRUE);
     $this->add('select', 'forumzfd_error_activity_assignee_id', ts('Assign ForumZFD Error Activities to'), $this->_employeesList, TRUE);
     $this->add('select', 'akademie_error_activity_type_id', ts('Activity Type for Akademie Errors'), $this->_activityTypesList, TRUE);

@@ -110,10 +110,11 @@ class CRM_Apiprocessing_Contact {
    * than 1 are found, a new organization will be created as well as an error activity.
    *
    * @param $params
+   * @param string $context
    * @return bool|mixed
    * @throws Exception
    */
-  public function processIncomingOrganization($params) {
+  public function processIncomingOrganization($params, $context = NULL) {
     if (!isset($params['organization_name']) || empty($params['organization_name'])) {
       return FALSE;
     }
@@ -122,6 +123,9 @@ class CRM_Apiprocessing_Contact {
       return FALSE;
     }
     if (isset($find['organization_id'])) {
+      if ($context != 'donation') {
+        $this->removeTemporaryTag($find['individual_id']);
+      }
       // update organization name if it makes sense
       $this->updateOrganizationNames($find['organization_id'], $params);
       // possibly add or update address
@@ -136,6 +140,11 @@ class CRM_Apiprocessing_Contact {
       $newOrganizationParams = $this->getNewOrganizationParams($params);
       try {
         $newOrganization = civicrm_api3('Contact', 'create', $newOrganizationParams);
+        // add temporary tag to contact
+        if ($context == 'donation') {
+          // add temporary tag to contact
+          $this->addTemporaryTag($newOrganization['id']);
+        }
         // create address if applicable
         $addressParams = $this->getOrganizationAddressParams($params);
         if (!empty($addressParams)) {
@@ -196,10 +205,11 @@ class CRM_Apiprocessing_Contact {
    * found with the email, it will create a new individual but also create an error activity.
    *
    * @param $params
+   * @param string $context
    * @return int|bool
    * @throws Exception when contact not created
    */
-  public function processIncomingIndividual($params) {
+  public function processIncomingIndividual($params, $context = NULL) {
     if (isset($params['contact_hash'])) {
       $params['contact_hash'] = trim($params['contact_hash']);
     }
@@ -212,6 +222,10 @@ class CRM_Apiprocessing_Contact {
       return FALSE;
     }
     if (isset($find['individual_id'])) {
+      // remove temporary tag if not donation context
+      if ($context != 'donation') {
+        $this->removeTemporaryTag($find['individual_id']);
+      }
 		  // possibly update first and last name of individual or formal title, prefix id
       $this->updateIndividualData($find['individual_id'], $params);
       // possibly add or update address
@@ -224,6 +238,10 @@ class CRM_Apiprocessing_Contact {
       $newIndividualParams = $this->getNewIndividualParams($params);
       try {
         $newIndividual = civicrm_api3('Contact', 'create', $newIndividualParams);
+        if ($context == 'donation') {
+          // add temporary tag to contact
+          $this->addTemporaryTag($newIndividual['id']);
+        }
         // create address if applicable
         if (isset($params['individual_addresses']) && !empty($params['individual_addresses'])) {
           $address = new CRM_Apiprocessing_Address();
@@ -685,4 +703,50 @@ class CRM_Apiprocessing_Contact {
       $errorActivity->createNewErrorActivity('forumzfd', 'Different incoming data', $details, $contact['id']);
     }
   }
+
+  /**
+   * Method to add the temporary tag if contact is newly created
+   *
+   * @param $contactId
+   */
+  private function addTemporaryTag($contactId) {
+    try {
+      civicrm_api3('EntityTag', 'create' , [
+        'entity_table' => 'civicrm_contact',
+        'entity_id' => $contactId,
+        'tag_id' => CRM_Apiprocessing_Config::singleton()->getTemporaryTagId(),
+      ]);
+
+    }
+    catch (CiviCRM_API3_Exception $ex) {
+      Civi::log()->warning(ts('Could not add tag Temporär to contact ') . $contactId);
+    }
+  }
+
+  /**
+   * Method to remove the temporary tag if contact comes with other process than donation
+   * @param $contactId
+   */
+  public function removeTemporaryTag($contactId) {
+    try {
+      $entityTagId = civicrm_api3('EntityTag', 'getvalue' , [
+        'return' => "id",
+        'entity_table' => "civicrm_contact",
+        'entity_id' => $contactId,
+        'tag_id' => CRM_Apiprocessing_Config::singleton()->getTemporaryTagId(),
+        ]);
+      Civi::log()->debug('entityTagId ' . $entityTagId);
+      if ($entityTagId) {
+        civicrm_api3('EntityTag', 'delete', [
+          'id' => $entityTagId,
+          'contact_id' => $contactId,
+          ]);
+      }
+    }
+    catch (CiviCRM_API3_Exception $ex) {
+      Civi::log()->debug('foutboodschap is ' . $ex->getMessage());
+      Civi::log()->warning(ts('Could not remove tag Temporär from contact ') . $contactId);
+    }
+  }
+
 }
