@@ -748,5 +748,29 @@ class CRM_Apiprocessing_Contact {
       Civi::log()->warning(ts('Could not remove tag Temporär from contact ') . $contactId);
     }
   }
+  /**
+   * Method to remove the unwanted temporary tags
+   */
+  public function removeUnwantedTemporaryTags() {
+    $query = "SELECT entity_id 
+      FROM civicrm_entity_tag
+      WHERE entity_table = %1 AND tag_id = %2 
+      AND entity_id NOT IN (SELECT distinct(contact_id) FROM civicrm_fzfd_temp)";
+    $dao = CRM_Core_DAO::executeQuery($query, [
+      1 => ['civicrm_contact', 'String'],
+      2 => [CRM_Apiprocessing_Config::singleton()->getTemporaryTagId(), 'Integer'],
+    ]);
+    while ($dao->fetch()) {
+      try {
+        civicrm_api3('EntityTag', 'delete', [
+          'tag_id' => CRM_Apiprocessing_Config::singleton()->getTemporaryTagId(),
+          'contact_id' => $dao->entity_id,
+        ]);
+      }
+      catch (CiviCRM_API3_Exception $ex) {
+      }
+    }
+  }
+
 
 }

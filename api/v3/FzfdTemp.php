@@ -45,7 +45,7 @@ function _civicrm_api3_fzfd_temp_delete_spec(&$spec) {
  *
  * @param array $params
  * @return array API result descriptor
- * @throws API_Exception
+ * @throws
  */
 function civicrm_api3_fzfd_temp_create($params) {
   return civicrm_api3_create_success(CRM_Apiprocessing_BAO_FzfdTemp::create($params), $params, "FzfdTemp", "create");
@@ -56,7 +56,7 @@ function civicrm_api3_fzfd_temp_create($params) {
  *
  * @param array $params
  * @return array API result descriptor
- * @throws API_Exception
+ * @throws
  */
 function civicrm_api3_fzfd_temp_delete($params) {
   return civicrm_api3_create_success(CRM_Apiprocessing_BAO_FzfdTemp::deleteWithId($params['id']), $params, "FzfdTemp", "delete");
@@ -67,8 +67,23 @@ function civicrm_api3_fzfd_temp_delete($params) {
  *
  * @param array $params
  * @return array API result descriptor
- * @throws API_Exception
+ * @throws
  */
 function civicrm_api3_fzfd_temp_get($params) {
   return civicrm_api3_create_success(CRM_Apiprocessing_BAO_FzfdTemp::getValues($params), $params, "FzfdTemp", "get");
+}
+
+/**
+ * FzfdTemp.cleanup APO
+ *
+ * @param $params
+ * @return array API result descriptor
+ * @throws
+ */
+
+function civicrm_api3_fzfd_temp_cleanup($params) {
+  if (!isset($params['number_of_months']) || empty($params['number_of_months'])) {
+    $params['number_of_months'] = 1;
+  }
+  return civicrm_api3_create_success(CRM_Apiprocessing_BAO_FzfdTemp::cleanUp($params['number_of_months']), $params, "FzfdTemp", "cleanup");
 }
