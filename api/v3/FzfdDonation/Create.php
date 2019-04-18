@@ -132,6 +132,11 @@ function _civicrm_api3_fzfd_donation_Create_spec(&$spec) {
     'name' => 'individual_addresses',
     'title' => 'individual_addresses',
   );
+  $spec['is_test'] = [
+    'name' => 'is_test',
+    'title' => 'is test donation',
+    'type' => CRM_Utils_Type::T_BOOLEAN,
+  ];
 
 }
 

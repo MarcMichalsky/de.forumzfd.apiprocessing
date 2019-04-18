@@ -171,6 +171,20 @@ class CRM_Apiprocessing_Upgrader extends CRM_Apiprocessing_Upgrader_Base {
   }
 
   /**
+   * Upgrade 1021 - add is_test and facilitate test processing for contributions
+   *
+   * @return bool
+   */
+  public function upgrade_1021() {
+    $this->ctx->log->info('Applying update 1021 - add is_test column');
+    if (!CRM_Core_DAO::checkFieldExists('civicrm_fzfd_temp', 'is_test')) {
+      $query = "ALTER TABLE civicrm_fzfd_temp ADD COLUMN `is_test` TINYINT DEFAULT 0 COMMENT 'is test donation'";
+      CRM_Core_DAO::executeQuery($query);
+    }
+    return TRUE;
+  }
+
+  /**
    * Example: Run an external SQL script when the module is uninstalled.
    *
   public function uninstall() {

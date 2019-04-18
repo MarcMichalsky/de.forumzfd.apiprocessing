@@ -135,7 +135,12 @@ class CRM_Apiprocessing_Contribution {
       // process donor (find contact id or create if required)
       $donorContactId = $this->processIndividual($params);
       // create temporary ID for request
-      $this->createTemporaryId($donorContactId, $params['payment_instrument_id']);
+      if ($params['is_test'] == TRUE) {
+        $this->createTemporaryId($donorContactId, $params['payment_instrument_id'], TRUE);
+      }
+      else {
+        $this->createTemporaryId($donorContactId, $params['payment_instrument_id'], FALSE);
+      }
       if ($donorContactId) {
         // process organization if required
         if (isset($params['organization_name']) && !empty($params['organization_name'])) {
@@ -185,15 +190,17 @@ class CRM_Apiprocessing_Contribution {
    *
    * @param int $contactId
    * @param int $paymentInstrumentId
+   * @param bool $isTest
    * @throws API_Exception
    */
-  private function createTemporaryId($contactId, $paymentInstrumentId) {
+  private function createTemporaryId($contactId, $paymentInstrumentId, $isTest) {
     $dateCreated = new DateTime();
     try {
       $temp = civicrm_api3('FzfdTemp', 'create', [
         'contact_id' => $contactId,
         'payment_instrument_id' => $paymentInstrumentId,
         'date_created' => $dateCreated->format('YmdHis'),
+        'is_test' => $isTest,
       ]);
       if ($temp['values']->id) {
         $this->_tempId = (int) $temp['values']->id;
@@ -625,6 +632,7 @@ class CRM_Apiprocessing_Contribution {
    * @throws Exception when non valid parameters found
    */
   private function validIncomingParams($params) {
+    // set test to 0 if not set
     // check if all generic mandatory params are present
     $mandatories = array('payment_instrument_id', 'email', 'amount');
     foreach ($mandatories as $mandatory) {
@@ -750,11 +758,19 @@ class CRM_Apiprocessing_Contribution {
             $sepaParams['total_amount'] = $sepaParams['amount'];
             unset($sepaParams['amount']);
           }
+          // check if this is a test and if so, pass param
+          if ($temp['is_test'] == TRUE) {
+            $sepaParams['is_test'] = 1;
+          }
           $this->createSepaMandate($sepaParams);
           $this->removeTempData();
         }
         else {
           $contributionParams = $this->createContributionParams($temp['contact_id']);
+          // check if this is a test and if so, pass param
+          if ($temp['is_test'] == TRUE) {
+            $contributionParams['is_test'] = 1;
+          }
           $this->createNonSepa($contributionParams);
           $this->removeTempData();
         }

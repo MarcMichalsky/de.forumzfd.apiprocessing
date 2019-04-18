@@ -86,6 +86,7 @@ CREATE TABLE `civicrm_fzfd_temp` (
      `id` int unsigned NOT NULL AUTO_INCREMENT  COMMENT 'Unique FzfdTemp ID',
      `contact_id` int unsigned    COMMENT 'FK to Contact',
      `payment_instrument_id` int unsigned    ,
+     `is_test` tinyint   DEFAULT 0 ,
      `date_created` datetime
 ,
         PRIMARY KEY (`id`)
@@ -151,4 +152,3 @@ CREATE TABLE `civicrm_fzfd_sdd_mandate` (
 ,          CONSTRAINT FK_civicrm_fzfd_sdd_mandate_temp_id FOREIGN KEY (`temp_id`) REFERENCES `civicrm_fzfd_temp`(`id`) ON DELETE CASCADE  
 )    ;
 
- 
