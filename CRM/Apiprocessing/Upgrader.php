@@ -6,7 +6,6 @@
 class CRM_Apiprocessing_Upgrader extends CRM_Apiprocessing_Upgrader_Base {
 
   public function install() {
-    $this->executeCustomDataFile('xml/Akademie.xml');
 		$this->executeCustomDataFile('xml/Campaign.xml');
 		$this->executeCustomDataFile('xml/WeitereInformation.xml');
 		$this->executeCustomDataFile('xml/Weiterbildung.xml');
@@ -143,6 +142,20 @@ class CRM_Apiprocessing_Upgrader extends CRM_Apiprocessing_Upgrader_Base {
     $this->ctx->log->info('Applying update 1010 - temporary tables');
     $this->executeSqlFile('sql/auto_install.sql');
     new CRM_Apiprocessing_Initialize();
+    return TRUE;
+  }
+
+  /**
+   * Upgrade 1015 - add fields wishes and experience to new participant data custom group
+   *
+   * @return bool
+   */
+  public function upgrade_1015() {
+    $this->ctx->log->info('Applying update 1015 - wishes and experience into participant custom group');
+    $newFieldsCreated = CRM_Apiprocessing_CustomData::createExpAndWishesParticipantCustomFields();
+    if ($newFieldsCreated) {
+      CRM_Apiprocessing_CustomData::migrateOldExperienceAndWishes();
+    }
     return TRUE;
   }
 

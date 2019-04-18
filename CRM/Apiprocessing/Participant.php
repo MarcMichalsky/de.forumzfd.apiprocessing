@@ -38,9 +38,15 @@ class CRM_Apiprocessing_Participant {
 				$activity = new CRM_Apiprocessing_Activity();
 				$activity->createNewErrorActivity('akademie', ts('Request to check the data'), $apiParams, $contactId);
 			}
-			// add custom field if required
+			// add custom fields if required
       if (isset($apiParams['how_did_you_hear_about_us'])) {
         $participantParams['custom_'.$config->getNewHowDidCustomFieldId()] = $apiParams['how_did_you_hear_about_us'];
+      }
+      if (isset($apiParams['wishes'])) {
+        $participantParams['custom_'.$config->getWishesCustomFieldId()] = $apiParams['wishes'];
+      }
+      if (isset($apiParams['experience'])) {
+        $participantParams['custom_'.$config->getExperienceCustomFieldId()] = $apiParams['experience'];
       }
       // always use role teilnehmer
       $participantParams['role_id'] = CRM_Apiprocessing_Config::singleton()->getAttendeeParticipantRoleId();

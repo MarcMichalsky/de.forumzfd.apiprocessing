@@ -56,11 +56,6 @@ function _apiprocessing_insert_navigation_menu(&$menu, $path, $item) {
   }
 }
 
-
-
-
-
-
 /**
  * Implements hook_civicrm_config().
  *

@@ -41,7 +41,6 @@ class CRM_Apiprocessing_Config {
   private $_sepaFrstMandateStatus = NULL;
   private $_sepaOoffMandateType = NULL;
   private $_sepaRcurMandateType = NULL;
-	private $_akademieCustomGroup = NULL;
 	private $_experienceCustomFieldId = NULL;
 	private $_employerCustomFieldId = NULL;
 	private $_wishesCustomFieldId = NULL;
@@ -857,30 +856,6 @@ class CRM_Apiprocessing_Config {
       throw new Exception('Could not find custom data set Weiterbildung in '.__METHOD__
         .' contact your system administrator. Error from API CustomGroup getsingle: '.$ex->getMessage());
     }
-    try {
-      $this->_akademieCustomGroup = civicrm_api3('CustomGroup', 'getsingle', array('name' => 'fzfd_akademie_data'));
-    } catch (CiviCRM_API3_Exception $ex) {
-      throw new Exception('Could not find custom data set Akademie in '.__METHOD__
-        .' contact your system administrator. Error from API CustomGroup getsingle: '.$ex->getMessage());
-    }
-    try {
-      $this->_experienceCustomFieldId = civicrm_api3('CustomField', 'getvalue', array('name' => 'fzfd_experience', 'custom_group_id' => $this->_akademieCustomGroup['id'],'return' => 'id'));
-    } catch (CiviCRM_API3_Exception $ex) {
-      throw new Exception('Could not find custom field Experience in '.__METHOD__
-        .' contact your system administrator. Error from API CustomField getvalue: '.$ex->getMessage());
-    }
-    try {
-      $this->_wishesCustomFieldId = civicrm_api3('CustomField', 'getvalue', array('name' => 'fzfd_wishes', 'custom_group_id' => $this->_akademieCustomGroup['id'],'return' => 'id'));
-    } catch (CiviCRM_API3_Exception $ex) {
-      throw new Exception('Could not find custom field Wishes in '.__METHOD__
-        .' contact your system administrator. Error from API CustomField getvalue: '.$ex->getMessage());
-    }
-    try {
-      $this->_employerCustomFieldId = civicrm_api3('CustomField', 'getvalue', array('name' => 'fzfd_employer', 'custom_group_id' => $this->_akademieCustomGroup['id'],'return' => 'id'));
-    } catch (CiviCRM_API3_Exception $ex) {
-      throw new Exception('Could not find custom field Employer in '.__METHOD__
-        .' contact your system administrator. Error from API CustomField getvalue: '.$ex->getMessage());
-    }
     // new event custom group and custom fields
     try {
       $this->_newEventCustomGroup = civicrm_api3('CustomGroup', 'getsingle', array('name' => 'fzfd_event_data_new'));
@@ -959,6 +934,20 @@ class CRM_Apiprocessing_Config {
       $this->_newHowDidCustomFieldId = civicrm_api3('CustomField', 'getvalue', array('name' => 'fzfd_where_did_you_hear', 'custom_group_id' => $this->_newParticipantCustomGroup['id'],'return' => 'id'));
     } catch (CiviCRM_API3_Exception $ex) {
       throw new Exception('Could not find custom field How did you hear about us in '.__METHOD__
+        .' contact your system administrator. Error from API CustomField getvalue: '.$ex->getMessage());
+    }
+
+    try {
+      $this->_wishesCustomFieldId = civicrm_api3('CustomField', 'getvalue', ['name' => 'fzfd_wishes_new', 'custom_group_id' => $this->_newParticipantCustomGroup['id'],'return' => 'id']);
+    } catch (CiviCRM_API3_Exception $ex) {
+      throw new Exception('Could not find custom field Wishes in '.__METHOD__
+        .' contact your system administrator. Error from API CustomField getvalue: '.$ex->getMessage());
+    }
+
+    try {
+      $this->_experienceCustomFieldId = civicrm_api3('CustomField', 'getvalue', ['name' => 'fzfd_experience_new', 'custom_group_id' => $this->_newParticipantCustomGroup['id'],'return' => 'id']);
+    } catch (CiviCRM_API3_Exception $ex) {
+      throw new Exception('Could not find custom field Experience in '.__METHOD__
         .' contact your system administrator. Error from API CustomField getvalue: '.$ex->getMessage());
     }
 

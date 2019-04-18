@@ -735,7 +735,6 @@ class CRM_Apiprocessing_Contact {
         'entity_id' => $contactId,
         'tag_id' => CRM_Apiprocessing_Config::singleton()->getTemporaryTagId(),
         ]);
-      Civi::log()->debug('entityTagId ' . $entityTagId);
       if ($entityTagId) {
         civicrm_api3('EntityTag', 'delete', [
           'id' => $entityTagId,
@@ -744,7 +743,6 @@ class CRM_Apiprocessing_Contact {
       }
     }
     catch (CiviCRM_API3_Exception $ex) {
-      Civi::log()->debug('foutboodschap is ' . $ex->getMessage());
       Civi::log()->warning(ts('Could not remove tag Temporär from contact ') . $contactId);
     }
   }
