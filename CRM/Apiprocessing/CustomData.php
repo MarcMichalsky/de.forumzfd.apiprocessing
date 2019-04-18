@@ -107,6 +107,41 @@ class CRM_Apiprocessing_CustomData {
   }
 
   /**
+   * Method to add the employer custom field to new participant custom group
+   * @return bool
+   */
+  public static function createEmployerParticipantCustomFields() {
+    try {
+      $count = civicrm_api3('CustomField', 'getcount', [
+        'custom_group_id' => 'fzfd_participant_data_new',
+        'name' => 'fzfd_employer_new',
+      ]);
+      if ($count == 0) {
+        try {
+          civicrm_api3('CustomField', 'create', [
+            'custom_group_id' => 'fzfd_participant_data_new',
+            'label' => ts('Employer'),
+            'name' => 'fzfd_employer_new',
+            'column_name' => 'fzfd_employer_new',
+            'data_type' => 'String',
+            'html_type' => 'Text',
+            'is_active' => 1,
+            'is_searchable' => 1,
+            'weight' => 25,
+            'sequential' => 1,
+          ]);
+        } catch (CiviCRM_API3_Exception $ex) {
+          Civi::log()->error(ts('Could not create custom field Employer for participant custom group in ') . __METHOD__
+            . ts(', error from API CustomField create :') . $ex->getMessage());
+          return FALSE;
+        }
+      }
+    }
+    catch (CiviCRM_API3_Exception $ex) {
+    }
+  }
+
+  /**
    * Method to migrate wishes and experience to the new custom group
    */
   public static function migrateOldExperienceAndWishes() {

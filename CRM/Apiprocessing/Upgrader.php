@@ -160,6 +160,17 @@ class CRM_Apiprocessing_Upgrader extends CRM_Apiprocessing_Upgrader_Base {
   }
 
   /**
+   * Upgrade 1020 - add field employer to new participant data custom group
+   *
+   * @return bool
+   */
+  public function upgrade_1020() {
+    $this->ctx->log->info('Applying update 1020 - employer into participant custom group');
+    CRM_Apiprocessing_CustomData::createEmployerParticipantCustomFields();
+    return TRUE;
+  }
+
+  /**
    * Example: Run an external SQL script when the module is uninstalled.
    *
   public function uninstall() {

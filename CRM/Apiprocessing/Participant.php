@@ -48,6 +48,9 @@ class CRM_Apiprocessing_Participant {
       if (isset($apiParams['experience'])) {
         $participantParams['custom_'.$config->getExperienceCustomFieldId()] = $apiParams['experience'];
       }
+      if (isset($apiParams['employer'])) {
+        $participantParams['custom_'.$config->getEmployerCustomFieldId()] = $apiParams['employer'];
+      }
       // always use role teilnehmer
       $participantParams['role_id'] = CRM_Apiprocessing_Config::singleton()->getAttendeeParticipantRoleId();
 			$result = civicrm_api3('Participant', 'create', $participantParams);

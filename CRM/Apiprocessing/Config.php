@@ -952,6 +952,13 @@ class CRM_Apiprocessing_Config {
     }
 
     try {
+      $this->_employerCustomFieldId = civicrm_api3('CustomField', 'getvalue', ['name' => 'fzfd_employer_new', 'custom_group_id' => $this->_newParticipantCustomGroup['id'],'return' => 'id']);
+    } catch (CiviCRM_API3_Exception $ex) {
+      throw new Exception('Could not find custom field Employer in '.__METHOD__
+        .' contact your system administrator. Error from API CustomField getvalue: '.$ex->getMessage());
+    }
+
+    try {
       $this->_campaignOnLineCustomFieldId = civicrm_api3('CustomField', 'getvalue', array(
         'name' => 'fzfd_campaign_on_line',
         'custom_group_id' => 'fzfd_campaign_data',
