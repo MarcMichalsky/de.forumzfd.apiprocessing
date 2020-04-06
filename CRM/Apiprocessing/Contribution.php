@@ -25,7 +25,7 @@ class CRM_Apiprocessing_Contribution {
     $paymentOptionGroupId = CRM_Apiprocessing_Utils::getOptionGroupIdWithName('payment_instrument');
     if ($paymentOptionGroupId) {
       $tempData = [];
-      $query = "SELECT cfm.status, cfm.iban, cfm.bic, cfm.amount, cfm.frequency_unit, cfc.payment_instrument_id, 
+      $query = "SELECT cfm.status, cfm.iban, cfm.bic, cfm.amount, cfm.frequency_unit, cfc.payment_instrument_id,
       cfc.total_amount, ov.label AS payment_instrument
       FROM civicrm_fzfd_temp AS cft
       LEFT JOIN civicrm_fzfd_sdd_mandate AS cfm ON cft.id = cfm.temp_id
@@ -753,11 +753,6 @@ class CRM_Apiprocessing_Contribution {
         $ooffType = CRM_Apiprocessing_Config::singleton()->getSepaOoffPaymentInstrumentId();
         if ($temp['payment_instrument_id'] == $frstType || $temp['payment_instrument_id'] == $ooffType) {
           $sepaParams = $this->createSepaParams($temp['contact_id']);
-          // ugly hack because sepa ooff uses total_amount and rcur amount....
-          if ($temp['payment_instrument_id'] == $ooffType) {
-            $sepaParams['total_amount'] = $sepaParams['amount'];
-            unset($sepaParams['amount']);
-          }
           // check if this is a test and if so, pass param
           if ($temp['is_test'] == TRUE) {
             $sepaParams['is_test'] = 1;
