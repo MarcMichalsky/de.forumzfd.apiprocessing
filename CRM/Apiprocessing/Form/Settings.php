@@ -1,4 +1,5 @@
 <?php
+use CRM_Apiprocessing_ExtensionUtil as E;
 
 /**
  * Form controller class
@@ -164,6 +165,26 @@ class CRM_Apiprocessing_Form_Settings extends CRM_Core_Form {
    * Overridden parent method to build form
    */
   public function buildQuickForm() {
+
+    $test = civicrm_api3("FzfdAkademie", "register", [
+      'event_id' => 534,
+      'first_name' => "Erik",
+      'last_name' => "Hommel",
+      'email' => "erik.hommel@civicoop.org",
+      'bewerbungsschreiben' => [
+        'name' => 'test1.txt',
+        'content' => "Dit is de reclame over jezelf",
+      ],
+      'lebenslauf' => [
+        'name' => 'test2.txt',
+        'content' => 'en de CV.'
+      ],
+    ]);
+    CRM_Core_Error::debug('test', $test);
+    exit();
+
+
+
     $this->add('select', 'forumzfd_error_activity_type_id', ts('Activity Type for ForumZFD Errors'), $this->_activityTypesList, TRUE);
     $this->add('select', 'forumzfd_error_activity_assignee_id', ts('Assign ForumZFD Error Activities to'), $this->_employeesList, TRUE);
     $this->add('select', 'akademie_error_activity_type_id', ts('Activity Type for Akademie Errors'), $this->_activityTypesList, TRUE);
@@ -186,6 +207,8 @@ class CRM_Apiprocessing_Form_Settings extends CRM_Core_Form {
       ['id' => 'fzfd_participant_status_id', 'multiple' => 'multiple', 'class' => 'crm-select2']);
     $this->add('select', 'fzfdperson_location_type', ts('Location Type for API FzfdPerson Get'), $this->_locationTypeList, TRUE);
     $this->add('select', 'fzfd_address_location_type', ts('Location Type for address with API'), $this->_locationTypeList, TRUE);
+    $this->add('select', 'fzfd_valid_uploads', E::ts('Valid files for upload bewerbungsschreiben and lebenslauf'), CRM_Apiprocessing_Attachment::getValidUploads(), TRUE,
+      ['id' => 'fzfd_valid_uploads', 'multiple' => 'multiple', 'class' => 'crm-select2']);
 
     // add buttons
     $this->addButtons(array(
@@ -232,6 +255,7 @@ class CRM_Apiprocessing_Form_Settings extends CRM_Core_Form {
         'fzfdperson_location_type' => $formValues['fzfdperson_location_type'],
         'fzfd_address_location_type' => $formValues['fzfd_address_location_type'],
         'fzfd_participant_status_id' => $formValues['fzfd_participant_status_id'],
+        'fzfd_valid_uploads' => $formValues['fzfd_valid_uploads'],
       );
       if (!empty($formValues['default_cycle_day_sepa'])) {
         $data['default_cycle_day_sepa'] = $formValues['default_cycle_day_sepa'];

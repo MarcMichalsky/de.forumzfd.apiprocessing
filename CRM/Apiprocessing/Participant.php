@@ -1,7 +1,7 @@
 <?php
 
 class CRM_Apiprocessing_Participant {
-	
+
 	/**
 	 * Process a registration for an event.
 	 */
@@ -9,7 +9,7 @@ class CRM_Apiprocessing_Participant {
 		try {
 			$config = CRM_Apiprocessing_Config::singleton();
 			$activity = new CRM_Apiprocessing_Activity();
-			
+
 			$contact = new CRM_Apiprocessing_Contact();
 			$contactId = $contact->processIncomingIndividual($apiParams);
 			if (isset($apiParams['organization_name']) && !empty($apiParams['organization_name'])) {
@@ -18,16 +18,16 @@ class CRM_Apiprocessing_Participant {
 			if (empty($contactId)) {
 				throw new Exception('Could not find or create a contact for registering for an event');
 			}
-			
+
 			$this->processCustomFields($apiParams, $contactId);
 			$this->processNewsletterSubscribtions($apiParams, $contactId);
-			
+
 			$participantParams = array(
 				'event_id' => $apiParams['event_id'],
 				'contact_id' => $contactId,
 				'status_id' => $this->generateParticipantStatus($apiParams['event_id']),
 			);
-			
+
 			// Try to find an existing registration. If so create an error activity and do not create an extra participant record.
 			$existingParticipant = $this->findCurrentRegistration($apiParams['event_id'], $contactId);
 			if ($existingParticipant && isset($existingParticipant['participant_status_id']) && $existingParticipant['participant_status_id'] == $config->getRegisteredParticipantStatusId()) {
@@ -54,17 +54,50 @@ class CRM_Apiprocessing_Participant {
       // always use role teilnehmer
       $participantParams['role_id'] = CRM_Apiprocessing_Config::singleton()->getAttendeeParticipantRoleId();
 			$result = civicrm_api3('Participant', 'create', $participantParams);
+      // if files for lebenslauf or bewerbungsschreiben added, upload attachments to CiviCRM
+      if (isset($apiParams['bewerbungsschreiben']) || isset($apiParams['lebenslauf'])) {
+        $this->addAttachment((int) $result['id'], $apiParams, $activity);
+      }
 			return $this->createApi3SuccessReturnArray($apiParams['event_id'], $contactId, $result['id'], $participantParams['status_id']);
-			
+
 		} catch (Exception $ex) {
 			return array(
     			'is_error' => 1,
     			'count' => 0,
     			'values' => array(),
-    			'error_message' => 'Could not register for an event in '.__METHOD__.', contact your system administrator. Error: '.$ex->getMessage(), 
+    			'error_message' => 'Could not register for an event in '.__METHOD__.', contact your system administrator. Error: '.$ex->getMessage(),
 				);
 		}
 	}
+
+  /**
+   * Method to add attachments to participant
+   *
+   * @param int $participantId
+   * @param array $apiParams
+   * @param CRM_Apiprocessing_Activity $activity
+   */
+  private function addAttachment(int $participantId, array $apiParams, CRM_Apiprocessing_Activity $activity) {
+    $possibleAttachments = ['bewerbungsschreiben', 'lebenslauf'];
+    foreach ($possibleAttachments as $possibleAttachment) {
+      if (isset($apiParams[$possibleAttachment]) && !empty($possibleAttachment)) {
+        if (is_array($apiParams[$possibleAttachment])) {
+          $columnMethod = "get" . ucfirst($possibleAttachment) . "CustomFieldId";
+          $customField = "custom_" . CRM_Apiprocessing_Config::singleton()->$columnMethod();
+          if ($customField) {
+            $attachment = new CRM_Apiprocessing_Attachment($apiParams[$possibleAttachment]);
+            $fileId = $attachment->addToCivi($participantId, $customField);
+            if (!$fileId) {
+              $activity->createNewErrorActivity('akademie', ts('Attachment for ') . $possibleAttachment . ts(' could not be loaded, check CiviCRM logs.'), $apiParams);
+            }
+          }
+        }
+        else {
+          $activity->createNewErrorActivity('akademie', ts('Attachment for ') . $possibleAttachment . ts(' is not an array.'), $apiParams);
+        }
+      }
+    }
+  }
 
   /**
    * Method to determine if participant can be registered or should be waitlisted
@@ -124,12 +157,12 @@ class CRM_Apiprocessing_Participant {
 			// In theory there could be more than one registration we return the first one.
 			$participant = reset($result['values']);
 			return $participant;
-		} 
+		}
 		return false;
 	}
 
 	/**
- 	 * Returns an Api3 success array for registering or applying successfully. 
+ 	 * Returns an Api3 success array for registering or applying successfully.
  	 */
 	private function createApi3SuccessReturnArray($eventId, $contactId, $participantId, $participantStatusId = NULL) {
 	  // set status based on event type
@@ -181,7 +214,7 @@ class CRM_Apiprocessing_Participant {
 		if (empty($subscribeNewsletterIds)) {
 			return;
 		}
-		
+
 		$groupContactApiParams['group_id'] = $subscribeNewsletterIds;
 		$groupContactApiParams['contact_id'] = $contactId;
 		civicrm_api3('GroupContact', 'create', $groupContactApiParams);
@@ -222,5 +255,5 @@ class CRM_Apiprocessing_Participant {
     $relationship->processEmployerRelationship($organizationId, $individualId);
     return $organizationId;
   }
-	
+
 }

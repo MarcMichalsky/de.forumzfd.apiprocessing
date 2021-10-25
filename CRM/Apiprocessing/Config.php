@@ -68,6 +68,9 @@ class CRM_Apiprocessing_Config {
 	private $_websiteConsentCustomFieldId = NULL;
 	private $_temporaryTagId = NULL;
 	private $_payDirektPaymentInstrumentId = NULL;
+  private $_bewerbungCustomFieldId = NULL;
+  private $_bewerbungsschreibenCustomFieldId = NULL;
+  private $_lebenslaufCustomFieldId = NULL;
 
 	// new event data
   private $_newEventCustomGroup = NULL;
@@ -482,7 +485,7 @@ class CRM_Apiprocessing_Config {
   public function getScheduledActivityStatusId() {
     return $this->_scheduledActivityStatusId;
   }
-	
+
 	/**
    * Getter for completed activity status id
    *
@@ -536,35 +539,49 @@ class CRM_Apiprocessing_Config {
   public function getEmployeeRelationshipTypeId() {
     return $this->_employeeRelationshipTypeId;
   }
-	
+
 	/**
 	 * Getter for employer custom field id
 	 */
 	public function getEmployerCustomFieldId() {
 		return $this->_employerCustomFieldId;
 	}
-	
+
 	/**
 	 * Getter for experience custom field id
 	 */
 	public function getExperienceCustomFieldId() {
 		return $this->_experienceCustomFieldId;
 	}
-	
+
 	/**
 	 * Getter for wishes custom field id
 	 */
 	public function getWishesCustomFieldId() {
 		return $this->_wishesCustomFieldId;
 	}
-	
+
+	/**
+	 * Getter for bewerbungsschreiben custom field id
+	 */
+	public function getBewerbungsschreibenCustomFieldId() {
+		return $this->_bewerbungsschreibenCustomFieldId;
+	}
+
+	/**
+	 * Getter for lebenslauf custom field id
+	 */
+	public function getLebenslaufCustomFieldId() {
+		return $this->_lebenslaufCustomFieldId;
+	}
+
 	/**
 	 * Getter for addition data custom field id.
 	 */
 	public function getAdditionalDataCustomFieldId() {
 		return $this->_additionalDataCustomFieldId;
 	}
-	
+
 	/**
 	 * Getter for department custom field id.
 	 */
@@ -753,7 +770,7 @@ class CRM_Apiprocessing_Config {
   			} else {
   				$activityTypeLabel = CRM_Apiprocessing_Utils::createLabelFromName($activityTypeName);
   			}
-         
+
         $newActivityType = civicrm_api3('OptionValue', 'create', array(
           'option_group_id' => 'activity_type',
           'label' => $activityTypeLabel,
@@ -952,6 +969,20 @@ class CRM_Apiprocessing_Config {
     }
 
     try {
+      $this->_bewerbungsschreibenCustomFieldId = civicrm_api3('CustomField', 'getvalue', ['name' => 'fzfd_bewerbungsschreiben', 'custom_group_id' => $this->_newParticipantCustomGroup['id'],'return' => 'id']);
+    } catch (CiviCRM_API3_Exception $ex) {
+      throw new Exception('Could not find custom field Bewerbungsschreiben in '.__METHOD__
+        .' contact your system administrator. Error from API CustomField getvalue: '.$ex->getMessage());
+    }
+
+    try {
+      $this->_lebenslaufCustomFieldId = civicrm_api3('CustomField', 'getvalue', ['name' => 'fzfd_lebenslauf', 'custom_group_id' => $this->_newParticipantCustomGroup['id'],'return' => 'id']);
+    } catch (CiviCRM_API3_Exception $ex) {
+      throw new Exception('Could not find custom field Lebenslauf in '.__METHOD__
+        .' contact your system administrator. Error from API CustomField getvalue: '.$ex->getMessage());
+    }
+
+    try {
       $this->_employerCustomFieldId = civicrm_api3('CustomField', 'getvalue', ['name' => 'fzfd_employer_new', 'custom_group_id' => $this->_newParticipantCustomGroup['id'],'return' => 'id']);
     } catch (CiviCRM_API3_Exception $ex) {
       throw new Exception('Could not find custom field Employer in '.__METHOD__
@@ -966,7 +997,7 @@ class CRM_Apiprocessing_Config {
         ));
     }
     catch (CiviCRM_API3_Exception $ex) {
-      throw new Exception('Could not find custom field Kampagnen On Line Verfügabar (fzfd_camapaign_on_line) in '.__METHOD__
+      throw new Exception('Could not find custom field Kampagnen On Line Verfügabar (fzfd_campaign_on_line) in '.__METHOD__
         .' contact your system administrator. Error from API CustomField getvalue: '.$ex->getMessage());
     }
     try {

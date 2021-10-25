@@ -112,6 +112,11 @@
     <div class="content">{$form.fzfd_donation_level_three_max.html}</div>
     <div class="clear"></div>
   </div>
+  <div class="crm-section">
+    <div class="label">{$form.fzfd_valid_uploads.label}</div>
+    <div class="content">{$form.fzfd_valid_uploads.html}</div>
+    <div class="clear"></div>
+  </div>
 
   {* FOOTER *}
   <div class="crm-submit-buttons">
