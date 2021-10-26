@@ -12,14 +12,12 @@ use CRM_Apiprocessing_ExtensionUtil as E;
 class CRM_Apiprocessing_Attachment {
 
   private $_file;
-  private $_participantDataTable;
 
   /**
    * @param array $file
    */
   public function __construct(array $file) {
     $this->_file = $file;
-    $this->_participantDataTable = "civicrm_value_fzfd_participant_data_new";
   }
 
   /**
@@ -31,15 +29,15 @@ class CRM_Apiprocessing_Attachment {
    */
   public function addToCivi(int $entityId, string $fieldName) {
     if ($this->isValidFile()) {
-      $mimeType = mime_content_type($this->_file['name']);
-      if ($mimeType && $this->isValidMimeType()) {
+      $mimeType = $this->getMimeType();
+      if ($mimeType && $this->isValidMimeType($mimeType)) {
         try {
           $result = civicrm_api3('Attachment', 'create', [
             'name' => $this->_file['name'],
             'mime_type' => $mimeType,
             'entity_id' => $entityId,
             'field_name' => $fieldName,
-            'content' => $this->_file['content/url'],
+            'content' => $this->_file['content'],
           ]);
           if ($result['id']) {
             return (int) $result['id'];
@@ -55,13 +53,27 @@ class CRM_Apiprocessing_Attachment {
   }
 
   /**
+   * Method to get the mime type of the uploaded file
+   *
+   * @return false|string
+   */
+  public function getMimeType() {
+    $finfo = finfo_open(FILEINFO_MIME_TYPE);
+    $mimeType = finfo_file($finfo, $this->_file['name']);
+    if ($mimeType) {
+      return $mimeType;
+    }
+    return FALSE;
+  }
+
+  /**
    * Method to determine if upload is valid
    *
+   * @param string $mimeType
    * @return bool
    */
-  public function isValidMimeType() {
-    $mimeType = $this->getMimeType();
-    if ($mimeType) {
+  public function isValidMimeType(string $mimeType) {
+    if (!empty($mimeType)) {
       $valids = CRM_Apiprocessing_Attachment::getValidUploads();
       foreach ($valids as $key => $ext) {
         if ($mimeType == $key) {

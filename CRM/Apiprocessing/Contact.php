@@ -17,7 +17,7 @@ class CRM_Apiprocessing_Contact {
   function __construct()   {
     $this->_defaultContactType = "Individual";
   }
-	
+
 	/**
    * Method to find either the contact id with hash if there is a single match or the number of matches found
    *
@@ -327,14 +327,14 @@ class CRM_Apiprocessing_Contact {
         $newIndividualParams['gender_id'] = $genderId;
       }
     }
-		
+
 		if (isset($params['additional_data'])) {
 			$newIndividualParams['custom_'.$config->getAdditionalDataCustomFieldId()] = $params['additional_data'];
 		}
 		if (isset($params['department'])) {
 			$newIndividualParams['custom_'.$config->getDepartmentCustomFieldId()] = $params['department'];
 		}
-		
+
     return $newIndividualParams;
   }
 
@@ -353,7 +353,7 @@ class CRM_Apiprocessing_Contact {
 
 	/**
 	 * Method to add a contact to the group new_contacts which is set by the administrator.
-	 * This setting could be empty so a check takes places whether the setting is set. 
+	 * This setting could be empty so a check takes places whether the setting is set.
 	 * If not set the contact will not be added to a group.
    *
    * @param int $contactId
@@ -690,11 +690,11 @@ class CRM_Apiprocessing_Contact {
       $details[ts('Current last name')] = $contact['last_name'];
       $details[ts('Incoming last name')] = $params['last_name'];
     }
-    if ($contact['prefix_id'] != $params['prefix_id']) {
+    if (isset($params['prefix_id']) && $contact['prefix_id'] != $params['prefix_id']) {
       $details[ts('Current prefix id')] = $contact['prefix_id'];
       $details[ts('Incoming prefix id')] = $params['prefix_id'];
     }
-    if ($contact['formal_title'] != $params['formal_title']) {
+    if (isset($params['formal_title']) && $contact['formal_title'] != $params['formal_title']) {
       $details[ts('Current formal title')] = $contact['formal_title'];
       $details[ts('Incoming formal title')] = $params['formal_title'];
     }
@@ -750,9 +750,9 @@ class CRM_Apiprocessing_Contact {
    * Method to remove the unwanted temporary tags
    */
   public function removeUnwantedTemporaryTags() {
-    $query = "SELECT entity_id 
+    $query = "SELECT entity_id
       FROM civicrm_entity_tag
-      WHERE entity_table = %1 AND tag_id = %2 
+      WHERE entity_table = %1 AND tag_id = %2
       AND entity_id NOT IN (SELECT distinct(contact_id) FROM civicrm_fzfd_temp)";
     $dao = CRM_Core_DAO::executeQuery($query, [
       1 => ['civicrm_contact', 'String'],
