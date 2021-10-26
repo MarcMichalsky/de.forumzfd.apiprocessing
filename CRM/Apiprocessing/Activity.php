@@ -37,7 +37,7 @@ class CRM_Apiprocessing_Activity {
 		}
     civicrm_api3('Activity', 'create', $activityParams);
   }
-	
+
 	/**
 	 * Process the api FzfdPetition.sign. Creates a contact and an activity for signing the petition.
 	 */
@@ -46,7 +46,8 @@ class CRM_Apiprocessing_Activity {
 			$contact = new CRM_Apiprocessing_Contact();
 			$signerId = $contact->processIncomingIndividual($apiParams);
 			if (isset($apiParams['organization_name']) && !empty($apiParams['organization_name'])) {
-        $organizationId = $this->processOrganization($apiParams, $signerId);
+        $organization = new CRM_Apiprocessing_Contact();
+        $organizationId = $organization->processOrganization($apiParams, $signerId);
 				if ($organizationId) {
 					$signerId = $organizationId;
 				}
@@ -54,7 +55,7 @@ class CRM_Apiprocessing_Activity {
 			if (empty($signerId)) {
 				throw new Exception('Could not find or create a contact for signing a petition');
 			}
-			
+
 			$apiSettings = CRM_Apiprocessing_Settings::singleton();
 			$activityTypeId = $apiSettings->get('fzfd_petition_signed_activity_type_id');
 			$activityParams = array(
@@ -70,7 +71,7 @@ class CRM_Apiprocessing_Activity {
 				$activityParams['campaign_id'] = $apiParams['campaign_id'];
 			}
 			$activity = civicrm_api3('Activity', 'create', $activityParams);
-			
+
 			return array(
 				'is_error' => 0,
 				'count' => 1,
@@ -81,50 +82,14 @@ class CRM_Apiprocessing_Activity {
 					)
 				)
 			);
-			
+
 		} catch (Exception $ex) {
 			return array(
     			'is_error' => 1,
     			'count' => 0,
     			'values' => array(),
-    			'error_message' => 'Could not sign a petition in '.__METHOD__.', contact your system administrator. Error: '.$ex->getMessage(), 
+    			'error_message' => 'Could not sign a petition in '.__METHOD__.', contact your system administrator. Error: '.$ex->getMessage(),
 				);
 		}
 	}
-
-	/**
-   * Method to create or find organization
-   *
-   * @param $params
-   * @param $individualId
-   * @return bool|int
-   */
-  public function processOrganization($params, $individualId) {
-    // return FALSE if no organization name in params
-    if (!isset($params['organization_name']) || empty($params['organization_name'])) {
-      return FALSE;
-    }
-    $organizationParams = array(
-      'organization_name' => $params['organization_name'],
-      'contact_type' => 'Organization',
-    );
-    $possibles = array(
-      'organization_street_address',
-      'organization_supplemental_address_1',
-      'organization_postal_code',
-      'organization_city',
-      'organization_country_iso',
-    );
-    foreach ($possibles as $possible) {
-      if (isset($params[$possible]) && !empty($params[$possible])) {
-        $organizationParams[$possible] = $params[$possible];
-      }
-    }
-    $organization = new CRM_Apiprocessing_Contact();
-    $organizationId = $organization->processIncomingOrganization($organizationParams);
-    // now process relationship between organization and individual
-    $relationship = new CRM_Apiprocessing_Relationship();
-    $relationship->processEmployerRelationship($organizationId, $individualId);
-    return $organizationId;
-  }
 }

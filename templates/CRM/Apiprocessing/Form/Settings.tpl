@@ -26,11 +26,6 @@
     <div class="content">{$form.akademie_error_activity_assignee_id.html}</div>
     <div class="clear"></div>
   </div>
-  <div class="crm-section">
-    <div class="label">{$form.new_contacts_group_id.label}</div>
-    <div class="content">{$form.new_contacts_group_id.html}</div>
-    <div class="clear"></div>
-  </div>
  <div class="crm-section">
     <div class="label">{$form.fzfd_petition_signed_activity_type_id.label}</div>
     <div class="content">{$form.fzfd_petition_signed_activity_type_id.html}</div>
@@ -61,7 +56,16 @@
     <div class="content">{$form.fzfd_participant_status_id.html}</div>
     <div class="clear"></div>
   </div>
-
+  <div class="crm-section">
+    <div class="label">{$form.fzfd_valid_uploads.label}</div>
+    <div class="content">{$form.fzfd_valid_uploads.html}</div>
+    <div class="clear"></div>
+  </div>
+  <div class="crm-section">
+    <div class="label">{$form.fzfd_billing_location_type.label}</div>
+    <div class="content">{$form.fzfd_billing_location_type.html}</div>
+    <div class="clear"></div>
+  </div>
 
   <div class="help-block" id="help">
     {ts}You can set the minimum and maximum values for each of the three donation levels below.{/ts}
@@ -110,11 +114,6 @@
   <div class="crm-section">
     <div class="label">{$form.fzfd_donation_level_three_max.label}</div>
     <div class="content">{$form.fzfd_donation_level_three_max.html}</div>
-    <div class="clear"></div>
-  </div>
-  <div class="crm-section">
-    <div class="label">{$form.fzfd_valid_uploads.label}</div>
-    <div class="content">{$form.fzfd_valid_uploads.html}</div>
     <div class="clear"></div>
   </div>
 

@@ -8,27 +8,24 @@ class CRM_Apiprocessing_Participant {
 	public function processRegistration($apiParams) {
 		try {
 			$config = CRM_Apiprocessing_Config::singleton();
-			$activity = new CRM_Apiprocessing_Activity();
-
 			$contact = new CRM_Apiprocessing_Contact();
 			$contactId = $contact->processIncomingIndividual($apiParams);
 			if (isset($apiParams['organization_name']) && !empty($apiParams['organization_name'])) {
-        $organizationId = $this->processOrganization($apiParams, $contactId);
+        $organization = new CRM_Apiprocessing_Contact();
+        $organization->processOrganization($apiParams, $contactId);
       }
 			if (empty($contactId)) {
 				throw new Exception('Could not find or create a contact for registering for an event');
 			}
-
 			$this->processCustomFields($apiParams, $contactId);
 			$this->processNewsletterSubscribtions($apiParams, $contactId);
-
 			$participantParams = array(
 				'event_id' => $apiParams['event_id'],
 				'contact_id' => $contactId,
 				'status_id' => $this->generateParticipantStatus($apiParams['event_id']),
 			);
-
 			// Try to find an existing registration. If so create an error activity and do not create an extra participant record.
+      $activity = new CRM_Apiprocessing_Activity();
 			$existingParticipant = $this->findCurrentRegistration($apiParams['event_id'], $contactId);
 			if ($existingParticipant && isset($existingParticipant['participant_status_id']) && $existingParticipant['participant_status_id'] == $config->getRegisteredParticipantStatusId()) {
 				$activity->createNewErrorActivity('akademie', ts('Request to check the data'), $apiParams, $contactId);
@@ -58,6 +55,9 @@ class CRM_Apiprocessing_Participant {
       if (isset($apiParams['bewerbungsschreiben']) || isset($apiParams['lebenslauf'])) {
         $this->addAttachment((int) $result['id'], $apiParams, $activity);
       }
+      // process invoice @todo uncomment once billing extension is complete
+      //$invoice = new CRM_Apiprocessing_Invoice();
+      //$invoice->processParticipantInvoice((int) $result['id'], (int) $contactId, $activity);
 			return $this->createApi3SuccessReturnArray($apiParams['event_id'], $contactId, $result['id'], $participantParams['status_id']);
 
 		} catch (Exception $ex) {
@@ -201,6 +201,13 @@ class CRM_Apiprocessing_Participant {
 		}
 	}
 
+  /**
+   * Method to process the subscriptions to newsletters
+   *
+   * @param $apiParams
+   * @param $contactId
+   * @throws CiviCRM_API3_Exception
+   */
 	public function processNewsletterSubscribtions($apiParams, $contactId) {
 		$groupContact = new CRM_Apiprocessing_GroupContact();
 		if (empty($apiParams['newsletter_ids'])) {
@@ -219,41 +226,5 @@ class CRM_Apiprocessing_Participant {
 		$groupContactApiParams['contact_id'] = $contactId;
 		civicrm_api3('GroupContact', 'create', $groupContactApiParams);
 	}
-
-	/**
-   * Method to create or find organization
-   *
-   * @param $params
-   * @param $individualId
-   * @return bool|int
-   */
-  public function processOrganization($params, $individualId) {
-    // return FALSE if no organization name in params
-    if (!isset($params['organization_name']) || empty($params['organization_name'])) {
-      return FALSE;
-    }
-    $organizationParams = array(
-      'organization_name' => $params['organization_name'],
-      'contact_type' => 'Organization',
-    );
-    $possibles = array(
-      'organization_street_address',
-      'organization_supplemental_address_1',
-      'organization_postal_code',
-      'organization_city',
-      'organization_country_iso',
-    );
-    foreach ($possibles as $possible) {
-      if (isset($params[$possible]) && !empty($params[$possible])) {
-        $organizationParams[$possible] = $params[$possible];
-      }
-    }
-    $organization = new CRM_Apiprocessing_Contact();
-    $organizationId = $organization->processIncomingOrganization($organizationParams);
-    // now process relationship between organization and individual
-    $relationship = new CRM_Apiprocessing_Relationship();
-    $relationship->processEmployerRelationship($organizationId, $individualId);
-    return $organizationId;
-  }
 
 }

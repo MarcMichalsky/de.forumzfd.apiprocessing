@@ -133,7 +133,8 @@ class CRM_Apiprocessing_Contribution {
   public function processIncomingData($params) {
     if ($this->validIncomingParams($params) == TRUE) {
       // process donor (find contact id or create if required)
-      $donorContactId = $this->processIndividual($params);
+      $donor = new CRM_Apiprocessing_Contact();
+      $donorContactId = $donor->processIncomingIndividual($params);
       // create temporary ID for request
       if ($params['is_test'] == TRUE) {
         $this->createTemporaryId($donorContactId, $params['payment_instrument_id'], TRUE);
@@ -144,7 +145,8 @@ class CRM_Apiprocessing_Contribution {
       if ($donorContactId) {
         // process organization if required
         if (isset($params['organization_name']) && !empty($params['organization_name'])) {
-          $organizationId = $this->processOrganization($params, $donorContactId);
+          $organization = new CRM_Apiprocessing_Contact();
+          $organizationId = $organization->processOrganization($params, $donorContactId);
           if ($organizationId) {
             $donorContactId = $organizationId;
           }
@@ -498,88 +500,6 @@ class CRM_Apiprocessing_Contribution {
   }
 
   /**
-   * Method to create or find individual
-   *
-   * @param array $params
-   * @return bool|int
-   */
-  public function processIndividual($params) {
-    // return FALSE if no email in params
-    if (!isset($params['email']) || empty($params['email'])) {
-      return FALSE;
-    }
-    $individualParams = $params;
-    $removes = array(
-      'payment_instrument_id',
-      'amount',
-      'donation_date',
-      'campaign_id',
-      'source',
-      'organization_name',
-      'organization_street_address',
-      'organization_postal_code',
-      'organization_city',
-      'organization_country_iso',
-      'iban',
-      'start_date',
-      'bic',
-      'frequency_interval',
-      'frequency_unit',
-      'cycle_day',
-      );
-    foreach ($removes as $remove) {
-      if (isset($individualParams[$remove])) {
-        unset($individualParams[$remove]);
-      }
-    }
-    $individual = new CRM_Apiprocessing_Contact();
-    // if prefix_id is used, generate gender_id
-    if (isset($params['prefix_id']) && !empty($params['prefix_id'])) {
-      $genderId = $individual->generateGenderFromPrefix($params['prefix_id']);
-      if ($genderId) {
-        $individualParams['gender_id'] = $genderId;
-      }
-    }
-    return $individual->processIncomingIndividual($individualParams, 'donation');
-  }
-
-  /**
-   * Method to create or find organization
-   *
-   * @param array $params
-   * @param int $individualId
-   * @param string $context
-   * @return bool|int
-   */
-  public function processOrganization($params, $individualId) {
-    // return FALSE if no organization name in params
-    if (!isset($params['organization_name']) || empty($params['organization_name'])) {
-      return FALSE;
-    }
-    $organizationParams = array(
-      'organization_name' => $params['organization_name'],
-      'contact_type' => 'Organization',
-    );
-    $possibles = array(
-      'organization_street_address',
-      'organization_postal_code',
-      'organization_city',
-      'organization_country_iso',
-    );
-    foreach ($possibles as $possible) {
-      if (isset($params[$possible]) && !empty($params[$possible])) {
-        $organizationParams[$possible] = $params[$possible];
-      }
-    }
-    $organization = new CRM_Apiprocessing_Contact();
-    $organizationId = $organization->processIncomingOrganization($organizationParams, 'donation');
-    // now process relationship between organization and individual
-    $relationship = new CRM_Apiprocessing_Relationship();
-    $relationship->processEmployerRelationship($organizationId, $individualId);
-    return $organizationId;
-  }
-
-  /**
    * Method to validate or find bic with iban
    *
    * @param $params
@@ -745,9 +665,6 @@ class CRM_Apiprocessing_Contribution {
       $temp = civicrm_api3('FzfdTemp', 'getsingle', ['id' => $tempId]);
       $this->_tempId = $tempId;
       if ($this->isValidTempData($temp)) {
-        // remove temporary tag from contact
-        $contact = new CRM_Apiprocessing_Contact();
-        $contact->removeTemporaryTag($temp['contact_id']);
         // process depending on payment_instrument
         $frstType = CRM_Apiprocessing_Config::singleton()->getSepaFrstPaymentInstrumentId();
         $ooffType = CRM_Apiprocessing_Config::singleton()->getSepaOoffPaymentInstrumentId();

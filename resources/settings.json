@@ -3,7 +3,7 @@
     "forumzfd_error_activity_assignee_id": "85384",
     "akademie_error_activity_type_id": "56",
     "akademie_error_activity_assignee_id": "85384",
-    "fzfd_petition_signed_activity_type_id": "57",
+    "fzfd_petition_signed_activity_type_id": "59",
     "fzfd_donation_level_one_min": "0",
     "fzfd_donation_level_one_avg": "15",
     "fzfd_donation_level_one_max": "30",
@@ -14,15 +14,12 @@
     "fzfd_donation_level_three_avg": "62",
     "fzfd_donation_level_three_max": "75",
     "fzfdperson_groups": [
-        "235",
-        "329"
+        "15"
     ],
-    "fzfdperson_location_type": "2",
-    "fzfd_address_location_type": "6",
+    "fzfdperson_location_type": "1",
+    "fzfd_address_location_type": "2",
     "fzfd_participant_status_id": [
-        "19",
-        "20",
-        "21"
+        "6"
     ],
     "fzfd_valid_uploads": [
         "application\/msword",
@@ -31,6 +28,6 @@
         "application\/pdf",
         "text\/plain"
     ],
-    "default_cycle_day_sepa": "15",
-    "new_contacts_group_id": ""
+    "fzfd_billing_location_type": "5",
+    "default_cycle_day_sepa": "1"
 }

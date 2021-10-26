@@ -165,31 +165,10 @@ class CRM_Apiprocessing_Form_Settings extends CRM_Core_Form {
    * Overridden parent method to build form
    */
   public function buildQuickForm() {
-
-    $test = civicrm_api3("FzfdAkademie", "register", [
-      'event_id' => 534,
-      'first_name' => "Erik",
-      'last_name' => "Hommel",
-      'email' => "erik.hommel@civicoop.org",
-      'bewerbungsschreiben' => [
-        'name' => 'test1.txt',
-        'content' => "Dit is de reclame over jezelf",
-      ],
-      'lebenslauf' => [
-        'name' => 'test2.txt',
-        'content' => 'en de CV.'
-      ],
-    ]);
-    CRM_Core_Error::debug('test', $test);
-    exit();
-
-
-
     $this->add('select', 'forumzfd_error_activity_type_id', ts('Activity Type for ForumZFD Errors'), $this->_activityTypesList, TRUE);
     $this->add('select', 'forumzfd_error_activity_assignee_id', ts('Assign ForumZFD Error Activities to'), $this->_employeesList, TRUE);
     $this->add('select', 'akademie_error_activity_type_id', ts('Activity Type for Akademie Errors'), $this->_activityTypesList, TRUE);
     $this->add('select', 'akademie_error_activity_assignee_id', ts('Assign Akademie Error Activities to'), $this->_employeesList, TRUE);
-    $this->add('select', 'new_contacts_group_id', ts('Add New Contacts to Group'), $this->_groupList, FALSE);
 		$this->add('select', 'fzfd_petition_signed_activity_type_id', ts('Activity Type for ForumZFD Petition Sign'), $this->_activityTypesList, TRUE);
 		$this->add('select', 'default_cycle_day_sepa', ts('Default Cycle Day for SEPA Recurring Mandate'), $this->_cycleDaysList, TRUE);
 		$this->add('text', 'fzfd_donation_level_one_min', ts('Mimimum amount donation level 1'), array(), true );
@@ -209,6 +188,7 @@ class CRM_Apiprocessing_Form_Settings extends CRM_Core_Form {
     $this->add('select', 'fzfd_address_location_type', ts('Location Type for address with API'), $this->_locationTypeList, TRUE);
     $this->add('select', 'fzfd_valid_uploads', E::ts('Valid files for upload bewerbungsschreiben and lebenslauf'), CRM_Apiprocessing_Attachment::getValidUploads(), TRUE,
       ['id' => 'fzfd_valid_uploads', 'multiple' => 'multiple', 'class' => 'crm-select2']);
+    $this->add('select', 'fzfd_billing_location_type', ts('Location Type for Rechnungsadresse'), $this->_locationTypeList, TRUE);
 
     // add buttons
     $this->addButtons(array(
@@ -256,16 +236,12 @@ class CRM_Apiprocessing_Form_Settings extends CRM_Core_Form {
         'fzfd_address_location_type' => $formValues['fzfd_address_location_type'],
         'fzfd_participant_status_id' => $formValues['fzfd_participant_status_id'],
         'fzfd_valid_uploads' => $formValues['fzfd_valid_uploads'],
+        'fzfd_billing_location_type' => $formValues['fzfd_billing_location_type'],
       );
       if (!empty($formValues['default_cycle_day_sepa'])) {
         $data['default_cycle_day_sepa'] = $formValues['default_cycle_day_sepa'];
       } else {
         $data['default_cycle_day_sepa'] = "";
-      }
-      if (!empty($formValues['new_contacts_group_id'])) {
-        $data['new_contacts_group_id'] = $formValues['new_contacts_group_id'];
-      } else {
-        $data['new_contacts_group_id'] = "";
       }
       $container = CRM_Extension_System::singleton()->getFullContainer();
       $fileName = $container->getPath('de.forumzfd.apiprocessing').'/resources/settings.json';

@@ -43,7 +43,7 @@ class CRM_Apiprocessing_GroupContact {
         .', contact your system administrator. Error from API Group getvalue: '.$ex->getMessage());
     }
   }
-	
+
 	/**
    * Method to process the api request to unsubscribe
    *
@@ -61,26 +61,12 @@ class CRM_Apiprocessing_GroupContact {
   			'is_error' => 1,
   			'count' => 0,
   			'values' => array(),
-  			'error_message' => 'Could not unsubscribe contact to newsletters in '.__METHOD__.', contact your system administrator. No valid groups given', 
+  			'error_message' => 'Could not unsubscribe contact to newsletters in '.__METHOD__.', contact your system administrator. No valid groups given',
 			);
 		}
-		
+
 		$contact = new CRM_Apiprocessing_Contact();
-		try {
-			if (isset($apiParams['contact_hash'])) {
-				$newsletterContactId = $contact->findIndividualIdWithHash($apiParams['contact_hash']);
-			} else {
-				$newsletterContactId = $contact->findIndividualIdWithEmail($apiParams['email']);
-			}
-		} catch (Exception $ex) {
-			return array(
-    			'is_error' => 1,
-    			'count' => 0,
-    			'values' => array(),
-    			'error_message' => 'Could not unsubscribe contact to newsletters in '.__METHOD__.', contact your system administrator. Error from API GroupContact create: '.$ex->getMessage(), 
-				);
-		}
-		
+    $newsletterContactId = $contact->processIncomingIndividual($apiParams);
 		if (isset($newsletterContactId['individual_id'])) {
 			$groupContactApiParams['group_id'] = $subscribeNewsletterIds;
 			$groupContactApiParams['contact_id'] = $newsletterContactId['individual_id'];
@@ -92,7 +78,7 @@ class CRM_Apiprocessing_GroupContact {
     			'is_error' => 1,
     			'count' => 0,
     			'values' => array(),
-    			'error_message' => 'Could not unsubscribe contact to newsletters in '.__METHOD__.', contact your system administrator. Error from API GroupContact create: '.$ex->getMessage(), 
+    			'error_message' => 'Could not unsubscribe contact to newsletters in '.__METHOD__.', contact your system administrator. Error from API GroupContact create: '.$ex->getMessage(),
 				);
 			}
 		} else {
@@ -100,10 +86,10 @@ class CRM_Apiprocessing_GroupContact {
     			'is_error' => 1,
     			'count' => 0,
     			'values' => array(),
-    			'error_message' => 'Could not unsubscribe contact to newsletters in because we could not match it to a contact in '.__METHOD__.', contact your system administrator. Error from API GroupContact create: '.$ex->getMessage(), 
+    			'error_message' => 'Could not unsubscribe contact to newsletters in because we could not match it to a contact in '.__METHOD__.', contact your system administrator. Error from API GroupContact create: '.$ex->getMessage(),
 				);
 		}
-				
+
     return array(
     	'is_error' => 0,
     	'count' => count($subscribeNewsletterIds),
@@ -128,23 +114,12 @@ class CRM_Apiprocessing_GroupContact {
   			'is_error' => 1,
   			'count' => 0,
   			'values' => array(),
-  			'error_message' => 'Could not subscribe contact to newsletters in '.__METHOD__.', contact your system administrator. No valid groups given', 
-			);
-		} 
-		
-		$contact = new CRM_Apiprocessing_Contact();
-		try {
-			$newsletterContactId = $contact->processIncomingIndividual($apiParams);
-		} catch (Exception $ex) {
-			throw $ex;
-			return array(
-  			'is_error' => 1,
-  			'count' => 0,
-  			'values' => array(),
-  			'error_message' => 'Could not subscribe contact to newsletters in '.__METHOD__.', contact your system administrator. Error from API process incoming contact: '.$ex->getMessage(), 
+  			'error_message' => 'Could not subscribe contact to newsletters in '.__METHOD__.', contact your system administrator. No valid groups given',
 			);
 		}
-		
+
+		$contact = new CRM_Apiprocessing_Contact();
+    $newsletterContactId = $contact->processIncomingIndividual($apiParams);
 		if ($newsletterContactId) {
 			$groupContactApiParams['group_id'] = $subscribeNewsletterIds;
 			$groupContactApiParams['contact_id'] = $newsletterContactId;
@@ -155,11 +130,11 @@ class CRM_Apiprocessing_GroupContact {
     			'is_error' => 1,
     			'count' => 0,
     			'values' => array(),
-    			'error_message' => 'Could not subscribe contact to newsletters in '.__METHOD__.', contact your system administrator. Error from API GroupContact create: '.$ex->getMessage(), 
+    			'error_message' => 'Could not subscribe contact to newsletters in '.__METHOD__.', contact your system administrator. Error from API GroupContact create: '.$ex->getMessage(),
 				);
 			}
 		}
-				
+
     return array(
     	'is_error' => 0,
     	'count' => count($subscribeNewsletterIds),
