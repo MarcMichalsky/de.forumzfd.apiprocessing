@@ -20,6 +20,9 @@
   <compatibility>
     <ver>4.7</ver>
   </compatibility>
+  <requires>
+    <ext>de.systopia.xcm</ext>
+  </requires>
   <comments>Extension is in production</comments>
   <civix>
     <namespace>CRM/Apiprocessing</namespace>
