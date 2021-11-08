@@ -14,7 +14,7 @@ function _civicrm_api3_fzfd_akademie_Register_spec(&$spec) {
     'title' => 'event_id',
     'type' => CRM_Utils_Type::T_INT,
     'api.required' => 1,
-	);	
+	);
   $spec['prefix_id'] = array(
     'name' => 'prefix',
     'title' => 'prefix',
@@ -45,14 +45,14 @@ function _civicrm_api3_fzfd_akademie_Register_spec(&$spec) {
     'type' => CRM_Utils_Type::T_STRING,
     'api.required' => 1,
   );
-	
+
 	$spec['individual_addresses'] = array(
     'name' => 'individual_addresses',
     'title' => 'individual_addresses',
     'type' => CRM_Utils_Type::T_ENUM,
     'api.required' => 0,
   );
-	
+
 	$spec['organization_name'] = array(
     'name' => 'organization_name',
     'title' => 'organization_name',
@@ -134,6 +134,36 @@ function _civicrm_api3_fzfd_akademie_Register_spec(&$spec) {
 	$spec['newsletter_ids'] = array(
     'name' => 'newsletter_ids',
     'title' => 'newsletter_ids',
+    'type' => CRM_Utils_Type::T_STRING,
+    'api.required' => 0,
+  );
+	$spec['i_will_use_this_machine'] = array(
+    'name' => 'i_will_use_this_machine',
+    'title' => 'I will use this machine',
+    'type' => CRM_Utils_Type::T_BOOLEAN,
+    'api.required' => 0,
+  );
+	$spec['browser_version'] = array(
+    'name' => 'browser_version',
+    'title' => 'Browser version',
+    'type' => CRM_Utils_Type::T_STRING,
+    'api.required' => 0,
+  );
+	$spec['ping'] = array(
+    'name' => 'ping',
+    'title' => 'Ping',
+    'type' => CRM_Utils_Type::T_STRING,
+    'api.required' => 0,
+  );
+	$spec['download'] = array(
+    'name' => 'download',
+    'title' => 'Download',
+    'type' => CRM_Utils_Type::T_STRING,
+    'api.required' => 0,
+  );
+	$spec['upload'] = array(
+    'name' => 'upload',
+    'title' => 'Upload',
     'type' => CRM_Utils_Type::T_STRING,
     'api.required' => 0,
   );

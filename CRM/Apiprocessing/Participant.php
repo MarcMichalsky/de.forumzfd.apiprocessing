@@ -17,7 +17,6 @@ class CRM_Apiprocessing_Participant {
 			if (empty($contactId)) {
 				throw new Exception('Could not find or create a contact for registering for an event');
 			}
-			$this->processCustomFields($apiParams, $contactId);
 			$this->processNewsletterSubscribtions($apiParams, $contactId);
 			$participantParams = array(
 				'event_id' => $apiParams['event_id'],
@@ -36,18 +35,7 @@ class CRM_Apiprocessing_Participant {
 				$activity->createNewErrorActivity('akademie', ts('Request to check the data'), $apiParams, $contactId);
 			}
 			// add custom fields if required
-      if (isset($apiParams['how_did_you_hear_about_us'])) {
-        $participantParams['custom_'.$config->getNewHowDidCustomFieldId()] = $apiParams['how_did_you_hear_about_us'];
-      }
-      if (isset($apiParams['wishes'])) {
-        $participantParams['custom_'.$config->getWishesCustomFieldId()] = $apiParams['wishes'];
-      }
-      if (isset($apiParams['experience'])) {
-        $participantParams['custom_'.$config->getExperienceCustomFieldId()] = $apiParams['experience'];
-      }
-      if (isset($apiParams['employer'])) {
-        $participantParams['custom_'.$config->getEmployerCustomFieldId()] = $apiParams['employer'];
-      }
+      $this->addParticipantCustomFields($apiParams, $config, $participantParams);
       // always use role teilnehmer
       $participantParams['role_id'] = CRM_Apiprocessing_Config::singleton()->getAttendeeParticipantRoleId();
 			$result = civicrm_api3('Participant', 'create', $participantParams);
@@ -69,6 +57,43 @@ class CRM_Apiprocessing_Participant {
 				);
 		}
 	}
+
+  /**
+   * Method to add the new participant custom fields to the api call
+   *
+   * @param array $apiParams
+   * @param CRM_Apiprocessing_Config $config
+   * @param array $participantParams
+   */
+  private function addParticipantCustomFields(array $apiParams, CRM_Apiprocessing_Config $config, array &$participantParams) {
+    if (isset($apiParams['how_did_you_hear_about_us'])) {
+      $participantParams['custom_' . $config->getNewHowDidCustomFieldId()] = $apiParams['how_did_you_hear_about_us'];
+    }
+    if (isset($apiParams['wishes'])) {
+      $participantParams['custom_' . $config->getWishesCustomFieldId()] = $apiParams['wishes'];
+    }
+    if (isset($apiParams['experience'])) {
+      $participantParams['custom_' . $config->getExperienceCustomFieldId()] = $apiParams['experience'];
+    }
+    if (isset($apiParams['employer'])) {
+      $participantParams['custom_' . $config->getEmployerCustomFieldId()] = $apiParams['employer'];
+    }
+    if (isset($apiParams['i_will_use_this_machine'])) {
+      $participantParams['custom_' . $config->getMachineCustomFieldId()] = $apiParams['i_will_use_this_machine'];
+    }
+    if (isset($apiParams['browser_version'])) {
+      $participantParams['custom_' . $config->getBrowserCustomFieldId()] = $apiParams['browser_version'];
+    }
+    if (isset($apiParams['ping'])) {
+      $participantParams['custom_' . $config->getPingCustomFieldId()] = $apiParams['ping'];
+    }
+    if (isset($apiParams['download'])) {
+      $participantParams['custom_' . $config->getDownloadCustomFieldId()] = $apiParams['download'];
+    }
+    if (isset($apiParams['upload'])) {
+      $participantParams['custom_' . $config->getUploadCustomFieldId()] = $apiParams['upload'];
+    }
+  }
 
   /**
    * Method to add attachments to participant
@@ -178,27 +203,6 @@ class CRM_Apiprocessing_Participant {
 					),
 				)
 			);
-	}
-
-	/**
-	 * Process the custom fields wishes, experience, employer.
-	 */
-	public function processCustomFields($apiParams, $contactId) {
-		$config = CRM_Apiprocessing_Config::singleton();
-		$params = array();
-		if (isset($apiParams['wishes'])) {
-			$params['custom_'.$config->getWishesCustomFieldId()] = $apiParams['wishes'];
-		}
-		if (isset($apiParams['experience'])) {
-			$params['custom_'.$config->getExperienceCustomFieldId()] = $apiParams['experience'];
-		}
-		if (isset($apiParams['employer'])) {
-			$params['custom_'.$config->getEmployerCustomFieldId()] = $apiParams['employer'];
-		}
-		if (!empty($params)) {
-			$params['id'] = $contactId;
-			civicrm_api3('Contact', 'create', $params);
-		}
 	}
 
   /**

@@ -123,5 +123,80 @@
       <in_selector>0</in_selector>
       <custom_group_name>fzfd_participant_data_new</custom_group_name>
     </CustomField>
+    <CustomField>
+      <name>i_will_use_this_machine</name>
+      <label>I will use this machine</label>
+      <data_type>Boolean</data_type>
+      <html_type>Radio</html_type>
+      <is_required>0</is_required>
+      <is_searchable>1</is_searchable>
+      <is_search_range>0</is_search_range>
+      <weight>18</weight>
+      <is_active>1</is_active>
+      <is_view>0</is_view>
+      <column_name>fzfd_machine</column_name>
+      <in_selector>0</in_selector>
+      <custom_group_name>i_will_use_this_machine</custom_group_name>
+    </CustomField>
+    <CustomField>
+      <name>browser_version</name>
+      <label>Browser version</label>
+      <data_type>String</data_type>
+      <html_type>Text</html_type>
+      <is_required>0</is_required>
+      <is_searchable>1</is_searchable>
+      <is_search_range>0</is_search_range>
+      <weight>19</weight>
+      <is_active>1</is_active>
+      <is_view>0</is_view>
+      <column_name>browser_version</column_name>
+      <in_selector>0</in_selector>
+      <custom_group_name>fzfd_participant_data_new</custom_group_name>
+    </CustomField>
+    <CustomField>
+      <name>ping</name>
+      <label>Ping</label>
+      <data_type>String</data_type>
+      <html_type>Text</html_type>
+      <is_required>0</is_required>
+      <is_searchable>1</is_searchable>
+      <is_search_range>0</is_search_range>
+      <weight>20</weight>
+      <is_active>1</is_active>
+      <is_view>0</is_view>
+      <column_name>ping</column_name>
+      <in_selector>0</in_selector>
+      <custom_group_name>fzfd_participant_data_new</custom_group_name>
+    </CustomField>
+    <CustomField>
+      <name>download</name>
+      <label>Download</label>
+      <data_type>String</data_type>
+      <html_type>Text</html_type>
+      <is_required>0</is_required>
+      <is_searchable>1</is_searchable>
+      <is_search_range>0</is_search_range>
+      <weight>21</weight>
+      <is_active>1</is_active>
+      <is_view>0</is_view>
+      <column_name>download</column_name>
+      <in_selector>0</in_selector>
+      <custom_group_name>fzfd_participant_data_new</custom_group_name>
+    </CustomField>
+    <CustomField>
+      <name>upload</name>
+      <label>Upload</label>
+      <data_type>String</data_type>
+      <html_type>Text</html_type>
+      <is_required>0</is_required>
+      <is_searchable>1</is_searchable>
+      <is_search_range>0</is_search_range>
+      <weight>22</weight>
+      <is_active>1</is_active>
+      <is_view>0</is_view>
+      <column_name>upload</column_name>
+      <in_selector>0</in_selector>
+      <custom_group_name>fzfd_participant_data_new</custom_group_name>
+    </CustomField>
   </CustomFields>
 </CustomData>

@@ -121,7 +121,7 @@ class CRM_Apiprocessing_Upgrader extends CRM_Apiprocessing_Upgrader_Base {
         $result = CRM_Apiprocessing_CustomData::createWebsiteDataConsentCustomField();
         // now populate fields for all contacts
         if ($result) {
-          $query = "INSERT INTO civicrm_value_contact_privacy_options 
+          $query = "INSERT INTO civicrm_value_contact_privacy_options
             (entity_id, fzfd_website_consent) SELECT DISTINCT id, 1 FROM civicrm_contact";
           CRM_Core_DAO::executeQuery($query);
         }
@@ -182,6 +182,70 @@ class CRM_Apiprocessing_Upgrader extends CRM_Apiprocessing_Upgrader_Base {
       CRM_Core_DAO::executeQuery($query);
     }
     return TRUE;
+  }
+
+  /**
+   * Upgrade 1022 - add additional fields participant new
+   *
+   * @return bool
+   */
+  public function upgrade_1022() {
+    $this->ctx->log->info('Applying update 1022 - add additional fields participant new');
+    $customGroupId = CRM_Apiprocessing_Config::singleton()->getNewParticipantCustomGroupId();
+    if ($customGroupId) {
+      $customFields = $this->getAdditionalParticipantFields();
+      foreach ($customFields as $customFieldName => $customFieldData) {
+        if (!CRM_Apiprocessing_CustomData::existsCustomField((int) $customGroupId, $customFieldName)) {
+          CRM_Apiprocessing_CustomData::createCustomField((int) $customGroupId, $customFieldData);
+        }
+      }
+    }
+    return TRUE;
+  }
+
+  /**
+   * Method to get additional fields for participant new
+   *
+   * @return array
+   */
+  private function getAdditionalParticipantFields() {
+    return [
+      'i_will_use_this_machine' => [
+        'name' => 'i_will_use_this_machine',
+        'label' => 'I will use this machine',
+        'data_type' => 'Boolean',
+        'html_type' => 'Radio',
+        'weight' => 150,
+      ],
+      'browser_version' => [
+        'name' => 'browser_version',
+        'label' => 'Browser version',
+        'data_type' => 'String',
+        'html_type' => 'Text',
+        'weight' => 151,
+      ],
+      'ping' => [
+        'name' => 'ping',
+        'label' => 'Ping',
+        'data_type' => 'String',
+        'html_type' => 'Text',
+        'weight' => 152,
+      ],
+      'download' => [
+        'name' => 'download',
+        'label' => 'Download',
+        'data_type' => 'String',
+        'html_type' => 'Text',
+        'weight' => 153,
+      ],
+      'upload' => [
+        'name' => 'upload',
+        'label' => 'Upload',
+        'data_type' => 'String',
+        'html_type' => 'Text',
+        'weight' => 154,
+      ],
+    ];
   }
 
   /**

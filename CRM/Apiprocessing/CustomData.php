@@ -1,4 +1,5 @@
 <?php
+use CRM_Apiprocessing_ExtensionUtil as E;
 
 /**
  * Class with generic function to add custom data
@@ -17,7 +18,7 @@ class CRM_Apiprocessing_CustomData {
     try {
       $group = civicrm_api3('CustomGroup', 'create', [
         'name' => 'fzfd_privacy_options',
-        'title' => ts('Privacy options for website'),
+        'title' => E::ts('Privacy options for website'),
         'table_name' => 'civicrm_value_contact_privacy_options',
         'extends' => 'Contact',
         'style' => 'Inline',
@@ -29,8 +30,8 @@ class CRM_Apiprocessing_CustomData {
       return $group['values'];
     }
     catch (CiviCRM_API3_Exception $ex) {
-      Civi::log()->error(ts('Could not create custom group for privacy options in ') . __METHOD__
-        . ts(', error from API CustomGroup create :') . $ex->getMessage());
+      Civi::log()->error(E::ts('Could not create custom group for privacy options in ') . __METHOD__
+        . E::ts(', error from API CustomGroup create :') . $ex->getMessage());
       return FALSE;
     }
   }
@@ -44,7 +45,7 @@ class CRM_Apiprocessing_CustomData {
     try {
       $field = civicrm_api3('CustomField', 'create', [
         'custom_group_id' => 'fzfd_privacy_options',
-        'label' => ts('Can we send first name, last name and address to website'),
+        'label' => E::ts('Can we send first name, last name and address to website'),
         'name' => 'fzfd_website_consent',
         'column_name' => 'fzfd_website_consent',
         'data_type' => 'Boolean',
@@ -56,8 +57,8 @@ class CRM_Apiprocessing_CustomData {
       return $field['values'];
     }
     catch (CiviCRM_API3_Exception $ex) {
-      Civi::log()->error(ts('Could not create custom field for website consent in group for privacy options in ') . __METHOD__
-        . ts(', error from API CustomField create :') . $ex->getMessage());
+      Civi::log()->error(E::ts('Could not create custom field for website consent in group for privacy options in ') . __METHOD__
+        . E::ts(', error from API CustomField create :') . $ex->getMessage());
       return FALSE;
     }
   }
@@ -81,7 +82,7 @@ class CRM_Apiprocessing_CustomData {
           try {
             civicrm_api3('CustomField', 'create', [
               'custom_group_id' => 'fzfd_participant_data_new',
-              'label' => ts($fieldLabel),
+              'label' => E::ts($fieldLabel),
               'name' => $fieldName,
               'column_name' => $fieldName,
               'data_type' => 'String',
@@ -94,8 +95,8 @@ class CRM_Apiprocessing_CustomData {
             $weight++;
           }
           catch (CiviCRM_API3_Exception $ex) {
-            Civi::log()->error(ts('Could not create custom field') . $fieldLabel . ts('for participant custom group in ') . __METHOD__
-              . ts(', error from API CustomField create :') . $ex->getMessage());
+            Civi::log()->error(E::ts('Could not create custom field') . $fieldLabel . E::ts('for participant custom group in ') . __METHOD__
+              . E::ts(', error from API CustomField create :') . $ex->getMessage());
             return FALSE;
           }
         }
@@ -120,7 +121,7 @@ class CRM_Apiprocessing_CustomData {
         try {
           civicrm_api3('CustomField', 'create', [
             'custom_group_id' => 'fzfd_participant_data_new',
-            'label' => ts('Employer'),
+            'label' => E::ts('Employer'),
             'name' => 'fzfd_employer_new',
             'column_name' => 'fzfd_employer_new',
             'data_type' => 'String',
@@ -131,8 +132,8 @@ class CRM_Apiprocessing_CustomData {
             'sequential' => 1,
           ]);
         } catch (CiviCRM_API3_Exception $ex) {
-          Civi::log()->error(ts('Could not create custom field Employer for participant custom group in ') . __METHOD__
-            . ts(', error from API CustomField create :') . $ex->getMessage());
+          Civi::log()->error(E::ts('Could not create custom field Employer for participant custom group in ') . __METHOD__
+            . E::ts(', error from API CustomField create :') . $ex->getMessage());
           return FALSE;
         }
       }
@@ -175,5 +176,58 @@ class CRM_Apiprocessing_CustomData {
         }
       }
     }
+  }
+
+  /**
+   * Method to check if custom field exists
+   *
+   * @param int $customGroupId
+   * @param string $customFieldName
+   * @return bool
+   */
+  public static function existsCustomField(int $customGroupId, string $customFieldName) {
+    if (!empty($customGroupId) && !empty($customFieldName)) {
+      $query = "SELECT COUNT(*) FROM civicrm_custom_field WHERE custom_group_id = %1 AND name = %2";
+      $count = CRM_Core_DAO::singleValueQuery($query, [
+        1 => [$customGroupId, "Integer"],
+        2 => [$customFieldName, "String"],
+      ]);
+      if ($count > 0) {
+        return TRUE;
+      }
+    }
+    return FALSE;
+  }
+
+  /**
+   * Method to create custom field
+   *
+   * @param int $customGroupId
+   * @param array $customField
+   * @return bool
+   */
+  public static function createCustomField(int $customGroupId, array $customField) {
+    if (!empty($customGroupId)) {
+      try {
+        $apiField = \Civi\Api4\CustomField::create()
+          ->addValue('custom_group_id', $customGroupId)
+          ->addValue('name', $customField['name'])
+          ->addValue('column_name', $customField['name'])
+          ->addValue('label', $customField['label'])
+          ->addValue('data_type', $customField['data_type'])
+          ->addValue('html_type', $customField['html_type'])
+          ->addValue('weight', $customField['weight'])
+          ->addValue('is_searchable', TRUE)
+          ->addValue('is_active', TRUE)
+          ->addValue('is_reserved', TRUE);
+        $apiField->execute();
+        return TRUE;
+      }
+      catch (API_Exception $ex) {
+        Civi::log()->error(E::ts("Could not create custom field with name ") . $customField['name'] . E::ts(" in custom group with ID ")
+          . $customGroupId . E::ts(", error from API4 CustomField create: ") . $ex->getMessage());
+      }
+    }
+    return FALSE;
   }
 }

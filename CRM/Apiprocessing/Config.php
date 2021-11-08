@@ -44,6 +44,11 @@ class CRM_Apiprocessing_Config {
 	private $_experienceCustomFieldId = NULL;
 	private $_employerCustomFieldId = NULL;
 	private $_wishesCustomFieldId = NULL;
+  private $_machineCustomFieldId = NULL;
+  private $_browserCustomFieldId = NULL;
+  private $_pingCustomFieldId = NULL;
+  private $_downloadCustomFieldId = NULL;
+  private $_uploadCustomFieldId = NULL;
 	private $_additionalDataCustomGroup = NULL;
 	private $_additionalDataCustomFieldId = NULL;
 	private $_departmentDataCustomFieldId = NULL;
@@ -469,6 +474,19 @@ class CRM_Apiprocessing_Config {
   }
 
   /**
+   * Getter for new participant custom group id
+   * @return mixed
+   */
+  public function getNewParticipantCustomGroupId() {
+    if (isset($this->_newParticipantCustomGroup['id'])) {
+      return $this->_newParticipantCustomGroup['id'];
+    }
+    else {
+      return $this->_newParticipantCustomGroup;
+    }
+  }
+
+  /**
    * Getter for default phone type id
    *
    * @return null
@@ -559,6 +577,41 @@ class CRM_Apiprocessing_Config {
 	 */
 	public function getWishesCustomFieldId() {
 		return $this->_wishesCustomFieldId;
+	}
+
+	/**
+	 * Getter for i will use this machine custom field id
+	 */
+	public function getMachineCustomFieldId() {
+		return $this->_machineCustomFieldId;
+	}
+
+	/**
+	 * Getter for browser version custom field id
+	 */
+	public function getBrowserCustomFieldId() {
+		return $this->_browserCustomFieldId;
+	}
+
+	/**
+	 * Getter for ping custom field id
+	 */
+	public function getPingCustomFieldId() {
+		return $this->_pingCustomFieldId;
+	}
+
+	/**
+	 * Getter for download custom field id
+	 */
+	public function getDownloadCustomFieldId() {
+		return $this->_downloadCustomFieldId;
+	}
+
+	/**
+	 * Getter for upload custom field id
+	 */
+	public function getUploadCustomFieldId() {
+		return $this->_uploadCustomFieldId;
 	}
 
 	/**
@@ -986,6 +1039,41 @@ class CRM_Apiprocessing_Config {
       $this->_employerCustomFieldId = civicrm_api3('CustomField', 'getvalue', ['name' => 'fzfd_employer_new', 'custom_group_id' => $this->_newParticipantCustomGroup['id'],'return' => 'id']);
     } catch (CiviCRM_API3_Exception $ex) {
       throw new Exception('Could not find custom field Employer in '.__METHOD__
+        .' contact your system administrator. Error from API CustomField getvalue: '.$ex->getMessage());
+    }
+
+    try {
+      $this->_machineCustomFieldId = civicrm_api3('CustomField', 'getvalue', ['name' => 'i_will_use_this_machine', 'custom_group_id' => $this->_newParticipantCustomGroup['id'],'return' => 'id']);
+    } catch (CiviCRM_API3_Exception $ex) {
+      throw new Exception('Could not find custom field I will use this machine in '.__METHOD__
+        .' contact your system administrator. Error from API CustomField getvalue: '.$ex->getMessage());
+    }
+
+    try {
+      $this->_browserCustomFieldId = civicrm_api3('CustomField', 'getvalue', ['name' => 'browser_version', 'custom_group_id' => $this->_newParticipantCustomGroup['id'],'return' => 'id']);
+    } catch (CiviCRM_API3_Exception $ex) {
+      throw new Exception('Could not find custom field Browser version in '.__METHOD__
+        .' contact your system administrator. Error from API CustomField getvalue: '.$ex->getMessage());
+    }
+
+    try {
+      $this->_pingCustomFieldId = civicrm_api3('CustomField', 'getvalue', ['name' => 'ping', 'custom_group_id' => $this->_newParticipantCustomGroup['id'],'return' => 'id']);
+    } catch (CiviCRM_API3_Exception $ex) {
+      throw new Exception('Could not find custom field Ping in '.__METHOD__
+        .' contact your system administrator. Error from API CustomField getvalue: '.$ex->getMessage());
+    }
+
+    try {
+      $this->_downloadCustomFieldId = civicrm_api3('CustomField', 'getvalue', ['name' => 'download', 'custom_group_id' => $this->_newParticipantCustomGroup['id'],'return' => 'id']);
+    } catch (CiviCRM_API3_Exception $ex) {
+      throw new Exception('Could not find custom field Download in '.__METHOD__
+        .' contact your system administrator. Error from API CustomField getvalue: '.$ex->getMessage());
+    }
+
+    try {
+      $this->_uploadCustomFieldId = civicrm_api3('CustomField', 'getvalue', ['name' => 'upload', 'custom_group_id' => $this->_newParticipantCustomGroup['id'],'return' => 'id']);
+    } catch (CiviCRM_API3_Exception $ex) {
+      throw new Exception('Could not find custom field Upload in '.__METHOD__
         .' contact your system administrator. Error from API CustomField getvalue: '.$ex->getMessage());
     }
 
