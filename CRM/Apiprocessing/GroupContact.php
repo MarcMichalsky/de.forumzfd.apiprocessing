@@ -9,7 +9,6 @@
  */
 class CRM_Apiprocessing_GroupContact {
 
-  private $_newsletterGroupIds = array();
   private $_newsletterParentGroupId = NULL;
 
   /**
@@ -24,19 +23,6 @@ class CRM_Apiprocessing_GroupContact {
         'name' => 'forumzfd_newsletters',
         'return' => 'id'
       ));
-      // then retrieve all newsletter and job alert groups that are active
-      try {
-        $groups = civicrm_api3('Group', 'get', array(
-          'parents' => $this->_newsletterParentGroupId,
-          'is_active' => 1,
-          'options' => array('limit' => 0,),
-        ));
-        foreach ($groups['values'] as $group) {
-          $this->_newsletterGroupIds[] = $group['id'];
-        }
-      }
-      catch (CiviCRM_API3_Exception $ex) {
-      }
     }
     catch (CiviCRM_API3_Exception $ex) {
       throw new Exception('Could not find a parent group for ForumZFD newsletters in '.__METHOD__
@@ -108,7 +94,16 @@ class CRM_Apiprocessing_GroupContact {
     $subscribeNewsletterIds = CRM_Apiprocessing_Utils::storeNewsletterIds($apiParams['newsletter_ids']);
 		// Make sure we only process the group ids which are a child of the newsletter parent group.
 		// Ignore non existent group ids or group ids which are not part of the parent group.
-		$subscribeNewsletterIds = $this->filterGroupIds($subscribeNewsletterIds);
+    try {
+      $subscribeNewsletterIds = $this->filterGroupIds($subscribeNewsletterIds);
+    } catch (CiviCRM_API3_Exception $ex) {
+      return array(
+        'is_error' => 1,
+        'count' => 0,
+        'values' => array(),
+        'error_message' => 'Could not subscribe contact to newsletters in '.__METHOD__.', contact your system administrator. ' . $ex->getMessage(),
+      );
+    }
 		if (empty($subscribeNewsletterIds)) {
 			return array(
   			'is_error' => 1,
@@ -144,15 +139,51 @@ class CRM_Apiprocessing_GroupContact {
 
 	/**
 	 * Function to remove the group ids which don't exist or are not a child of the newsletter parent group.
+   * @throws CiviCRM_API3_Exception
 	 */
-	public function filterGroupIds($groupIds) {
-		$return = array();
-		foreach($groupIds as $groupId) {
-			if (in_array($groupId, $this->_newsletterGroupIds)) {
-				$return[] = $groupId;
-			}
-		}
-		return $return;
-	}
+  public function filterGroupIds($groupIds) {
+    $return = [];
+    foreach ($groupIds as $groupId) {
+      $children = [$groupId];
+        while (TRUE) {
+          $parents = $this->getParentGroups($children);
+          if (in_array($this->_newsletterParentGroupId, $parents)) {
+            $return[] = $groupId;
+            break;
+          }
+          elseif (empty($parents)) {
+            break;
+          } else {
+            $children = $parents;
+          }
+        }
+    }
+    return $return;
+  }
+
+  /**
+   * This function returns a single array with all parent groups of the
+   * given group IDs.
+   * @param $childGroupIds
+   *
+   * @return array
+   * @throws \CiviCRM_API3_Exception
+   */
+  private function getParentGroups($childGroupIds): array {
+    $parentGroups = [];
+    foreach ($childGroupIds as $groupId) {
+      $group = civicrm_api3('Group', 'getsingle', [
+        'id'        => $groupId,
+        'is_active' => 1
+      ]);
+      if (isset($group['parents']) && !empty($group['parents'])) {
+        $parentGroups = array_merge(
+          $parentGroups,
+          explode(",", $group['parents'])
+        );
+      }
+    }
+    return $parentGroups;
+  }
 
 }
