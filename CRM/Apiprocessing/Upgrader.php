@@ -188,10 +188,11 @@ class CRM_Apiprocessing_Upgrader extends CRM_Apiprocessing_Upgrader_Base {
    * Upgrade 1022 - add additional fields participant new
    *
    * @return bool
+   * @throws \CiviCRM_API3_Exception
    */
   public function upgrade_1022() {
     $this->ctx->log->info('Applying update 1022 - add additional fields participant new');
-    $customGroupId = CRM_Apiprocessing_Config::singleton()->getNewParticipantCustomGroupId();
+    $customGroupId = CRM_Apiprocessing_Config::getNewParticipantCustomGroupId();
     if ($customGroupId) {
       $customFields = $this->getAdditionalParticipantFields();
       foreach ($customFields as $customFieldName => $customFieldData) {

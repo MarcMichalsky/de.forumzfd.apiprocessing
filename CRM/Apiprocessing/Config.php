@@ -476,13 +476,32 @@ class CRM_Apiprocessing_Config {
   /**
    * Getter for new participant custom group id
    * @return mixed
+   * @throws \CiviCRM_API3_Exception
    */
-  public function getNewParticipantCustomGroupId() {
-    if (isset($this->_newParticipantCustomGroup['id'])) {
-      return $this->_newParticipantCustomGroup['id'];
+  public static function getNewParticipantCustomGroupId() {
+    if (self::$_singleton === NULL) {
+      try {
+        $newParticipantCustomGroup =
+          civicrm_api3(
+            'CustomGroup',
+            'getsingle',
+            ['name' => 'fzfd_participant_data_new']
+          );
+        return $newParticipantCustomGroup['id'];
+      } catch (\CiviCRM_API3_Exception $ex) {
+        throw new \CiviCRM_API3_Exception('Could not find custom data '
+          . 'set ParticipantNew in ' . __METHOD__ . ' contact your system '
+          . 'administrator. Error from API CustomGroup getsingle: '
+          . $ex->getMessage()
+        );
+      }
     }
     else {
-      return $this->_newParticipantCustomGroup;
+      $instance = CRM_Apiprocessing_Config::$_singleton;
+      if (isset($instance->_newParticipantCustomGroup['id'])) {
+        return $instance->_newParticipantCustomGroup['id'];
+      }
+      return $instance->_newParticipantCustomGroup;
     }
   }
 
