@@ -37,6 +37,11 @@
     <div class="clear"></div>
   </div>
   <div class="crm-section">
+    <div class="label">{$form.fzfd_xcm_organization_profile.label}</div>
+    <div class="content crm-select-container">{$form.fzfd_xcm_organization_profile.html}</div>
+    <div class="clear"></div>
+  </div>
+  <div class="crm-section">
     <div class="label">{$form.fzfdperson_groups.label}</div>
     <div class="content crm-select-container">{$form.fzfdperson_groups.html}</div>
     <div class="clear"></div>
