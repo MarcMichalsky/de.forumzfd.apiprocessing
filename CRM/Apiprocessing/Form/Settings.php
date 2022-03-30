@@ -15,6 +15,7 @@ class CRM_Apiprocessing_Form_Settings extends CRM_Core_Form {
   private $_cycleDaysList = array();
   private $_locationTypeList = array();
   private $_participantStatusList = [];
+  private $_xcmProfiles = [];
 
   /**
    * Method to set the participant status list
@@ -146,6 +147,19 @@ class CRM_Apiprocessing_Form_Settings extends CRM_Core_Form {
   }
 
   /**
+   * Retrieves XCM profiles (if supported). 'default' profile is always
+   * available
+   */
+  private function setXcmOrganizationProfileList() {
+    if (method_exists('CRM_Xcm_Configuration', 'getProfileList')) {
+      $xcmProfiles = CRM_Xcm_Configuration::getProfileList();
+    }
+    asort($xcmProfiles);
+    $this->_xcmProfiles = $xcmProfiles;
+  }
+
+
+  /**
    * Overridden parent method to initiate form
    *
    * @access public
@@ -159,6 +173,7 @@ class CRM_Apiprocessing_Form_Settings extends CRM_Core_Form {
     $this->setCycleDaysList();
     $this->setLocationTypeList();
     $this->setParticipantStatusList();
+    $this->setXcmOrganizationProfileList();
   }
 
   /**
@@ -189,6 +204,7 @@ class CRM_Apiprocessing_Form_Settings extends CRM_Core_Form {
     $this->add('select', 'fzfd_valid_uploads', E::ts('Valid files for upload bewerbungsschreiben and lebenslauf'), CRM_Apiprocessing_Attachment::getValidUploads(), TRUE,
       ['id' => 'fzfd_valid_uploads', 'multiple' => 'multiple', 'class' => 'crm-select2']);
     $this->add('select', 'fzfd_billing_location_type', ts('Location Type for Rechnungsadresse'), $this->_locationTypeList, TRUE);
+    $this->add('select', 'fzfd_xcm_organization_profile', ts('XCM profile to match organizations'), $this->_xcmProfiles, TRUE);
 
     // add buttons
     $this->addButtons(array(
@@ -237,6 +253,7 @@ class CRM_Apiprocessing_Form_Settings extends CRM_Core_Form {
         'fzfd_participant_status_id' => $formValues['fzfd_participant_status_id'],
         'fzfd_valid_uploads' => $formValues['fzfd_valid_uploads'],
         'fzfd_billing_location_type' => $formValues['fzfd_billing_location_type'],
+        'fzfd_xcm_organization_profile' => $formValues['fzfd_xcm_organization_profile']
       );
       if (!empty($formValues['default_cycle_day_sepa'])) {
         $data['default_cycle_day_sepa'] = $formValues['default_cycle_day_sepa'];

@@ -57,9 +57,20 @@ class CRM_Apiprocessing_Contact {
    */
   public function findOrganizationId($params) {
     if (!empty($params)) {
-      $params['contact_type'] = "Organization";
+      $orgaParams['contact_type'] = "Organization";
+      $orgaParams["organization_name"] = $params["organization_name"];
+      $orgaParams["xcm_profile"] = CRM_Apiprocessing_Settings::singleton()
+        ->get('fzfd_xcm_organization_profile');
+      foreach ($params as $key => $value) {
+        $keySegments = explode("_", $key);
+        if ($keySegments[0] == "organization" && $keySegments[1] != "name") {
+          array_shift($keySegments);
+          $key = implode("_", $keySegments);
+          $orgaParams[$key] = $value;
+        }
+      }
       try {
-        $organization = civicrm_api3('Contact', 'getorcreate', $params);
+        $organization = civicrm_api3('Contact', 'getorcreate', $orgaParams);
         if (isset($organization['id'])) {
           return (int) $organization['id'];
         }
