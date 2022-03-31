@@ -29,5 +29,6 @@
         "text\/plain"
     ],
     "fzfd_billing_location_type": "5",
-    "default_cycle_day_sepa": "1"
+    "default_cycle_day_sepa": "1",
+    "fzfd_xcm_organization_profile": "default"
 }
