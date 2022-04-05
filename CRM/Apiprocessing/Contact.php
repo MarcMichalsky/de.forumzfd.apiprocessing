@@ -33,7 +33,7 @@ class CRM_Apiprocessing_Contact {
    * Method to find either the individual id with email if there is a single match or the number of matches found
    *
    * @param array $params
-   * @return array|bool
+   * @return int|bool
    */
   public function findIndividualId(array $params) {
     if (!empty($params)) {
@@ -104,12 +104,11 @@ class CRM_Apiprocessing_Contact {
 
   /**
    * Method to process an incoming individual. This method will determine if the individual can be uniquely identified
-   * by the email. If no individual with the email is found, it will create a new individual. If more individuals are
-   * found with the email, it will create a new individual but also create an error activity.
+   * by the email. If no individual with the email is found, it will create a new individual.
    *
    * @param array $params
-   * @return int|bool
-   * @throws Exception when contact not created
+   * @return int
+   * @throws CiviCRM_API3_Exception when contact not created
    */
   public function processIncomingIndividual(array $params) {
     $findId = FALSE;
@@ -133,12 +132,13 @@ class CRM_Apiprocessing_Contact {
         if (isset($params['rechnungsadresse']) && !empty($params['rechnungsadresse'])) {
           $address->processBillingAddress($params['rechnungsadresse'], (int) $findId);
         }
-        unset ($address);
-        return $findId;
+      }
+      else {
+        throw new CiviCRM_API3_Exception('Could not find or create contact.');
       }
     }
-    unset($address);
-    return FALSE;
+    unset ($address);
+    return $findId;
   }
 
   /**

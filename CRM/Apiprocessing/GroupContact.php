@@ -43,44 +43,34 @@ class CRM_Apiprocessing_GroupContact {
 		// Ignore non existent group ids or group ids which are not part of the parent group.
 		$subscribeNewsletterIds = $this->filterGroupIds($subscribeNewsletterIds);
 		if (empty($subscribeNewsletterIds)) {
-			return array(
-  			'is_error' => 1,
-  			'count' => 0,
-  			'values' => array(),
-  			'error_message' => 'Could not unsubscribe contact to newsletters in '.__METHOD__.', contact your system administrator. No valid groups given',
-			);
+      return civicrm_api3_create_error(
+        'Could not unsubscribe contact to newsletters in '.__METHOD__.', contact your system administrator. No valid groups given.',
+        $apiParams
+      );
 		}
 
-		$contact = new CRM_Apiprocessing_Contact();
-    $newsletterContactId = $contact->processIncomingIndividual($apiParams);
-		if (isset($newsletterContactId['individual_id'])) {
-			$groupContactApiParams['group_id'] = $subscribeNewsletterIds;
-			$groupContactApiParams['contact_id'] = $newsletterContactId['individual_id'];
-			$groupContactApiParams['status'] = 'Removed';
-			try {
-				$result = civicrm_api3('GroupContact', 'create', $groupContactApiParams);
-			} catch (CiviCRM_API3_Exception $ex) {
-				return array(
-    			'is_error' => 1,
-    			'count' => 0,
-    			'values' => array(),
-    			'error_message' => 'Could not unsubscribe contact to newsletters in '.__METHOD__.', contact your system administrator. Error from API GroupContact create: '.$ex->getMessage(),
-				);
-			}
-		} else {
-			return array(
-    			'is_error' => 1,
-    			'count' => 0,
-    			'values' => array(),
-    			'error_message' => 'Could not unsubscribe contact to newsletters in because we could not match it to a contact in '.__METHOD__.', contact your system administrator. Error from API GroupContact create: '.$ex->getMessage(),
-				);
-		}
+    $contact = new CRM_Apiprocessing_Contact();
+    try {
+      $newsletterContactId = $contact->processIncomingIndividual($apiParams);
+    } catch (CiviCRM_API3_Exception $ex) {
+      return civicrm_api3_create_error(
+        'Could not unsubscribe contact to newsletters in '.__METHOD__.', contact your system administrator. Error from API GroupContact create: '.$ex->getMessage(),
+        $apiParams
+      );
+    }
+    $groupContactApiParams['group_id'] = $subscribeNewsletterIds;
+    $groupContactApiParams['contact_id'] = $newsletterContactId;
+    $groupContactApiParams['status'] = 'Removed';
+    try {
+      $result = civicrm_api3('GroupContact', 'create', $groupContactApiParams);
+    } catch (CiviCRM_API3_Exception $ex) {
+      return civicrm_api3_create_error(
+        'Could not unsubscribe contact to newsletters in ' . __METHOD__ . ', contact your system administrator. Error from API GroupContact create: ' . $ex->getMessage(),
+        $groupContactApiParams
+      );
+    }
 
-    return array(
-    	'is_error' => 0,
-    	'count' => count($subscribeNewsletterIds),
-    	'values' => array(),
-		);
+    return $result;
   }
 
   /**
