@@ -37,7 +37,7 @@ class CRM_Apiprocessing_Attachment {
             'mime_type' => $mimeType,
             'entity_id' => $entityId,
             'field_name' => $fieldName,
-            'content' => $this->_file['content'],
+            'options' => ['move-file' => $this->_file['tmp_name']],
           ]);
           if ($result['id']) {
             return (int) $result['id'];
@@ -59,7 +59,7 @@ class CRM_Apiprocessing_Attachment {
    */
   public function getMimeType() {
     $finfo = finfo_open(FILEINFO_MIME_TYPE);
-    $mimeType = finfo_file($finfo, $this->_file['name']);
+    $mimeType = finfo_file($finfo, $this->_file['tmp_name']);
     if ($mimeType) {
       return $mimeType;
     }
@@ -90,10 +90,10 @@ class CRM_Apiprocessing_Attachment {
    * @return bool
    */
   public function isValidFile() {
-    if (!isset($this->_file['content']) || !isset($this->_file['name'])) {
-      return FALSE;
+    if (isset($this->_file['name']) && file_exists($this->_file['tmp_name'])) {
+      return TRUE;
     }
-    return TRUE;
+    return FALSE;
   }
 
   /**

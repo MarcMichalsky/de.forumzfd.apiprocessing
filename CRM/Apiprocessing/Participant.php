@@ -1,5 +1,7 @@
 <?php
 
+use CRM_Apiprocessing_Exceptions_ParticipantAttachmentException as ParticipantAttachmentException;
+
 class CRM_Apiprocessing_Participant {
 
 	/**
@@ -40,8 +42,8 @@ class CRM_Apiprocessing_Participant {
       $participantParams['role_id'] = CRM_Apiprocessing_Config::singleton()->getAttendeeParticipantRoleId();
 			$result = civicrm_api3('Participant', 'create', $participantParams);
       // if files for lebenslauf or bewerbungsschreiben added, upload attachments to CiviCRM
-      if (isset($apiParams['bewerbungsschreiben']) || isset($apiParams['lebenslauf'])) {
-        $this->addAttachment((int) $result['id'], $apiParams, $activity);
+      if (isset($_FILES['bewerbungsschreiben']) || isset($_FILES['lebenslauf'])) {
+        $this->addAttachment((int) $result['id'], $_FILES, $activity);
       }
       // process invoice @todo uncomment once billing extension is complete
       //$invoice = new CRM_Apiprocessing_Invoice();
@@ -95,34 +97,39 @@ class CRM_Apiprocessing_Participant {
     }
   }
 
-  /**
-   * Method to add attachments to participant
-   *
-   * @param int $participantId
-   * @param array $apiParams
-   * @param CRM_Apiprocessing_Activity $activity
-   */
-  private function addAttachment(int $participantId, array $apiParams, CRM_Apiprocessing_Activity $activity) {
-    $possibleAttachments = ['bewerbungsschreiben', 'lebenslauf'];
-    foreach ($possibleAttachments as $possibleAttachment) {
-      if (isset($apiParams[$possibleAttachment]) && !empty($possibleAttachment)) {
-        if (is_array($apiParams[$possibleAttachment])) {
-          $columnMethod = "get" . ucfirst($possibleAttachment) . "CustomFieldId";
-          $customField = "custom_" . CRM_Apiprocessing_Config::singleton()->$columnMethod();
-          if ($customField) {
-            $attachment = new CRM_Apiprocessing_Attachment($apiParams[$possibleAttachment]);
-            $fileId = $attachment->addToCivi($participantId, $customField);
-            if (!$fileId) {
-              $activity->createNewErrorActivity('akademie', ts('Attachment for ') . $possibleAttachment . ts(' could not be loaded, check CiviCRM logs.'), $apiParams);
+    /**
+     * Method to add attachments to participant
+     *
+     * @param int $participantId
+     * @param array $apiParams
+     * @param CRM_Apiprocessing_Activity $activity
+     * @throws CRM_Apiprocessing_Exceptions_ParticipantAttachmentException
+     */
+    private function addAttachment(int $participantId, array $files, CRM_Apiprocessing_Activity $activity)
+    {
+        $possibleAttachments = ['bewerbungsschreiben', 'lebenslauf'];
+        foreach ($possibleAttachments as $possibleAttachment) {
+            if (!empty($files[$possibleAttachment])) {
+                if (is_array($files[$possibleAttachment])) {
+                    $columnMethod = "get" . ucfirst($possibleAttachment) . "CustomFieldId";
+                    $customField = "custom_" . CRM_Apiprocessing_Config::singleton()->$columnMethod();
+                    if ($customField) {
+                        $attachment = new CRM_Apiprocessing_Attachment($files[$possibleAttachment]);
+                        $fileId = $attachment->addToCivi($participantId, $customField);
+                        if (!$fileId) {
+                            $message = ts('File for ') . $possibleAttachment . ts(' could not be attached, check CiviCRM logs.');
+                            $activity->createNewErrorActivity('akademie', $message, $files);
+                            throw new ParticipantAttachmentException($message, ParticipantAttachmentException::ERROR_CODE_COULD_NOT_ATTACH_FILE);
+                        }
+                    }
+                } else {
+                    $message = ts('Attachment for ') . $possibleAttachment . ts(' is not an array.');
+                    $activity->createNewErrorActivity('akademie', $message, $files);
+                    throw new ParticipantAttachmentException($message, ParticipantAttachmentException::ERROR_CODE_NOT_AN_ARRAY);
+                }
             }
-          }
         }
-        else {
-          $activity->createNewErrorActivity('akademie', ts('Attachment for ') . $possibleAttachment . ts(' is not an array.'), $apiParams);
-        }
-      }
     }
-  }
 
   /**
    * Method to determine if participant can be registered or should be waitlisted
