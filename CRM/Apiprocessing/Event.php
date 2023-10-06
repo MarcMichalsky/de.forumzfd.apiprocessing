@@ -24,11 +24,12 @@ class CRM_Apiprocessing_Event {
     );
   }
 
-  /**
-   * Method to get all public events and add the required data
-   *
-   * @throws CiviCRM_API3_Exception
-   */
+    /**
+     * Method to get all public events and add the required data
+     *
+     * @throws CiviCRM_API3_Exception
+     * @throws CRM_Apiprocessing_Exceptions_BaseException
+     */
   public function get() {
     $eventParams = $this->_defaultEventParams;
     $events = civicrm_api3('Event', 'get', $eventParams);
@@ -52,20 +53,21 @@ class CRM_Apiprocessing_Event {
       return $this->prepareFzfdEvent($event);
 
     }
-    catch (CiviCRM_API3_Exception $ex) {
+    catch (Exception $ex) {
       return array(
         'error_message' => $ex->getMessage(),
       );
     }
   }
 
-  /**
-   * Method to set all data for a single Fzfd Event
-   *
-   * @param $event
-   * @return array
-   * @throws CiviCRM_API3_Exception
-   */
+    /**
+     * Method to set all data for a single Fzfd Event
+     *
+     * @param $event
+     * @return array
+     * @throws CiviCRM_API3_Exception
+     * @throws CRM_Apiprocessing_Exceptions_BaseException
+     */
   private function prepareFzfdEvent($event) {
     $result = array(
       'event_id' => $event['id'],
@@ -122,12 +124,13 @@ class CRM_Apiprocessing_Event {
     return $result;
   }
 
-  /**
-   * Method to count participants of various statusses
-   *
-   * @param $eventId
-   * @param $result
-   */
+    /**
+     * Method to count participants of various statusses
+     *
+     * @param $eventId
+     * @param $result
+     * @throws CRM_Apiprocessing_Exceptions_BaseException
+     */
   private function getParticipantStatusCount($eventId, &$result) {
     // get statusIds from config
     $counted_participant_status_type_ids = CRM_Apiprocessing_Config::singleton()->getCountedParticipantStatusIds();
