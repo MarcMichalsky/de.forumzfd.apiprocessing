@@ -1404,7 +1404,7 @@ class CRM_Apiprocessing_Config {
           case "6 Zertifikat ausgehändigt":
             $this->_zertifikatParticipantStatusId = $participantStatusId;
             break;
-          case "6.1 Zertifikat nicht ausgestellt":
+          case "6.1_Teilgenommen":
             $this->_zertifikatNichtParticipantStatusId = $participantStatusId;
             break;
         }
