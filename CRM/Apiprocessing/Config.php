@@ -661,11 +661,28 @@ class CRM_Apiprocessing_Config {
 		return $this->_departmentDataCustomFieldId;
 	}
 
+    /**
+     * Getter for participant status Registered
+     */
+    public function getRegisteredParticipantStatusId() {
+        return $this->_registeredParticipantStatusId;
+    }
+
 	/**
-	 * Getter for participant status Registered
+	 * Getter for counted participant status IDs
 	 */
-	public function getRegisteredParticipantStatusId() {
-		return $this->_registeredParticipantStatusId;
+	public function getCountedParticipantStatusIds() {
+        $counted_participant_status_type_ids = [];
+        $counted_participant_status_types = civicrm_api3('ParticipantStatusType', 'get', [
+            'sequential' => 1,
+            'return' => ["id"],
+            'is_counted' => 1,
+            'options' => ['limit' => 0],
+        ])['values'];
+        foreach ($counted_participant_status_types as $status_type) {
+            $counted_participant_status_type_ids[] = $status_type['id'];
+        }
+		return $counted_participant_status_type_ids;
 	}
 
 	/**
