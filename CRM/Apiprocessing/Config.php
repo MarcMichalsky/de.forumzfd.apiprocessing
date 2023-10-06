@@ -1367,7 +1367,7 @@ class CRM_Apiprocessing_Config {
           case "Cancelled":
             $this->_cancelledParticipantStatusId = $participantStatusId;
             break;
-          case "2.1 Rechnung zugesandt":
+          case "2.1_Rechnung_zugesandt":
             $this->_rechnungZuParticipantStatusId = $participantStatusId;
             break;
           case "Partially paid":
