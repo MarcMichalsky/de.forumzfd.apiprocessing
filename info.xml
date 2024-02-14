@@ -26,5 +26,12 @@
   <comments>Extension is in production</comments>
   <civix>
     <namespace>CRM/Apiprocessing</namespace>
+    <format>22.10.0</format>
   </civix>
+  <mixins>
+    <mixin>menu-xml@1.0.0</mixin>
+  </mixins>
+  <classloader>
+    <psr0 prefix="CRM_" path="."/>
+  </classloader>
 </extension>
