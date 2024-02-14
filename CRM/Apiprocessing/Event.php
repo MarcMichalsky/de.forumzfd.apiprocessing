@@ -24,11 +24,12 @@ class CRM_Apiprocessing_Event {
     );
   }
 
-  /**
-   * Method to get all public events and add the required data
-   *
-   * @throws CiviCRM_API3_Exception
-   */
+    /**
+     * Method to get all public events and add the required data
+     *
+     * @throws CiviCRM_API3_Exception
+     * @throws CRM_Apiprocessing_Exceptions_BaseException
+     */
   public function get() {
     $eventParams = $this->_defaultEventParams;
     $events = civicrm_api3('Event', 'get', $eventParams);
@@ -52,20 +53,21 @@ class CRM_Apiprocessing_Event {
       return $this->prepareFzfdEvent($event);
 
     }
-    catch (CiviCRM_API3_Exception $ex) {
+    catch (Exception $ex) {
       return array(
         'error_message' => $ex->getMessage(),
       );
     }
   }
 
-  /**
-   * Method to set all data for a single Fzfd Event
-   *
-   * @param $event
-   * @return array
-   * @throws CiviCRM_API3_Exception
-   */
+    /**
+     * Method to set all data for a single Fzfd Event
+     *
+     * @param $event
+     * @return array
+     * @throws CiviCRM_API3_Exception
+     * @throws CRM_Apiprocessing_Exceptions_BaseException
+     */
   private function prepareFzfdEvent($event) {
     $result = array(
       'event_id' => $event['id'],
@@ -122,21 +124,23 @@ class CRM_Apiprocessing_Event {
     return $result;
   }
 
-  /**
-   * Method to count participants of various statusses
-   *
-   * @param $eventId
-   * @param $result
-   */
+    /**
+     * Method to count participants of various statusses
+     *
+     * @param $eventId
+     * @param $result
+     * @throws CRM_Apiprocessing_Exceptions_BaseException
+     */
   private function getParticipantStatusCount($eventId, &$result) {
     // get statusIds from config
-    $registered = CRM_Apiprocessing_Config::singleton()->getRegisteredParticipantStatusId();
+    $counted_participant_status_type_ids = CRM_Apiprocessing_Config::singleton()->getCountedParticipantStatusIds();
     $rechnungZugestandt = CRM_Apiprocessing_Config::singleton()->getRechnungZuParticipantStatusId();
     $partiallyPaid = CRM_Apiprocessing_Config::singleton()->getPartiallyPaidParticipantStatusId();
     $incomplete = CRM_Apiprocessing_Config::singleton()->getIncompleteParticipantStatusId();
     $kompletteZahlung = CRM_Apiprocessing_Config::singleton()->getKompletteZahlungParticipantStatusId();
     $zertifikat = CRM_Apiprocessing_Config::singleton()->getZertifikatParticipantStatusId();
     $zertifikatNicht = CRM_Apiprocessing_Config::singleton()->getZertifikatNichtParticipantStatusId();
+
     // retrieve all registered participants
     $query = "SELECT status_id FROM civicrm_participant WHERE event_id = %1 AND is_test = %2";
     $dao = CRM_Core_DAO::executeQuery($query, [
@@ -144,38 +148,39 @@ class CRM_Apiprocessing_Event {
       2 => [0, 'Integer'],
     ]);
     // count each status
-    while ($dao->fetch()) {
-      switch ($dao->status_id) {
-        case $registered:
-          $result['registration_count']++;
-          $result['registered_count']++;
-          break;
-        case $rechnungZugestandt:
-          $result['registration_count']++;
-          $result['rechnung_zugesandt_count']++;
-          break;
-        case $partiallyPaid:
-          $result['registration_count']++;
-          $result['partially_paid_count']++;
-          break;
-        case $incomplete:
-          $result['registration_count']++;
-          $result['incomplete_count']++;
-          break;
-        case $kompletteZahlung:
-          $result['registration_count']++;
-          $result['komplette_zahlung_count']++;
-          break;
-        case $zertifikat:
-          $result['registration_count']++;
-          $result['zertifikat_count']++;
-          break;
-        case $zertifikatNicht:
-          $result['registration_count']++;
-          $result['zertifikat_nicht_count']++;
-          break;
+      while ($dao->fetch()) {
+          switch ($dao->status_id) {
+              case $rechnungZugestandt:
+                  $result['registration_count']++;
+                  $result['rechnung_zugesandt_count']++;
+                  break;
+              case $partiallyPaid:
+                  $result['registration_count']++;
+                  $result['partially_paid_count']++;
+                  break;
+              case $incomplete:
+                  $result['registration_count']++;
+                  $result['incomplete_count']++;
+                  break;
+              case $kompletteZahlung:
+                  $result['registration_count']++;
+                  $result['komplette_zahlung_count']++;
+                  break;
+              case $zertifikat:
+                  $result['registration_count']++;
+                  $result['zertifikat_count']++;
+                  break;
+              case $zertifikatNicht:
+                  $result['registration_count']++;
+                  $result['zertifikat_nicht_count']++;
+                  break;
+              default:
+                  if (in_array($dao->status_id, $counted_participant_status_type_ids)) {
+                      $result['registered_count']++;
+                      $result['registration_count']++;
+                  };
+          }
       }
-    }
   }
 
   /**

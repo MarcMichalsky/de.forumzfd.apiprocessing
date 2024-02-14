@@ -14,8 +14,8 @@
     <url desc="Support">https://github.com/ErikHommel</url>
     <url desc="Licensing">http://www.gnu.org/licenses/agpl-3.0.html</url>
   </urls>
-  <releaseDate>2021-11-08</releaseDate>
-  <version>2.9</version>
+  <releaseDate>2024-02-14</releaseDate>
+  <version>2.10</version>
   <develStage>stable</develStage>
   <compatibility>
     <ver>4.7</ver>
@@ -26,5 +26,12 @@
   <comments>Extension is in production</comments>
   <civix>
     <namespace>CRM/Apiprocessing</namespace>
+    <format>22.10.0</format>
   </civix>
+  <mixins>
+    <mixin>menu-xml@1.0.0</mixin>
+  </mixins>
+  <classloader>
+    <psr0 prefix="CRM_" path="."/>
+  </classloader>
 </extension>

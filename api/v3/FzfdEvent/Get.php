@@ -21,5 +21,9 @@ function _civicrm_api3_fzfd_event_Get_spec(&$spec) {
  */
 function civicrm_api3_fzfd_event_Get($params) {
   $event = new CRM_Apiprocessing_Event();
-	return civicrm_api3_create_success($event->get(), $params, 'FzfdEvent', 'get');
+  try {
+      return civicrm_api3_create_success($event->get(), $params, 'FzfdEvent', 'get');
+  } catch (Exception $e) {
+      civicrm_api3_create_error($e->getMessage(), $params);
+  }
 }

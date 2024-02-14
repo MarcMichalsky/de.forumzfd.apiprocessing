@@ -661,11 +661,33 @@ class CRM_Apiprocessing_Config {
 		return $this->_departmentDataCustomFieldId;
 	}
 
-	/**
-	 * Getter for participant status Registered
-	 */
-	public function getRegisteredParticipantStatusId() {
-		return $this->_registeredParticipantStatusId;
+    /**
+     * Getter for participant status Registered
+     */
+    public function getRegisteredParticipantStatusId() {
+        return $this->_registeredParticipantStatusId;
+    }
+
+    /**
+     * Getter for counted participant status IDs
+     * @throws CRM_Apiprocessing_Exceptions_BaseException
+     */
+	public function getCountedParticipantStatusIds(): array {
+        $counted_participant_status_type_ids = [];
+        $counted_participant_status_types = civicrm_api3('ParticipantStatusType', 'get', [
+            'sequential' => 1,
+            'return' => ["id"],
+            'is_counted' => 1,
+            'options' => ['limit' => 0],
+        ]);
+        if (!isset($counted_participant_status_types['is_error']) || $counted_participant_status_types['is_error'] != 0) {
+            $message = $counted_participant_status_types['error_message'] ?? 'Something went wrong on the attempt to retrieve participant status IDs';
+            throw new CRM_Apiprocessing_Exceptions_BaseException($message);
+        }
+        foreach ($counted_participant_status_types['values'] as $status_type) {
+            $counted_participant_status_type_ids[] = $status_type['id'];
+        }
+		return $counted_participant_status_type_ids;
 	}
 
 	/**
@@ -1367,7 +1389,7 @@ class CRM_Apiprocessing_Config {
           case "Cancelled":
             $this->_cancelledParticipantStatusId = $participantStatusId;
             break;
-          case "2.1 Rechnung zugesandt":
+          case "2.1_Rechnung_zugesandt":
             $this->_rechnungZuParticipantStatusId = $participantStatusId;
             break;
           case "Partially paid":
@@ -1382,7 +1404,7 @@ class CRM_Apiprocessing_Config {
           case "6 Zertifikat ausgehändigt":
             $this->_zertifikatParticipantStatusId = $participantStatusId;
             break;
-          case "6.1 Zertifikat nicht ausgestellt":
+          case "6.1_Teilgenommen":
             $this->_zertifikatNichtParticipantStatusId = $participantStatusId;
             break;
         }
