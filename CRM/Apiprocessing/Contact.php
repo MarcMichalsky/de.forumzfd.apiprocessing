@@ -1,5 +1,7 @@
 <?php
 
+use CRM_Apiprocessing_ExtensionUtil as E;
+
 /**
  * Class for ForumZFD Contact API processing to CiviCRM
  *
@@ -232,10 +234,19 @@ class CRM_Apiprocessing_Contact {
       $validTitles = array();
       $validGroupIds = CRM_Apiprocessing_Settings::singleton()->get('fzfdperson_groups');
       foreach ($validGroupIds as $validGroupId) {
-        $validTitles[] = civicrm_api3('Group', 'getvalue', array(
-          'id' => $validGroupId,
-          'return' => 'title',
-          ));
+          try {
+              $validTitles[] = civicrm_api3('Group', 'getvalue', array(
+                  'id' => $validGroupId,
+                  'return' => 'title',
+              ));
+          } catch (CiviCRM_API3_Exception $ex) {
+              if ($ex->getMessage() == "Expected one Group but found 0") {
+                  $validGroupIds = array_diff($validGroupIds, [$validGroupId]);
+                  Civi::log()->warning(E::LONG_NAME . ": Group with id $validGroupId not found");
+                  continue;
+              }
+              throw $ex;
+          }
       }
       if (empty($validTitles)) {
         return FALSE;
