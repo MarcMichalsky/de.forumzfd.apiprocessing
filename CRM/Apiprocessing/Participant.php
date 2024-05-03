@@ -28,7 +28,11 @@ class CRM_Apiprocessing_Participant {
 			// Try to find an existing registration. If so create an error activity and do not create an extra participant record.
       $activity = new CRM_Apiprocessing_Activity();
 			$existingParticipant = $this->findCurrentRegistration($apiParams['event_id'], $contactId);
-			if ($existingParticipant && isset($existingParticipant['participant_status_id']) && in_array($existingParticipant['participant_status_id'], $config->getCountedParticipantStatusIds())) {
+			if ($existingParticipant
+                && isset($existingParticipant['participant_status_id'])
+                && ($existingParticipant['participant_status_id'] == $config->getRegisteredParticipantStatusId()
+                    || $existingParticipant['participant_status_id'] == $config->getWaitlistedParticipantStatusId())
+            ) {
 				$activity->createNewErrorActivity('akademie', ts('Request to check the data'), $apiParams, $contactId);
 				return $this->createApi3SuccessReturnArray($apiParams['event_id'], $contactId, $existingParticipant['participant_id']);
 			} elseif ($existingParticipant && isset($existingParticipant['participant_status_id']) && $existingParticipant['participant_status_id'] == $config->getCancelledParticipantStatusId()) {
