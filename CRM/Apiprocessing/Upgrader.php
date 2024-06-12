@@ -5,12 +5,27 @@
  */
 class CRM_Apiprocessing_Upgrader extends CRM_Apiprocessing_Upgrader_Base {
 
-  public function install() {
-		$this->executeCustomDataFile('xml/Campaign.xml');
-		$this->executeCustomDataFile('xml/WeitereInformation.xml');
-		$this->executeCustomDataFile('xml/Weiterbildung.xml');
-		$this->executeCustomDataFile('xml/EventNew.xml');
-    $this->executeCustomDataFile('xml/ParticipantNew.xml');
+  public function install()
+  {
+    $xml_files = [
+      'xml/Campaign.xml',
+      'xml/WeitereInformation.xml',
+      'xml/Weiterbildung.xml',
+      'xml/EventNew.xml',
+      'xml/ParticipantNew.xml',
+    ];
+    foreach ($xml_files as $xml_file) {
+      try {
+        $this->executeCustomDataFile($xml_file);
+      } catch (Exception $e) {
+        if ($e instanceof PEAR_Exception && $e->getMessage() == 'DB Error: already exists') {
+          $this->ctx->log->error('Some fields already exist, skipping installation of ' . $xml_file);
+        } else {
+          $this->ctx->log->error('Error during installation: ' . $e->getMessage());
+          return FALSE;
+        }
+      }
+    }
     new CRM_Apiprocessing_Initialize();
   }
 
