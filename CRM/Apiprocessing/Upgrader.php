@@ -3,7 +3,7 @@
 /**
  * Collection of upgrade steps.
  */
-class CRM_Apiprocessing_Upgrader extends CRM_Apiprocessing_Upgrader_Base {
+class CRM_Apiprocessing_Upgrader extends CRM_Extension_Upgrader_Base {
 
   public function install() {
 		$this->executeCustomDataFile('xml/Campaign.xml');

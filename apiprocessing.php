@@ -76,24 +76,6 @@ function apiprocessing_civicrm_install() {
 }
 
 /**
- * Implements hook_civicrm_postInstall().
- *
- * @link http://wiki.civicrm.org/confluence/display/CRMDOC/hook_civicrm_postInstall
- */
-function apiprocessing_civicrm_postInstall() {
-  _apiprocessing_civix_civicrm_postInstall();
-}
-
-/**
- * Implements hook_civicrm_uninstall().
- *
- * @link http://wiki.civicrm.org/confluence/display/CRMDOC/hook_civicrm_uninstall
- */
-function apiprocessing_civicrm_uninstall() {
-  _apiprocessing_civix_civicrm_uninstall();
-}
-
-/**
  * Implements hook_civicrm_enable().
  *
  * @link http://wiki.civicrm.org/confluence/display/CRMDOC/hook_civicrm_enable
@@ -101,24 +83,6 @@ function apiprocessing_civicrm_uninstall() {
 function apiprocessing_civicrm_enable() {
   _apiprocessing_required_extensions_installed();
   _apiprocessing_civix_civicrm_enable();
-}
-
-/**
- * Implements hook_civicrm_disable().
- *
- * @link http://wiki.civicrm.org/confluence/display/CRMDOC/hook_civicrm_disable
- */
-function apiprocessing_civicrm_disable() {
-  _apiprocessing_civix_civicrm_disable();
-}
-
-/**
- * Implements hook_civicrm_upgrade().
- *
- * @link http://wiki.civicrm.org/confluence/display/CRMDOC/hook_civicrm_upgrade
- */
-function apiprocessing_civicrm_upgrade($op, CRM_Queue_Queue $queue = NULL) {
-  return _apiprocessing_civix_civicrm_upgrade($op, $queue);
 }
 
 /**
@@ -168,12 +132,3 @@ function apiprocessing_civicrm_navigationMenu(&$menu) {
   ));
   _apiprocessing_civix_navigationMenu($menu);
 } // */
-
-/**
- * Implements hook_civicrm_entityTypes().
- *
- * @link https://docs.civicrm.org/dev/en/latest/hooks/hook_civicrm_entityTypes
- */
-function apiprocessing_civicrm_entityTypes(&$entityTypes) {
-  _apiprocessing_civix_civicrm_entityTypes($entityTypes);
-}
