@@ -19,9 +19,9 @@ class CRM_Apiprocessing_Upgrader extends CRM_Extension_Upgrader_Base {
         $this->executeCustomDataFile($xml_file);
       } catch (Exception $e) {
         if ($e instanceof PEAR_Exception && $e->getMessage() == 'DB Error: already exists') {
-          $this->ctx->log->error('Some fields already exist, skipping installation of ' . $xml_file);
+          $this->ctx->log->info('Some fields already exist, skipping installation of ' . $xml_file);
         } else {
-          $this->ctx->log->error('Error during installation: ' . $e->getMessage());
+          $this->ctx->log->info('Error during installation: ' . $e->getMessage());
           return FALSE;
         }
       }
