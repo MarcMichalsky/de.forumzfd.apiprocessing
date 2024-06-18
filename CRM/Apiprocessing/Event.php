@@ -142,7 +142,7 @@ class CRM_Apiprocessing_Event {
     $zertifikatNicht = CRM_Apiprocessing_Config::singleton()->getZertifikatNichtParticipantStatusId();
 
     // retrieve all registered participants
-    $query = "SELECT status_id FROM civicrm_participant WHERE event_id = %1 AND is_test = %2";
+    $query = "SELECT status_id FROM civicrm_participant  INNER JOIN civicrm_contact ON civicrm_contact.id = civicrm_participant.contact_id AND civicrm_contact.is_deleted != 1 WHERE event_id = %1 AND is_test = %2";
     $dao = CRM_Core_DAO::executeQuery($query, [
       1 => [$eventId, 'Integer'],
       2 => [0, 'Integer'],
